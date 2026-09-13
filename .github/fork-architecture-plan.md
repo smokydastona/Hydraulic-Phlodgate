@@ -33,7 +33,7 @@ The long-term scaling strategy remains:
 ## Ground Truth Snapshot
 
 ### Date
-- 2026-09-09
+- 2026-09-13
 
 ### Validated repo baseline
 - Live fork: `smokydastona/Hydraulic--Skeleton_Key`
@@ -2259,6 +2259,308 @@ Hard runtime rule: no machine may be marked `EXECUTABLE` merely because it can e
 - Do not attempt full Forge or NeoForge API emulation inside Hydraulic's Bedrock compatibility layer.
 - Do not make Bedrock behavior-pack delivery the foundational assumption for mod behavior.
 - Do not treat decompiled third-party code as a normal implementation input.
+
+## Universal 10-15 Systems Architecture & Master Roadmap
+
+### System 1: Universal Runtime Capability Layer
+The fundamental bridge between arbitrary Java objects and Bedrock operations must follow a normalized capability pipeline:
+
+```text
+Java Object
+     ↓
+Capability Discovery (Indexed facts + reflection + registry inspection)
+     ↓
+Normalized Capability Model (Forge / Fabric Transfer / Botarium / Native)
+     ↓
+Runtime Binding (Direct typed dispatch resolution)
+     ↓
+Hydraulic Runtime Bridge (Item, Fluid, Energy, Menu, Block Entity)
+     ↓
+Bedrock Operation (Packet translation, UI presentation, authoritative sync)
+```
+
+Normalized capability hierarchy:
+```text
+Machine / Block / Entity
+ ├── Inventory (input slots, output slots, fuel, upgrade, catalyst, sided rules)
+ ├── Item Transfer (insert, extract, count limits, stack preservation, simulation)
+ ├── Fluid Transfer (fill, drain, tanks, capacity, fluid identity, temperature/viscosity)
+ ├── Energy (receive, extract, capacity, transfer rates, storage vs generation vs consumption)
+ ├── Processing (recipe identity, input consumption, output generation, progress ticks, catalysts)
+ └── State (active/idle, progress scalar, configuration modes, redstone response)
+```
+
+### System 2: Universal Machine Runtime
+Generic machine abstraction avoiding per-mod code duplication:
+```text
+MachineRuntime
+ ├── identity (Namespaced Java identifier + blockstate metadata)
+ ├── position (ServerLevel + BlockPos)
+ ├── state (Active, Idle, Blocked, Error, Powered)
+ ├── inventory (Input/Output/Fuel slot mapping & transaction borders)
+ ├── fluids (Input/Output tanks with volume and identity gates)
+ ├── energy (Internal buffer, transfer caps, required energy per tick)
+ ├── processing (Active recipe match, tick progression, completion emission)
+ ├── automation (Sided capability exposure to external pipes/hoppers)
+ ├── redstone (High, Low, Ignored, Pulsed operating modes)
+ ├── interaction (Bedrock block-use insertion/extraction & GUI dispatch)
+ └── synchronization (Dirty-state capture -> SyncPlanner -> Bedrock packet handoff)
+```
+Target mod reduction:
+- **Create**: Mechanical Press → Item Input (press bed), Kinetic Requirement (power/energy equivalent), Item Output, Recipe (pressing).
+- **Mekanism**: Enrichment Chamber → Item Input, Energy Input, Item Output, Recipe (enriching).
+- **Thermal**: Pulverizer → Item Input, Energy Input, Primary/Secondary Item Output, Recipe (pulverizing).
+- **Immersive Engineering**: Crusher → Multiblock Input, Energy Input, Item Outputs, Recipe (crushing).
+
+### System 3: Universal Automation & Transfer
+Normalized transfer contract across items, fluids, and energy:
+- **Operations**: `insert`, `extract`, `simulate`, `canInsert`, `canExtract`.
+- **Context**: `side` (Direction), `slot` / `tank` index, `filter` predicate, `priority` integer, `limit` transfer budget.
+- **Participants**: Pipes, conveyors, hoppers, machines, storage drawers, fluid tanks, energy cables, and logistics networks all participate through the single `ResourceAutomationAccess` substrate.
+
+### System 4: Universal Fluid Runtime
+First-class fluid capability foundation:
+- **Core Types**: `FluidIdentity`, `FluidStack`, `FluidContainer`, `FluidTank`, `FluidTransfer`, `FluidCapability`, `FluidHandler`.
+- **Operations**: `fill(FluidStack, Simulation)`, `drain(FluidStack/Amount, Simulation)`, `capacity()`, `amount()`, `fluid()`, `canFill(FluidIdentity)`, `canDrain(FluidIdentity)`.
+- **Transfer Scenarios**:
+  - Container $\leftrightarrow$ Tank: bucket $\to$ tank, tank $\to$ bucket, portable canister $\to$ tank.
+  - Machine Fluid I/O: input tank filling, output tank evacuation, recipe fluid consumption/generation.
+  - Automation Transfer: pipe $\to$ tank, tank $\to$ pipe, machine $\to$ tank.
+  - World Interaction: Fallback to approximated source/flow block presentations without breaking server-side fluid physics.
+
+### System 5: Universal Energy Runtime
+Normalization of disparate power systems (Forge Energy / Redstone Flux / Tech Reborn Energy / Botania Mana equivalents):
+- **Core Abstraction**: `EnergyStorage` (`capacity`, `stored`, `maxReceive`, `maxExtract`, `receive`, `extract`).
+- **Network Classification**:
+  - `EnergyStorage`: Local battery, capacitor, machine buffer.
+  - `EnergyTransfer`: Conductor, cable, wireless transceiver.
+  - `EnergyGeneration`: Generator, dynamo, solar panel, passive thermal source.
+  - `EnergyConsumption`: Active machine cycle, powered tool charging, beacon effect.
+
+### System 6: Generic Block Entity Runtime
+Continuous synchronization between Java block entity state and Bedrock client view:
+```text
+Java BlockEntity
+       ↓
+State Discovery (NBT, data components, attached capabilities, field trackers)
+       ↓
+Normalized BlockEntity State (Persistent fields, inventory, fluids, energy, progress, facing)
+       ↓
+Runtime Synchronization (Diff detection -> SyncPlanner -> Coalesced batches)
+       ↓
+Bedrock Representation (Block entity NBT tags, container data, animation state)
+```
+
+### System 7: Generic Menu Translation (Menu IR)
+Translation of arbitrary Java `ScreenHandler` / `AbstractContainerMenu` hierarchies into Bedrock-compatible UIs:
+```text
+Menu IR
+ ├── slots (index, x, y, stack, interactable)
+ ├── slot types (INPUT, OUTPUT, FUEL, UPGRADE, STORAGE, CRAFTING_IN, CRAFTING_OUT)
+ ├── player inventory (hotbar, main inventory, offhand, armor)
+ ├── transfer rules (shift-click target preferences, insertion validations)
+ ├── buttons & widgets (toggle buttons, mode selectors, page tabs)
+ ├── properties (progress scalar, energy bar, fluid level, heat gauge)
+ └── actions (serverbound button clicks, mode toggles, craft triggers)
+```
+Workflow:
+```text
+Java ScreenHandler / Menu ──> Menu Analyzer ──> Menu IR ──> Bedrock Form / Container Screen
+```
+
+### System 8: Entity Runtime & Deep Interaction
+Complete lifecycle and interaction mapping for modded mobs, vehicles, machines-as-entities, and projectiles:
+- Lifecycle: `spawn`, `despawn`, `position`, `rotation`, `velocity`, `metadata`, `attributes`, `health`, `equipment`.
+- Interaction Loop:
+```text
+Bedrock right-click / attack
+     ↓
+Geyser translation / Hydraulic Action Router
+     ↓
+Authoritative Java interaction dispatch
+     ↓
+Server-side state mutation (inventory change, mount, damage, effect)
+     ↓
+Synchronize updated entity state to Bedrock client
+```
+
+### System 9: Custom Networking & Synchronization
+Unified bidirectional synchronization pipeline:
+- **Server $\to$ Client**: Authoritative Java runtime state $\to$ Change Detection (`DirtyStateTracker`) $\to$ Normalized `StateChangeSet` $\to$ `SyncPlanner` $\to$ `SyncEncoder` $\to$ `GeyserSyncTransport` (`InventorySlotPacket`, `ContainerSetDataPacket`, custom telemetry).
+- **Client $\to$ Server**: Bedrock interaction packet $\to$ `BedrockRuntimeActionRouter` $\to$ Authoritative server execution (`ServerPlayerGameModeMixin` / direct target resolution) $\to$ State mutation $\to$ Automatic synchronization response.
+
+### System 10: Bedrock Semantic Rendering Translation
+Multi-stage visual asset and model classification:
+- **Input**: Java blockstate JSON, multipart models, display transforms, entity renderers, texture mcmeta animations, tint rules.
+- **Classification**:
+  - `NATIVE`: Direct vanilla block/item mapping.
+  - `AUTOMATIC`: Fully generated Bedrock geometry, material, and attachable.
+  - `APPROXIMATED`: Simplified geometry (e.g. 2D sprite fallback or closest 3D archetype) with explicit degradation tracking.
+  - `VISUAL_ONLY`: Static decorative model without interactive/ticking behavior.
+  - `UNSUPPORTED`: Custom vertex/shader pipelines that cannot be represented in Bedrock pack schemas.
+
+### System 11: Universal Recipe Discovery & Normalization
+Extraction and normalization across diverse recipe providers:
+- **Sources**: Vanilla recipe registry, custom JSON datapack serializers, Forge/Fabric recipe types, hardcoded machine managers.
+- **Normalized Recipe IR**:
+  - Inputs (Item stacks with tags/counts, Fluid stacks, required Energy per tick).
+  - Outputs (Primary items, secondary/byproduct items with chance scalars, output fluids).
+  - Processing Conditions (Processing time in ticks, catalyst requirements, heat/kinetic minimums).
+
+### System 12: Mod Discovery & Capability Detection
+Fingerprinting and automated capability classification:
+```text
+Discover Mod ──> Index Resources/Registries ──> Inspect Capabilities ──> Classify Capabilities ──> Match Generic Bridges ──> Bind Fallback Adapters ──> Compile Runtime Dispatch Plan
+```
+
+### System 13: Thin Adapters Hierarchy
+Standardized escalation path prioritizing generic automation over hardcoded per-mod logic:
+```text
+1. Vanilla / Geyser Native
+          ↓
+2. Automatic Discovery & Compilation
+          ↓
+3. Generic Capability Bridge (Hydraulic Substrate)
+          ↓
+4. Metadata Overrides & Patches
+          ↓
+5. Generic Emulation (Approximation)
+          ↓
+6. Mod-Specific Thin Adapter
+          ↓
+7. Explicit Unsupported Classification (No Silent Failures)
+```
+
+### System 14: Multi-Level Real Bedrock Validation Matrix
+Five-level testing pyramid ensuring end-to-end correctness:
+- **Level 1 — Unit**: Resource indexing, JSON parsing, IR compilation, transaction compensation, recipe validation.
+- **Level 2 — Java Integration**: Fabric server bootstrap, mod registry resolution, Geyser startup, pack generation.
+- **Level 3 — Packet & Runtime**: Injected Geyser packet transport, sync encoding, trace ID propagation, mixin interception.
+- **Level 4 — Real Bedrock Client (Manual Gate)**: Physical Windows/Android/iOS client connection, block placement, interaction, GUI manipulation, item extraction, visual observation (`CLIENT_OBSERVED`).
+- **Level 5 — Regression Modpacks**: Automated pack conversion and report verification across heavyweight mod fixtures (Create, Mekanism, Thermal, AE2, Farmer's Delight).
+
+### System 15: Capability Completeness Evaluation Framework
+Per-object granular compliance verification matrix preventing false-positive compatibility claims:
+```text
+OBJECT: <namespace>:<identifier>
+
+CONTENT:        [PASS | FAIL | N/A] (Block, Item, Entity, Fluid registration)
+PRESENTATION:   [PASS | FAIL | N/A] (Model geometry, Textures, Particles, Animations)
+STATE:          [PASS | FAIL | N/A] (Block states, NBT properties, Tag synchronization)
+INTERACTION:    [PASS | FAIL | N/A] (Placement, Breaking, Right-click block use, Sneak-click extract)
+BEHAVIOR:       [PASS | FAIL | N/A] (Inventory, Item I/O, Fluid I/O, Energy, Processing, Automation)
+NETWORK:        [PASS | FAIL | N/A] (Packet synchronization, Custom telemetry, Action routing)
+MENU:           [PASS | FAIL | N/A] (Container opening, Slot bounds, Synced properties, Action buttons)
+
+OVERALL STATUS: [FULL_SUPPORT | PARTIAL_SUPPORT | VISUAL_ONLY | UNSUPPORTED]
+```
+
+---
+
+## Mod Compatibility & Implementation Report
+
+Representative evaluation across major mod archetypes against Hydraulic's current runtime architecture:
+
+| Mod Ecosystem | Presentation Status | Interaction Status | Behavior Status | Synchronization Status | Overall Compatibility Level | Key Gaps & Required Action |
+| --- | --- | --- | --- | --- | --- | --- |
+| **Create** | `AUTOMATIC` (Blocks/Items/Models) | `ADAPTED` (Block-use insertion/extraction) | `APPROXIMATED` (Generic processing / recipes) | `TRANSPORT_HANDOFF_VERIFIED` (Inventory slots) | `APPROXIMATED` | Kinetic rotational physics engine is server-side only; moving contraptions require specialized entity presentation. |
+| **Mekanism** | `AUTOMATIC` (Blocks/Items/GUI) | `ADAPTED` (Held-item insertion, container) | `ADAPTED` (Mixed-resource transactions: Item+Fluid+Energy) | `TRANSPORT_HANDOFF_VERIFIED` (Inventory + DataSlots) | `ADAPTED` | Gas/Infusion pipelines map to normalized Fluid/Energy equivalents; multiblock structures need bounding box sync. |
+| **Thermal Series** | `AUTOMATIC` (Blocks/Items/Textures) | `ADAPTED` (Block use, Menus) | `ADAPTED` (Item/Fluid/Energy processing) | `TRANSPORT_HANDOFF_VERIFIED` (Slots & Properties) | `ADAPTED` | Augment slot filtering and side-configuration UI require Menu IR custom property translation. |
+| **Immersive Engineering** | `AUTOMATIC` (Blocks/Items) | `ADAPTED` (Block use) | `APPROXIMATED` (Multiblock processing) | `TRANSPORT_HANDOFF_VERIFIED` (Slots) | `APPROXIMATED` | Multiblock formation animations and wire rendering require semantic rendering bridges. |
+| **Botania** | `AUTOMATIC` (Blocks/Items) | `ADAPTED` (Wand of Forest interaction) | `APPROXIMATED` (Mana storage & transfer) | `TRANSPORT_HANDOFF_VERIFIED` (Slots) | `APPROXIMATED` | Mana optics/bursts are custom particle/entity renderers; Petal Apothecary maps to Fluid Container Bridge. |
+| **Farmer's Delight** | `AUTOMATIC` (Blocks/Items/Models) | `ADAPTED` (Cutting board / Cooking pot use) | `ADAPTED` (Processing recipes) | `TRANSPORT_HANDOFF_VERIFIED` (Inventory slots) | `NATIVE / ADAPTED` | High native compatibility; Cooking pot maps directly to generic machine processing with item + fluid inputs. |
+| **Applied Energistics 2** | `AUTOMATIC` (Blocks/Items) | `APPROXIMATED` (Terminal menus) | `APPROXIMATED` (Virtual storage networks) | `PARTIAL` (Slot sync) | `APPROXIMATED` | Massive virtual inventory virtualization requires dedicated Menu IR pagination and search packet handling. |
+| **Refined Storage** | `AUTOMATIC` (Blocks/Items) | `APPROXIMATED` (Grid menus) | `APPROXIMATED` (Network storage) | `PARTIAL` (Slot sync) | `APPROXIMATED` | Grid UI requires Menu IR scrolling/search bridge; cable network topology operates on server thread. |
+| **Traveler's Backpack** | `AUTOMATIC` (Wearable/Item) | `ADAPTED` (Backpack inventory/tanks) | `ADAPTED` (Equippable & tank transfer) | `TRANSPORT_HANDOFF_VERIFIED` (Slots/tanks) | `ADAPTED` | Equippable attachable generated; internal tank uses Fluid Container Bridge; GUI maps to container fallback. |
+| **Lootr** | `AUTOMATIC` (Chest models) | `NATIVE` (Per-player container opening) | `NATIVE` (Server-side loot generation) | `NATIVE` (Vanilla container sync) | `NATIVE` | Full compatibility; operates entirely through server-side container virtualization. |
+| **Citadel / Apollib** | `AUTOMATIC` (With schema fallback) | `NATIVE` (Standard interaction) | `NATIVE` (Entity animations) | `NATIVE` | `AUTOMATIC` | Unsupported item definition schemas degrade safely to legacy model loaders without breaking startup. |
+| **Storage Drawers** | `AUTOMATIC` (Models/Textures) | `ADAPTED` (Block-use insert/extract) | `ADAPTED` (Single-item multi-stack storage) | `TRANSPORT_HANDOFF_VERIFIED` (Slot counts) | `ADAPTED` | Dynamic item count label rendering on drawer front requires Bedrock block entity text/tag synchronization. |
+
+---
+
+## Prioritized Implementation Roadmap (Phases 1-10)
+
+1. **Phase 1: Runtime Foundation & Capability IR**
+   - Universal Capability IR & typed capability schemas.
+   - Capability discovery & reflection engine for Forge/Fabric/Botarium.
+   - Dynamic capability binding & runtime dispatch registry.
+   - Automated Capability Completeness Evaluator reporting.
+
+2. **Phase 2: Inventory, Item Transfer & Sided Automation**
+   - Universal inventory abstraction & multi-slot transactional safety.
+   - Sided insertion/extraction rules, stack preservation, and simulation.
+   - Filtered transfers, priorities, and pipe/conveyor network routing.
+
+3. **Phase 3: Universal Machine Processing Engine**
+   - Generic Machine IR (States: Idle, Running, Blocked, Powered).
+   - Dynamic recipe matcher & multi-input/output processing cycles.
+   - Machine progress tracking, tick-driven state updates, and dirty-state broadcasting.
+
+4. **Phase 4: Universal Fluid Runtime & Tank Transfer**
+   - Fluid IR, normalized FluidStack, and multi-tank capacity validation.
+   - Container $\leftrightarrow$ Tank bidirectional transfers (bucket, canister, tank).
+   - Machine fluid I/O integration and world fluid presentation fallbacks.
+
+5. **Phase 5: Universal Energy & Power Networks**
+   - Normalized EnergyStorage IR (FE/RF/TechReborn/Mana).
+   - Storage, generation, consumption, and rate-limiting contracts.
+   - Power network distribution and battery buffer management.
+
+6. **Phase 6: Generic Menu Translation (Menu IR) & UI Automation**
+   - Menu IR compiler mapping Java ScreenHandlers to Bedrock container archetypes.
+   - Progress bar, energy meter, and fluid gauge property synchronization.
+   - Action buttons, mode selectors, and serverbound button transaction routing.
+
+7. **Phase 7: Deep Entity Runtime & Complex Interactions**
+   - Entity state IR, custom attributes, equipment, and metadata syncing.
+   - Bedrock right-click/attack action routing to authoritative Java handlers.
+   - Rideable entities, vehicle physics synchronization, and animation states.
+
+8. **Phase 8: Network Synchronization & Bidirectional Action Routing**
+   - Server $\to$ Client change tracking with dirty-state coalescing and batching.
+   - Client $\to$ Server action translation through non-intrusive server-thread mixins.
+   - Real-time container property & inventory slot packet delivery.
+
+9. **Phase 9: Automated Mod Fingerprinting & Plan Optimization**
+   - Machine-learning/heuristic pattern classification for unmapped mods.
+   - Capability-based adapter ranking and automatic graceful degradation.
+   - Persistent conversion key optimization and cross-mod dependency pruning.
+
+10. **Phase 10: Multi-Level Validation & Modpack Regression Suite**
+    - Automated Level 1-3 test harness execution in CI.
+    - Level 4 Bedrock client manual verification protocol.
+    - Level 5 multi-modpack regression corpus (Create + Mekanism + Thermal + AE2).
+
+---
+
+## Release-Readiness Criteria & Verification Protocol
+
+Before declaring any compatibility feature or release candidate complete, the following gates must pass unconditionally:
+
+1. **Zero-Tolerance Policy for Placeholder Logic**:
+   - `0` `TODO`, `FIXME`, empty methods, or mock implementations in production code paths.
+   - Every declared capability must have a concrete, executable Java runtime operation.
+   - No visual-only representation may be reported as gameplay-compatible.
+
+2. **Fail-Closed Security & Stability Gate**:
+   - Malformed metadata, missing textures, invalid recipes, or unmapped capabilities must degrade gracefully with structured warnings without crashing the server thread.
+   - All client-originated Bedrock interaction packets must be validated on the Java server thread before mutating authoritative game state.
+
+3. **Build & Test Verification**:
+   - Clean compilation under Java 25 and Minecraft 26.2 across all active modules (`:shared`, `:fabric`, `:test`).
+   - 100% pass rate across the JUnit test suite in `:shared:test` and `:fabric:test`.
+   - Zero compilation warnings in newly touched compatibility and runtime subsystems.
+
+4. **Performance & Memory Boundaries**:
+   - Runtime dispatch table lookups must execute in $\mathcal{O}(1)$ time.
+   - Model, texture, and index caches must be bounded with strict LRU eviction policies.
+   - Zero memory leaks across repeated modpack reload or pack conversion runs.
+
+5. **Attestation & Provenance Clarity**:
+   - `TRANSPORT_HANDOFF_VERIFIED` must only be reported when concrete packets are handed to Geyser's transport boundary.
+   - `CLIENT_OBSERVED` must remain a strictly manual, human-verified attestation.
+
+---
 
 ## Bottom Line
 
