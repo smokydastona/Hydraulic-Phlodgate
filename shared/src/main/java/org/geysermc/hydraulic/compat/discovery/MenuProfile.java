@@ -2,9 +2,7 @@ package org.geysermc.hydraulic.compat.discovery;
 
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Map;
 
 /**

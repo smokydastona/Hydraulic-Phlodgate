@@ -9,7 +9,7 @@ public final class FluidContainerBridge {
     private final int tankIndex;
     private final int containerCapacity;
 
-    FluidContainerBridge(
+    public FluidContainerBridge(
         @NotNull TransferBridgeFactory.FluidTransferBridge tank,
         int tankIndex,
         int containerCapacity

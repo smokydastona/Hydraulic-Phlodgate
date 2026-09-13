@@ -1,6 +1,5 @@
 package org.geysermc.hydraulic.compat.runtime;
 
-import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
