@@ -23,6 +23,9 @@ jobs:
       - name: Build Hydraulic
         run: ./gradlew build
 
+      - name: Run Multi-Level Modpack Validation Matrix
+        run: ./gradlew :shared:test --tests "org.geysermc.hydraulic.compat.validation.*" --info
+
       - name: Archive Artifacts
         uses: GeyserMC/actions/upload-multi-artifact@master
         if: success()

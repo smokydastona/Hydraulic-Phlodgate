@@ -68,9 +68,22 @@ public final class DatapackRecipeCompiler {
             energyPerTick = json.get("energyPerTick").getAsInt();
         } else if (json.has("energy_cost") && json.get("energy_cost").isJsonPrimitive()) {
             energyPerTick = json.get("energy_cost").getAsInt();
+        } else if (json.has("power") && json.get("power").isJsonPrimitive()) {
+            energyPerTick = json.get("power").getAsInt();
         }
 
-        // Extract inputs
+        // Extract energy generated (for dynamos / generators)
+        if (json.has("energy_generated") && json.get("energy_generated").isJsonPrimitive()) {
+            energyGenerated = json.get("energy_generated").getAsInt();
+        } else if (json.has("energyGenerated") && json.get("energyGenerated").isJsonPrimitive()) {
+            energyGenerated = json.get("energyGenerated").getAsInt();
+        } else if (json.has("energy_production") && json.get("energy_production").isJsonPrimitive()) {
+            energyGenerated = json.get("energy_production").getAsInt();
+        } else if (json.has("power_generated") && json.get("power_generated").isJsonPrimitive()) {
+            energyGenerated = json.get("power_generated").getAsInt();
+        }
+
+        // Extract inputs & catalysts
         if (json.has("ingredient")) {
             extractItemInputs(json.get("ingredient"), itemInputs);
         } else if (json.has("ingredients")) {
@@ -79,6 +92,17 @@ public final class DatapackRecipeCompiler {
             extractItemInputs(json.get("input"), itemInputs);
         } else if (json.has("inputs")) {
             extractItemInputs(json.get("inputs"), itemInputs);
+        } else if (json.has("item_in")) {
+            extractItemInputs(json.get("item_in"), itemInputs);
+        }
+
+        // Extract multiblock catalysts / secondary tools
+        if (json.has("catalyst")) {
+            extractItemInputs(json.get("catalyst"), itemInputs);
+        } else if (json.has("catalysts")) {
+            extractItemInputs(json.get("catalysts"), itemInputs);
+        } else if (json.has("tool")) {
+            extractItemInputs(json.get("tool"), itemInputs);
         }
 
         // Extract fluid inputs
@@ -86,6 +110,8 @@ public final class DatapackRecipeCompiler {
             extractFluidInputs(json.get("fluid_input"), fluidInputs);
         } else if (json.has("fluid_inputs")) {
             extractFluidInputs(json.get("fluid_inputs"), fluidInputs);
+        } else if (json.has("fluid_in")) {
+            extractFluidInputs(json.get("fluid_in"), fluidInputs);
         }
 
         // Extract outputs
@@ -97,6 +123,19 @@ public final class DatapackRecipeCompiler {
             extractItemOutputs(json.get("outputs"), itemOutputs);
         } else if (json.has("results")) {
             extractItemOutputs(json.get("results"), itemOutputs);
+        } else if (json.has("item_out")) {
+            extractItemOutputs(json.get("item_out"), itemOutputs);
+        }
+
+        // Extract secondary byproducts / extra outputs
+        if (json.has("byproduct")) {
+            extractItemOutputs(json.get("byproduct"), itemOutputs);
+        } else if (json.has("byproducts")) {
+            extractItemOutputs(json.get("byproducts"), itemOutputs);
+        } else if (json.has("extra_output")) {
+            extractItemOutputs(json.get("extra_output"), itemOutputs);
+        } else if (json.has("secondary_output")) {
+            extractItemOutputs(json.get("secondary_output"), itemOutputs);
         }
 
         // Extract fluid outputs
@@ -104,6 +143,8 @@ public final class DatapackRecipeCompiler {
             extractFluidOutputs(json.get("fluid_output"), fluidOutputs);
         } else if (json.has("fluid_outputs")) {
             extractFluidOutputs(json.get("fluid_outputs"), fluidOutputs);
+        } else if (json.has("fluid_out")) {
+            extractFluidOutputs(json.get("fluid_out"), fluidOutputs);
         }
 
         if (itemInputs.isEmpty() && fluidInputs.isEmpty()) {

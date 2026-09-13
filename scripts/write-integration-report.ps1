@@ -93,6 +93,25 @@ if (-not (Test-Path $reportsDir)) {
     New-Item -ItemType Directory -Path $reportsDir -Force | Out-Null
 }
 
+$attestationsSummary = $null
+$attestationsFile = Join-Path $reportsDir "client-observation-attestations.json"
+if (Test-Path $attestationsFile) {
+    try {
+        $attJson = Get-Content $attestationsFile -Raw | ConvertFrom-Json
+        if ($attJson.attestations) {
+            $attestationsSummary = @{
+                totalAttestations = $attJson.totalAttestations
+                lastUpdated       = $attJson.lastUpdated
+                latestVerdict     = ($attJson.attestations | Select-Object -Last 1).verdict
+                latestPlatform    = ($attJson.attestations | Select-Object -Last 1).clientPlatform
+                latestTarget      = ($attJson.attestations | Select-Object -Last 1).targetObject
+            }
+        }
+    } catch {
+        $attestationsSummary = $null
+    }
+}
+
 $report = [ordered]@{
     generatedAt             = (Get-Date).ToString("o")
     runtimeTestsPassed      = $runtimeTestsPassed
@@ -102,8 +121,9 @@ $report = [ordered]@{
     packValidationPassed    = $packValidationPassed
     latestHandoffEnvelopeId = $latestEnvelopeId
     latestHandoffSummary    = $latestEnvelopeSummary
-    bedrockClientCheck      = "PENDING_MANUAL_CLIENT_CHECK"
-    bedrockClientCheckNote  = "Connect the real Minecraft Bedrock Windows client to 127.0.0.1:19132, perform the target action, confirm the resulting trace in the latest handoff export, then manually update this field."
+    clientObservationAttestations = $attestationsSummary
+    bedrockClientCheck      = $(if ($attestationsSummary -and $attestationsSummary.latestVerdict -eq "PASSED") { "PASSED_ATTESTED" } else { "PENDING_MANUAL_CLIENT_CHECK" })
+    bedrockClientCheckNote  = "Connect the real Minecraft Bedrock client (Windows/Mobile) to 127.0.0.1:19132, perform the target action, confirm the resulting trace in the latest handoff export, then record or update via scripts/record-client-attestation.ps1."
 }
 
 $outPath = Join-Path $reportsDir "integration-test-report.json"

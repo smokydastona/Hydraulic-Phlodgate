@@ -76,4 +76,44 @@ class DatapackRecipeCompilerTest {
         assertEquals(1, recipe.itemOutputs().size());
         assertEquals("tech:infused_copper", recipe.itemOutputs().get(0).itemId());
     }
+
+    @Test
+    @DisplayName("Compile multiblock machine recipe with catalysts, byproducts, and generator power output")
+    void compileMultiblockRecipeWithCatalystsAndByproducts() {
+        String json = """
+        {
+            "type": "immersive:crusher",
+            "input": {
+                "item": "minecraft:raw_gold",
+                "count": 1
+            },
+            "catalyst": {
+                "item": "tech:lubricant_canister",
+                "count": 1
+            },
+            "output": {
+                "item": "tech:dust_gold",
+                "count": 2
+            },
+            "byproduct": {
+                "item": "minecraft:copper_nugget",
+                "count": 1
+            },
+            "energy_generated": 500,
+            "duration": 60
+        }
+        """;
+
+        UniversalMachineRuntime.UniversalRecipe recipe =
+            DatapackRecipeCompiler.compileRecipeJson("immersive:gold_crushing", json);
+
+        assertNotNull(recipe);
+        assertEquals("immersive:gold_crushing", recipe.recipeId());
+        assertEquals(60, recipe.totalProcessingTicks());
+        assertEquals(500, recipe.energyGenerated());
+        assertEquals(2, recipe.itemInputs().size()); // input + catalyst
+        assertEquals(2, recipe.itemOutputs().size()); // primary output + byproduct
+        assertEquals("tech:dust_gold", recipe.itemOutputs().get(0).itemId());
+        assertEquals("minecraft:copper_nugget", recipe.itemOutputs().get(1).itemId());
+    }
 }
