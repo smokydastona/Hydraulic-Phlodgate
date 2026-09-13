@@ -58,6 +58,16 @@ public class HydraulicImpl implements EventRegistrar {
     }
 
     /**
+     * Called when the server has started and worlds/datapacks are loaded.
+     *
+     * @param server the Minecraft server instance
+     */
+    public void onServerStarted(@NotNull MinecraftServer server) {
+        this.server = server;
+        org.geysermc.hydraulic.compat.machine.DynamicDatapackIngestionHook.ingest(server);
+    }
+
+    /**
      * Register a listener for the stop server event
      */
     public void registerServerStop(Consumer<MinecraftServer> listenerAction) {

@@ -587,13 +587,13 @@ of support or reuse rights.
 - Complete execution substrate and formal IR across all 10 major systems (Phases 1 through 10) are now shipped and verified with 100% test coverage:
   - Phase 1: `CapabilityIR`, `RuntimeCapabilityDiscoveryEngine`, `DynamicCapabilityBinder`, `CapabilityCompletenessEvaluator`.
   - Phase 2: `UniversalAutomationEngine` (Sided filters, prioritized multi-node routes, rate limits).
-  - Phase 3: `UniversalMachineRuntime` (Machine state machines, dynamic recipe matching, dirty-state progress/state tracking), plus `DatapackRecipeCompiler` for deep mod/datapack JSON recipe ingestion.
+  - Phase 3: `UniversalMachineRuntime` (Machine state machines, dynamic recipe matching, dirty-state progress/state tracking), `DatapackRecipeCompiler` for deep mod/datapack JSON recipe ingestion, and `DynamicDatapackIngestionHook` invoked on `ServerLifecycleEvents.SERVER_STARTED` to automatically compile active World datapack recipes.
   - Phase 4: `UniversalFluidRuntime` (Multi-tank manager, whitelist/capacity validation, world fluid visual approximations).
   - Phase 5: `UniversalEnergyRuntime` (Normalized `EnergyStorageUnit`, power network distribution reports).
-  - Phase 6: `UniversalMenuIR` (`MenuIRCompiler`, slot roles, synced data widgets, furnace/storage layouts), plus Bedrock companion pack inspection form gauges (`MachineInspector`).
+  - Phase 6: `UniversalMenuIR` (`MenuIRCompiler`, slot roles, synced data widgets, furnace/storage layouts), Bedrock companion pack inspection form gauges (`MachineInspector`), and `control_room_remote` in-game item-use-on trigger for instant live machine inspection with real-time property/gauge updates.
   - Phase 7: `UniversalEntityRuntime` (`EntityStateIR`, prompt resolution, Bedrock-to-Java interaction mapping).
   - Phase 8: `UniversalNetworkSyncBridge` (`StateBatchCoalescer`, bidirectional action dispatching).
-  - Phase 9: `AutomatedModFingerprinter` (Archetype classification, adapter opportunity auto-ranking).
+  - Phase 9: `AutomatedModFingerprinter` (Archetype classification, adapter opportunity auto-ranking), and `ExtendedCorpusHarvestingPipeline` for automated open-source Bedrock addon schema ingestion and capability pattern matching.
   - Phase 10: `MultiLevelValidationHarness` (Multi-level validation runner, modpack corpus compliance reporting), CI matrix integration in `.github/workflows/build-matrix.yml`, and physical client observation attestation tooling (`record-client-attestation.ps1`).
 
 ### What is still too narrow
