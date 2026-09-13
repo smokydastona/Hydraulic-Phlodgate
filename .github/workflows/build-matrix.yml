@@ -20,3 +20,6 @@ jobs:
         run: chmod +x gradlew
       - name: Build and Run Tests
         run: ./gradlew :shared:test --info
+
+      - name: Run Multi-Level Modpack Validation Matrix
+        run: ./gradlew :shared:test --tests "org.geysermc.hydraulic.compat.validation.*" --info

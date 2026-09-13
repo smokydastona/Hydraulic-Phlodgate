@@ -587,14 +587,14 @@ of support or reuse rights.
 - Complete execution substrate and formal IR across all 10 major systems (Phases 1 through 10) are now shipped and verified with 100% test coverage:
   - Phase 1: `CapabilityIR`, `RuntimeCapabilityDiscoveryEngine`, `DynamicCapabilityBinder`, `CapabilityCompletenessEvaluator`.
   - Phase 2: `UniversalAutomationEngine` (Sided filters, prioritized multi-node routes, rate limits).
-  - Phase 3: `UniversalMachineRuntime` (Machine state machines, dynamic recipe matching, dirty-state progress/state tracking).
+  - Phase 3: `UniversalMachineRuntime` (Machine state machines, dynamic recipe matching, dirty-state progress/state tracking), plus `DatapackRecipeCompiler` for deep mod/datapack JSON recipe ingestion.
   - Phase 4: `UniversalFluidRuntime` (Multi-tank manager, whitelist/capacity validation, world fluid visual approximations).
   - Phase 5: `UniversalEnergyRuntime` (Normalized `EnergyStorageUnit`, power network distribution reports).
-  - Phase 6: `UniversalMenuIR` (`MenuIRCompiler`, slot roles, synced data widgets, furnace/storage layouts).
+  - Phase 6: `UniversalMenuIR` (`MenuIRCompiler`, slot roles, synced data widgets, furnace/storage layouts), plus Bedrock companion pack inspection form gauges (`MachineInspector`).
   - Phase 7: `UniversalEntityRuntime` (`EntityStateIR`, prompt resolution, Bedrock-to-Java interaction mapping).
   - Phase 8: `UniversalNetworkSyncBridge` (`StateBatchCoalescer`, bidirectional action dispatching).
   - Phase 9: `AutomatedModFingerprinter` (Archetype classification, adapter opportunity auto-ranking).
-  - Phase 10: `MultiLevelValidationHarness` (Multi-level validation runner, modpack corpus compliance reporting).
+  - Phase 10: `MultiLevelValidationHarness` (Multi-level validation runner, modpack corpus compliance reporting), CI matrix integration in `.github/workflows/build-matrix.yml`, and physical client observation attestation tooling (`record-client-attestation.ps1`).
 
 ### What is still too narrow
 - The corpus schema, local importer, loader, admissibility checks, matcher, report writer, and compatibility evidence seam are implemented. Startup seeds 15 reviewed Bedrock corpus records into `config/hydraulic/corpus/curated/builtin` (12 admissible) and two admissible Java capability references into `config/hydraulic/corpus/java/curated/builtin`; the bundled records remain offline evidence and do not become runtime bridge inputs. Live remote harvesting, CurseForge API ingestion, and human review of additional records remain intentionally external/offline inputs rather than startup behavior. Server-owned records belong outside the overwritten `builtin` directories.
