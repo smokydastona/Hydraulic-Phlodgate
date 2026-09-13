@@ -9,6 +9,7 @@ public enum SlotRole {
     OUTPUT,
     FUEL,
     UPGRADE,
+    STORAGE,
     FLUID_INPUT,
     FLUID_OUTPUT,
     CATALYST,

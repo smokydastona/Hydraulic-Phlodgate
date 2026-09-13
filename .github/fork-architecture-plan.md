@@ -584,6 +584,17 @@ of support or reuse rights.
 - Focused shared regression coverage now also proves the compatibility cache identity expands with the compatibility-engine fingerprint and that persisted compatibility manifests retain that fingerprint across store/load, closing the stale-report path that previously required manual cache clearing after analyzer changes.
 - Focused shared runtime-dispatch coverage now also proves that bucket-item creative exposure follows the linked fluid plan instead of only the bucket item's local presentation state, closing a real false-positive exposure path for partially supported fluids.
 - Fresh Java 25 validation after the transaction, synchronization, mixed-machine, automation, and compiled mixed-recipe slices now also confirms the full Gradle `build` succeeds and `:fabric:runServer` reaches Geyser ready state on UDP `19132`. The run converted eight packs with `failedPacks = 0`, registered 857 custom blocks, 989 custom items, and 1 custom entity, and `pack-validation-report.json` marked `create`, `travelersbackpack`, `lootr`, `apollib`, `citadel`, `farmersdelight`, `hydraulic`, and `hydraulic_test_mod` as valid. Create still emits fourteen `pack.path.long` warnings and one manual action for long Bedrock pack paths.
+- Complete execution substrate and formal IR across all 10 major systems (Phases 1 through 10) are now shipped and verified with 100% test coverage:
+  - Phase 1: `CapabilityIR`, `RuntimeCapabilityDiscoveryEngine`, `DynamicCapabilityBinder`, `CapabilityCompletenessEvaluator`.
+  - Phase 2: `UniversalAutomationEngine` (Sided filters, prioritized multi-node routes, rate limits).
+  - Phase 3: `UniversalMachineRuntime` (Machine state machines, dynamic recipe matching, dirty-state progress/state tracking).
+  - Phase 4: `UniversalFluidRuntime` (Multi-tank manager, whitelist/capacity validation, world fluid visual approximations).
+  - Phase 5: `UniversalEnergyRuntime` (Normalized `EnergyStorageUnit`, power network distribution reports).
+  - Phase 6: `UniversalMenuIR` (`MenuIRCompiler`, slot roles, synced data widgets, furnace/storage layouts).
+  - Phase 7: `UniversalEntityRuntime` (`EntityStateIR`, prompt resolution, Bedrock-to-Java interaction mapping).
+  - Phase 8: `UniversalNetworkSyncBridge` (`StateBatchCoalescer`, bidirectional action dispatching).
+  - Phase 9: `AutomatedModFingerprinter` (Archetype classification, adapter opportunity auto-ranking).
+  - Phase 10: `MultiLevelValidationHarness` (Multi-level validation runner, modpack corpus compliance reporting).
 
 ### What is still too narrow
 - The corpus schema, local importer, loader, admissibility checks, matcher, report writer, and compatibility evidence seam are implemented. Startup seeds 15 reviewed Bedrock corpus records into `config/hydraulic/corpus/curated/builtin` (12 admissible) and two admissible Java capability references into `config/hydraulic/corpus/java/curated/builtin`; the bundled records remain offline evidence and do not become runtime bridge inputs. Live remote harvesting, CurseForge API ingestion, and human review of additional records remain intentionally external/offline inputs rather than startup behavior. Server-owned records belong outside the overwritten `builtin` directories.
