@@ -789,6 +789,49 @@ Adapters handle the things that cannot.
 
 ---
 
+# Connecting & Testing with a Real Bedrock Client
+
+Because Phlodgate targets standard Geyser translation, you do **not** want a custom or headless terminal client here—the server *is* your terminal. You need a Bedrock client that can accept the auto-flushed resource packs Phlodgate generates.
+The exact client you use depends on how your development environment is isolated:
+
+### Option 1: Standard Minecraft for Windows (Same Machine Testing)
+If your Fabric server is running on the same PC you play on, use the official **Minecraft for Windows** client.
+
+* **The Catch:** Windows AppX packages (UWP apps) are isolated in a network sandbox by default. They are strictly blocked from connecting to `localhost` or `127.0.0.1`.
+* **The Fix:** Open a separate PowerShell window as **Administrator** and run this loopback exemption command to allow Minecraft to see your local Fabric/Geyser server:
+```powershell
+CheckNetIsolation LoopbackExempt -a -n="Microsoft.MinecraftUWP_8wekyb3d8bbwe"
+```
+* Once executed, boot Minecraft, navigate to **Play > Friends > Add Server**, and enter Server Address `127.0.0.1` with your Geyser port (default `19132`).
+
+### Option 2: Minecraft Preview (For Future Schema Validation)
+Because Phlodgate treats the latest Bedrock schemas as a **mandatory target constraint**, testing on the **Minecraft Preview** client ensures custom addon blocks or V2 metadata patches do not break when Mojang pushes a forced retail update.
+
+* **The Fix:** If testing Preview on the same machine, run the loopback exemption command tailored for the Preview package:
+```powershell
+CheckNetIsolation LoopbackExempt -a -n="Microsoft.MinecraftWindowsBeta_8wekyb3d8bbwe"
+```
+
+### Option 3: Android / iOS Mobile Clients (For Cross-Device Verification)
+To ensure generated UI layout files or `PaginatedMenuForm` arrays scale properly without screen overflow, testing on a mobile device is ideal:
+
+* Ensure your mobile device is connected to the **same Wi-Fi network** as your development PC.
+* In the mobile Bedrock client, navigate to servers and enter your **PC's local LAN IPv4 address** (e.g. `192.168.1.XX`) on port `19132`. No loopback exemption commands are needed for external devices.
+
+---
+
+# Verifying the Pack Handoff in VS Code & Server Console
+
+Once your Bedrock client connects to your Fabric server:
+
+1. **Console Connection Capture**: Look at your server terminal console. You should see Geyser capture the session connection.
+2. **Pack Compilation & Storage**: Phlodgate compiles custom asset configurations into compressed `.mcpack` files located under `fabric/run/config/hydraulic/storage/<mod-id>/` and cached under `config/hydraulic/cache/`.
+3. **Session Auto-Flush & Pack Transfer**: When joining, Geyser triggers the resource pack transfer. If the client fails to download or render custom blocks:
+   * Inspect the server console for Geyser `ResourcePackSendPacket` logs or pack validation errors in `config/hydraulic/reports/pack-validation-report.json`.
+   * Check `config/hydraulic/reports/compatibility-report.json` to verify whether the block/item compiled as `NATIVE`, `AUTOMATIC`, `ADAPTED`, `APPROXIMATED`, or `VISUAL_ONLY`.
+
+---
+
 # Compatibility With Hydraulic
 
 Phlodgate intentionally remains closely tied to upstream Hydraulic.

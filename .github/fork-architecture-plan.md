@@ -2690,6 +2690,41 @@ Five-level testing pyramid ensuring end-to-end correctness:
 - **Level 4 — Real Bedrock Client (Manual Gate)**: Physical Windows/Android/iOS client connection, block placement, interaction, GUI manipulation, item extraction, visual observation (`CLIENT_OBSERVED`).
 - **Level 5 — Regression Modpacks**: Automated pack conversion and report verification across heavyweight mod fixtures (Create, Mekanism, Thermal, AE2, Farmer's Delight).
 
+#### Physical Bedrock Client Environment Isolation & Loopback Setup
+
+Because Phlodgate targets standard Geyser translation, a custom or headless terminal client is not used—the server is the terminal. The exact client testing path depends on the environment setup:
+
+1. **Option 1: Standard Minecraft for Windows (Same Machine Testing)**
+   - *Constraint:* Windows AppX packages (UWP apps) run inside an AppContainer network sandbox and cannot connect to `localhost` / `127.0.0.1` by default.
+   - *Workaround:* Run the loopback exemption command in an Administrator PowerShell window:
+     ```powershell
+     CheckNetIsolation LoopbackExempt -a -n="Microsoft.MinecraftUWP_8wekyb3d8bbwe"
+     ```
+   - Connect to `127.0.0.1:19132` in the Minecraft Friends/Servers list.
+
+2. **Option 2: Minecraft Preview (Future Schema Validation)**
+   - *Purpose:* Validates custom addon geometry, blocks, and V2 metadata against active store schema changes before forced retail updates.
+   - *Workaround:* Apply the loopback exemption command for the Windows Beta/Preview package:
+     ```powershell
+     CheckNetIsolation LoopbackExempt -a -n="Microsoft.MinecraftWindowsBeta_8wekyb3d8bbwe"
+     ```
+
+3. **Option 3: Mobile Clients (Android / iOS LAN Testing)**
+   - *Purpose:* Verifies touch interactions, UI layout scaling, and `PaginatedMenuForm` arrays without screen overflow.
+   - Connect client to the development PC's local LAN IPv4 address (e.g. `192.168.1.XX:19132`) on the same Wi-Fi network.
+
+#### Bedrock E1–E10 Observation Evidence Ladder
+- **E1 — Connection**: Session handshake, Geyser UDP 19132 connection, and `phlodgate_bridge` scoreboard objective presence.
+- **E2 — Pack Delivery**: Client requests, downloads, acknowledges, and activates generated `.mcpack` without client-side JSON schema rejection.
+- **E3 — Rendering**: Visual presentation of custom blocks, items, attachables, particles, and kinetic animations.
+- **E4 — Block Interaction**: Authoritative server-thread execution of right-click (`insert_held_item`) and sneak-click (`extract_item`) actions.
+- **E5 — Menu Interaction**: Open translated menu, manipulate slots, toggle buttons, and verify canonical full-state resync.
+- **E6 — Inventory Transfer**: Sided automation, container slot bounds, and transactional stack preservation.
+- **E7 — Machine Execution**: Dynamic recipe matching, progressive progress scalar updates, fluid/energy consumption, and output emission.
+- **E8 — Bidirectional Synchronization**: Java $\leftrightarrow$ Bedrock real-time dirty-state coalescing and packet delivery without ghost items or stale properties.
+- **E9 — Persistence & Restart**: World save, server shutdown, server restart, re-connection, and state rehydration verification.
+- **E10 — Real Third-Party Mod Ecosystem**: In-world validation starting with Create (presses, mixers, kinetics), followed by Mekanism, Thermal, and AE2.
+
 ### System 15: Capability Completeness Evaluation Framework
 Per-object granular compliance verification matrix preventing false-positive compatibility claims:
 ```text
