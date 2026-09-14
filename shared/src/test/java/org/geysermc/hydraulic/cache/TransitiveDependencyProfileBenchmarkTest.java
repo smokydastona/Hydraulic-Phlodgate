@@ -72,4 +72,25 @@ class TransitiveDependencyProfileBenchmarkTest {
         assertEquals(250, metrics.totalMods());
         assertTrue(metrics.singleNodeInvalidationP50Micros() < 10000, "p50 invalidation should remain sub-10ms for 250+ mods");
     }
+
+    @Test
+    @DisplayName("High-Load 500+ mod synthetic invalidation stress benchmark")
+    void benchmarkHighLoad500ModTopology() {
+        // Build 500 mod complex DAG with cross-tier dependencies and cycles
+        TransitiveDependencyProfileBenchmark.ModDependencyGraph graph =
+            TransitiveDependencyProfileBenchmark.SyntheticTopologyBuilder.buildRandomLargeGraph(500, 5, true, 1337L);
+
+        assertEquals(500, graph.modCount());
+        assertTrue(graph.edgeCount() >= 500);
+
+        var sorted = graph.topologicalSort();
+        assertEquals(500, sorted.size(), "Topological sort must preserve all 500 mods");
+
+        TransitiveDependencyProfileBenchmark.BenchmarkMetrics metrics =
+            TransitiveDependencyProfileBenchmark.benchmark(graph, 300);
+
+        assertNotNull(metrics);
+        assertEquals(500, metrics.totalMods());
+        assertTrue(metrics.singleNodeInvalidationP50Micros() < 20000, "p50 invalidation should remain under 20ms for 500+ mods");
+    }
 }
