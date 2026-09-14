@@ -17,7 +17,7 @@ Status vocabulary: `OPEN`, `IN_PROGRESS`, `SERVER_VERIFIED`, `TRANSPORT_VERIFIED
 | Normalized action pipeline | IN_PROGRESS | Production action routing is narrow | Typed action decoding, validation, Java-thread execution, transaction result, and sync trace for each supported action |
 | Fluid actions | OPEN | Fluid transfer substrate exists, Bedrock action contract does not | Fill/drain simulation and commit with persistence and sync evidence |
 | Energy actions | OPEN | Energy transfer substrate exists, Bedrock action contract does not | Receive/extract simulation and commit with persistence and sync evidence |
-| Menu actions | OPEN | Menu fallback exists; button/property/mode actions do not | Live Java menu action contracts and synchronized results |
+| Menu actions | IN_PROGRESS | Server-thread packet routing, explicit button/toggle contracts, transaction evidence, and authoritative resync are implemented; physical Bedrock execution is unverified | Live Java menu action contracts and synchronized results observed from Bedrock |
 | Entity actions | OPEN | Prompt mapping exists; authoritative use/attack/mount actions do not | Live entity resolution, mutation, and sync evidence |
 | Machine lifecycle and persistence | IN_PROGRESS | Generic processing exists; restart/chunk-unload proof is pending | Mid-cycle save/restart preserves all inputs, resources, recipe, progress, and state |
 | Failure and rollback | OPEN | Transaction unit tests exist; live lifecycle failure matrix is incomplete | No loss, duplication, or half-commit across all listed failures |
@@ -37,7 +37,7 @@ Status values: `PASS`, `PARTIAL`, `OPEN`, and `BLOCKED`. `PASS` applies only to 
 | Fluid transfer | PASS | PASS | PASS | PASS | PASS | OPEN | OPEN | OPEN | BLOCKED |
 | Energy transfer | PASS | PASS | PASS | PASS | PASS | OPEN | OPEN | OPEN | BLOCKED |
 | Machine processing | PASS | PASS | PASS | PARTIAL | PASS | PARTIAL | PARTIAL | PARTIAL | BLOCKED |
-| Menu/container | PASS | PASS | PARTIAL | PARTIAL | PARTIAL | OPEN | PARTIAL | OPEN | BLOCKED |
+| Menu/container | PASS | PASS | PASS | PARTIAL | PARTIAL | PARTIAL | PARTIAL | PARTIAL | BLOCKED |
 | Entity interaction | PARTIAL | PARTIAL | OPEN | OPEN | OPEN | OPEN | OPEN | OPEN | BLOCKED |
 | Automation | PASS | PASS | PASS | PARTIAL | PARTIAL | OPEN | PARTIAL | OPEN | BLOCKED |
 
@@ -85,6 +85,24 @@ The milestone remains `IN_PROGRESS` until all open stages pass.
 	unrelated players.
 - The focused `SessionAutoFlushCoordinatorTest` suite passes. This is server-side lifecycle
 	evidence only; it does not promote transport handoff or physical Bedrock observation.
+
+## 2026-09-14 Menu Round-Trip Evidence
+
+- Geyser-originated Java container click and button packets are validated after Minecraft's
+	server-thread scheduling barrier, then delegated to vanilla `ServerGamePacketListenerImpl` for
+	authoritative mutation. Stale sessions/state IDs, invalid slots, invalid button encodings, and
+	unsupported clone actions fail closed and trigger a full Java menu resync.
+- Successful actions are measured from before/after Java menu snapshots with exact item/component
+	hashes and a traceable `MenuTransaction`. Completion and rejection both synchronize through
+	`AbstractContainerMenu.broadcastFullState()` rather than speculative Geyser cache mutation.
+- Explicit `menu.button.<id>=button|toggle` metadata compiles into `MenuActionPlan`. The bundled
+	`menu_machine` fixture declares button `0` as a persistent enabled-state toggle that controls its
+	Java progress tick.
+- Focused router, analyzer, metadata-bootstrap, and auto-flush tests pass under Java 25. A live
+	Fabric run reached Minecraft `Done` and started Geyser on UDP `19132` with no menu-mixin apply or
+	injection failure. No official Bedrock client has yet invoked and observed the fixture, so Java
+	execution, persistence, synchronization, and Bedrock-to-Java stages remain `PARTIAL` rather than
+	complete.
 
 ## Rules
 

@@ -50,3 +50,17 @@ Each completed client test must record timestamp, Java/Minecraft/Bedrock/Geyser/
 - Independent pack blockers observed in the same run include malformed McW pack format ranges,
 	negative Waystones mining destructibility, Lootr model deserialization failures, and invalid
 	empty-output packs. They remain in the pack-remediation workstream.
+
+## Menu Action Evidence
+
+- Focused tests cover normalized click actions, malformed button rejection, exact component-aware
+	Java state deltas, transaction trace identity, and explicit toggle-plan compilation.
+- `menu.button.0=toggle` is installed for the bundled menu-machine fixture. Its Java menu delegates
+	button `0` to a persisted block-entity enabled flag and requests a canonical full-state broadcast.
+- Container click, button, and close hooks run after Minecraft's server-thread transfer and compile
+	through the Fabric transformation path. Java remains the mutation authority; rejected and completed
+	actions resynchronize through `AbstractContainerMenu.broadcastFullState()`.
+- E1 contract and compilation evidence passes. A live Fabric startup reached Minecraft `Done` and
+	started Geyser on UDP `19132` without a menu-mixin apply or injection failure. E4 client
+	action/observation and E6 reopen/restart persistence remain blocked without an official Bedrock
+	client.

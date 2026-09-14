@@ -58,6 +58,7 @@ class MenuAnalyzerTest {
             Map.of(
                 "bedrock.menu.container_type", "generic_9x3",
                 "container.archetype", "machine",
+                "menu.button.0", "toggle",
                 "container.slot.input", "2",
                 "container.slot.output", "0",
                 "container.slot.player_inventory", "3,4,5"
@@ -75,9 +76,12 @@ class MenuAnalyzerTest {
         );
 
         assertEquals("machine", object.inventoryFacts().get("container.archetype"));
+        assertEquals("toggle", object.inventoryFacts().get("menu.button.0"));
         assertEquals("2", object.inventoryFacts().get("container.slot.input"));
         assertEquals("0", object.inventoryFacts().get("container.slot.output"));
         assertEquals("3,4,5", object.inventoryFacts().get("container.slot.player_inventory"));
+        assertEquals(SupportLevel.ADAPTED, object.supportResults().get("behavior").level());
+        assertFalse(object.runtimeRequirements().contains("menu_behavior_bridge"));
     }
 
     private static ContentInventory.ModContentInventory emptyInventory() {

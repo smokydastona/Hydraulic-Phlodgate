@@ -4,9 +4,12 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import org.geysermc.hydraulic.compat.runtime.RuntimeLifecycleCoordinator;
+import org.geysermc.hydraulic.compat.runtime.BedrockMenuActionRouter;
+import org.geysermc.hydraulic.compat.runtime.CompatibilityRuntimeDiagnostics;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ServerPlayer.class)
@@ -16,6 +19,9 @@ public abstract class ServerPlayerMenuLifecycleMixin {
         net.minecraft.world.MenuProvider menuProvider,
         CallbackInfoReturnable<java.util.OptionalInt> callbackInfo
     ) {
+        if (callbackInfo.getReturnValue().isEmpty()) {
+            return;
+        }
         ServerPlayer player = (ServerPlayer) (Object) this;
         AbstractContainerMenu menu = player.containerMenu;
         if (menu == null || menu.getType() == null) {
@@ -24,6 +30,12 @@ public abstract class ServerPlayerMenuLifecycleMixin {
         var identifier = BuiltInRegistries.MENU.getKey(menu.getType());
         if (identifier != null) {
             RuntimeLifecycleCoordinator.discoverMenu(identifier, menu);
+            BedrockMenuActionRouter.open(player, identifier, menu, CompatibilityRuntimeDiagnostics.currentRegistry());
         }
+    }
+
+    @Inject(method = "doCloseContainer", at = @At("TAIL"))
+    private void hydraulic$closeRuntimeMenu(CallbackInfo callback) {
+        BedrockMenuActionRouter.close((ServerPlayer) (Object) this);
     }
 }

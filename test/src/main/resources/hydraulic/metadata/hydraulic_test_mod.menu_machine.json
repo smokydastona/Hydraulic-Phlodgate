@@ -4,6 +4,9 @@
       "target": "hydraulic_test_mod:menu_machine",
       "content_type": "menu",
       "patch": {
+        "menu": {
+          "button": { "0": "toggle" }
+        },
         "bedrock": {
           "menu": { "container_type": "FURNACE" }
         }

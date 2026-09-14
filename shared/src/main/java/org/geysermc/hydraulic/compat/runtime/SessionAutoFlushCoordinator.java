@@ -66,6 +66,34 @@ public final class SessionAutoFlushCoordinator {
     }
 
     /**
+     * Records menu deltas and invokes the Java-authoritative resync path. Geyser must receive
+     * Minecraft's container packets rather than a speculative update from its pre-response cache.
+     */
+    public boolean autoFlushMenuStateDeltas(
+        @NotNull GeyserSession session,
+        @NotNull StateChangeSet changeSet,
+        @NotNull Runnable authoritativeResync
+    ) {
+        Objects.requireNonNull(session, "session");
+        Objects.requireNonNull(changeSet, "changeSet");
+        Objects.requireNonNull(authoritativeResync, "authoritativeResync");
+        registerSession(session);
+        SessionPipeline pipeline = activeSessions.get(session);
+        if (!changeSet.changes().isEmpty()) {
+            pipeline.dirtyStateTracker().record(changeSet);
+        }
+        try {
+            authoritativeResync.run();
+            pipeline.dirtyStateTracker().drain();
+            return true;
+        } catch (RuntimeException exception) {
+            LOGGER.warn("Menu state resynchronization failed", exception);
+            pipeline.dirtyStateTracker().drain();
+            return false;
+        }
+    }
+
+    /**
      * Dispatches a state change set across all active Bedrock viewer sessions and immediately flushes packets.
      */
     @NotNull

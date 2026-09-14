@@ -18,18 +18,31 @@ public final class MenuMachineBlockEntity extends BlockEntity implements Contain
 
     private final NonNullList<ItemStack> items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
     private int progress;
+    private boolean enabled = true;
 
     public MenuMachineBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
         super(ModBlockEntities.MENU_MACHINE, pos, state);
     }
 
     public static void tick(@NotNull MenuMachineBlockEntity machine) {
+        if (!machine.enabled) {
+            return;
+        }
         machine.progress = (machine.progress + 1) % (MAX_PROGRESS + 1);
         machine.setChanged();
     }
 
     public int progress() {
         return this.progress;
+    }
+
+    public boolean enabled() {
+        return this.enabled;
+    }
+
+    public void toggleEnabled() {
+        this.enabled = !this.enabled;
+        this.setChanged();
     }
 
     @Override
@@ -87,6 +100,7 @@ public final class MenuMachineBlockEntity extends BlockEntity implements Contain
     protected void saveAdditional(@NotNull ValueOutput output) {
         super.saveAdditional(output);
         output.putInt("progress", this.progress);
+        output.putBoolean("enabled", this.enabled);
         for (int slot = 0; slot < this.items.size(); slot++) {
             output.storeNullable("slot_" + slot, ItemStack.CODEC, this.items.get(slot));
         }
@@ -96,6 +110,7 @@ public final class MenuMachineBlockEntity extends BlockEntity implements Contain
     protected void loadAdditional(@NotNull ValueInput input) {
         super.loadAdditional(input);
         this.progress = Math.clamp(input.getIntOr("progress", 0), 0, MAX_PROGRESS);
+        this.enabled = input.getBooleanOr("enabled", true);
         for (int slot = 0; slot < this.items.size(); slot++) {
             this.items.set(slot, input.read("slot_" + slot, ItemStack.CODEC).orElse(ItemStack.EMPTY));
         }

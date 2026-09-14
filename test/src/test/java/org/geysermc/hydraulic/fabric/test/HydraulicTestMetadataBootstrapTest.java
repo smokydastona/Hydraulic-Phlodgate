@@ -62,6 +62,9 @@ class HydraulicTestMetadataBootstrapTest {
                 Files.readString(Path.of("src/main/resources/hydraulic/metadata").resolve(fileName)),
                 Files.readString(installed)
             );
+            if ("menu_machine".equals(fixture)) {
+                assertTrue(Files.readString(installed).contains("\"toggle\""));
+            }
         }
     }
 }

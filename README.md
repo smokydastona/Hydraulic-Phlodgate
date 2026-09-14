@@ -403,6 +403,19 @@ This is intentionally a fallback mechanism.
 
 It does **not** magically make an arbitrary Java machine interface work on Bedrock.
 
+### Authoritative Menu Actions
+
+For a Bedrock-backed player, Hydraulic now validates translated Java container clicks and buttons
+on the Minecraft server thread, lets vanilla menu handling own the mutation, records exact
+before/after slot and carried-stack state, and requests a canonical Java full-state broadcast after
+completion or rejection. Metadata can classify custom button IDs as `button` or `toggle` through
+`menu.button.<id>`, but it cannot invent a third-party menu's semantics.
+
+The bundled menu-machine fixture declares button `0` as a persistent enabled-state toggle. Focused
+Java tests pass, and a live Fabric run reaches Minecraft and Geyser readiness without a menu-mixin
+failure. Official Bedrock-client execution, visual observation, and restart persistence are still
+required before this is a completed client round trip.
+
 ### Block Entity Data
 
 Metadata can describe Bedrock block-entity data and copy selected values from incoming Java NBT.
@@ -809,6 +822,7 @@ The current implementation report is:
 | Recipe discovery | Local recipe-root scan with existing specialized serializers and malformed/unsupported diagnostics; focused tests pass |
 | Machine synchronization | Coordinator records progress/active deltas, coalesces, encodes, and delivers through the existing transport abstraction; focused tests pass |
 | Generic machine execution | Existing item/fluid/energy transaction and processing bridges remain fail-closed and full-suite verified |
+| Menu actions | Server-thread click/button validation, vanilla Java mutation, transaction evidence, and canonical menu resync are implemented; physical Bedrock execution remains unverified |
 | Real Bedrock observation | Not verified in this environment; transport handoff is not client observation |
 | Arbitrary third-party automatic binding | In progress: `LiveCapabilityBinder` owns verified runtime-object bindings and block-entity removal/reload hooks; adapter-unknown inventory execution passes, while real-mod and physical-client round trips remain open |
 

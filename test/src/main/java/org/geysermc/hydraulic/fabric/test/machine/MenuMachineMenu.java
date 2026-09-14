@@ -51,6 +51,16 @@ public final class MenuMachineMenu extends AbstractContainerMenu {
     }
 
     @Override
+    public boolean clickMenuButton(@NotNull Player player, int buttonId) {
+        if (buttonId != 0 || !(this.machine instanceof MenuMachineBlockEntity machine)) {
+            return false;
+        }
+        machine.toggleEnabled();
+        this.broadcastFullState();
+        return true;
+    }
+
+    @Override
     public ItemStack quickMoveStack(@NotNull Player player, int slotIndex) {
         Slot slot = this.slots.get(slotIndex);
         if (!slot.hasItem()) {

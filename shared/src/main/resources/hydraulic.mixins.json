@@ -15,6 +15,7 @@
     "ext.MinecraftResourcePackReaderImplMixin",
     "ext.ModelSerializerMixin",
     "ext.ScoreboardObjectiveMixin",
+    "ext.ServerGamePacketListenerMenuMixin",
     "ext.ServerPlayerGameModeMixin",
     "ext.ServerPlayerMenuLifecycleMixin"
   ],
