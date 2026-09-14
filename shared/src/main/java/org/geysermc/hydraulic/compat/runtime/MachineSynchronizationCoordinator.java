@@ -2,7 +2,9 @@ package org.geysermc.hydraulic.compat.runtime;
 
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,14 +17,24 @@ import java.util.Map;
 public final class MachineSynchronizationCoordinator {
     private final DirtyStateTracker dirtyStateTracker;
     private final SyncDispatcher syncDispatcher;
+    private final SessionAutoFlushCoordinator autoFlushCoordinator;
     private final Map<Identifier, MachineStateSnapshot> lastStates = new LinkedHashMap<>();
 
     public MachineSynchronizationCoordinator(
         @NotNull DirtyStateTracker dirtyStateTracker,
         @NotNull SyncDispatcher syncDispatcher
     ) {
+        this(dirtyStateTracker, syncDispatcher, null);
+    }
+
+    public MachineSynchronizationCoordinator(
+        @NotNull DirtyStateTracker dirtyStateTracker,
+        @NotNull SyncDispatcher syncDispatcher,
+        @Nullable SessionAutoFlushCoordinator autoFlushCoordinator
+    ) {
         this.dirtyStateTracker = dirtyStateTracker;
         this.syncDispatcher = syncDispatcher;
+        this.autoFlushCoordinator = autoFlushCoordinator;
     }
 
     @NotNull
@@ -31,8 +43,11 @@ public final class MachineSynchronizationCoordinator {
         @NotNull Identifier blockIdentifier
     ) {
         boolean changed = machine.tick(blockIdentifier, dirtyStateTracker);
-        recordMachineState(blockIdentifier, machine);
-        List<SyncDeliveryResult> deliveries = syncDispatcher.flush();
+        StateChangeSet stateChanges = recordMachineState(blockIdentifier, machine);
+        List<SyncDeliveryResult> deliveries = new ArrayList<>(syncDispatcher.flush());
+        if (autoFlushCoordinator != null && stateChanges != null && !stateChanges.changes().isEmpty()) {
+            deliveries.addAll(autoFlushCoordinator.autoFlushStateDeltas(stateChanges));
+        }
         return new TickResult(changed, deliveries);
     }
 
@@ -41,19 +56,23 @@ public final class MachineSynchronizationCoordinator {
         return syncDispatcher.flush();
     }
 
-    private void recordMachineState(@NotNull Identifier blockIdentifier, @NotNull MachineProcessingBridge machine) {
+    @Nullable
+    private StateChangeSet recordMachineState(@NotNull Identifier blockIdentifier, @NotNull MachineProcessingBridge machine) {
         MachineStateSnapshot current = new MachineStateSnapshot(machine.progress(), machine.active());
         MachineStateSnapshot previous = lastStates.put(blockIdentifier, current);
+        List<StateChangeSet.FieldChange> fieldChanges = new ArrayList<>();
         if (previous == null || previous.progress() != current.progress()) {
-            dirtyStateTracker.record(new StateChangeSet(List.of(
-                new StateChangeSet.FieldChange(blockIdentifier, "machine.progress", previous == null ? null : previous.progress(), current.progress())
-            )));
+            fieldChanges.add(new StateChangeSet.FieldChange(blockIdentifier, "machine.progress", previous == null ? null : previous.progress(), current.progress()));
         }
         if (previous == null || previous.active() != current.active()) {
-            dirtyStateTracker.record(new StateChangeSet(List.of(
-                new StateChangeSet.FieldChange(blockIdentifier, "machine.active", previous == null ? null : previous.active(), current.active())
-            )));
+            fieldChanges.add(new StateChangeSet.FieldChange(blockIdentifier, "machine.active", previous == null ? null : previous.active(), current.active()));
         }
+        if (!fieldChanges.isEmpty()) {
+            StateChangeSet changeSet = new StateChangeSet(fieldChanges);
+            dirtyStateTracker.record(changeSet);
+            return changeSet;
+        }
+        return null;
     }
 
     private record MachineStateSnapshot(int progress, boolean active) {

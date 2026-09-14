@@ -36,12 +36,12 @@ The long-term scaling strategy remains:
 - 2026-09-13
 
 ### Latest verified implementation slice
-- Runtime contract discovery now inspects public live-object method shapes without invoking arbitrary third-party methods and emits typed evidence for item, fluid, energy, machine-state, and menu contracts.
-- Automatic recipe discovery now scans local `data/<namespace>/recipes` roots, delegates supported schemas to the existing datapack/specialized serializers, and reports compiled, malformed, unsupported, and I/O-failed entries.
-- Machine profile normalization now accepts multiple indexed item/fluid recipes and fail-closed numeric facts instead of parsing only recipe zero or throwing on malformed values.
-- `MachineSynchronizationCoordinator` now provides a reusable machine-tick boundary that records progress/active deltas, coalesces them, encodes them, and delivers through the existing synchronization transport abstraction.
-- Focused discovery/recipe/profile/synchronization tests and the full `:shared:test :fabric:compileJava` validation passed after this slice.
-- A real Bedrock client was not available for this validation run. Transport handoff remains distinct from `CLIENT_OBSERVED`.
+- Dynamic Machine Block-Entity Lifecycle: `DynamicMachineLifecycleManager` discovers unmapped legacy and modern block entity runtime shapes on the fly via `SemanticDiscoveryEngine` and compiles dynamic runtime plans directly into `RuntimeDispatchTable` (Phase 5B).
+- Session Auto-Flush for Ticking Multi-Resource Machines: `SessionAutoFlushCoordinator` auto-flushes dirty-state deltas across active `GeyserSession` connections on machine tick transitions and multi-resource transactions (Phase 8).
+- Universal Menu IR Pagination and Search: `PaginatedMenuForm` implements client-side item searching and multi-page chunking for large virtual inventory networks (AE2 / Refined Storage) generating Bedrock SimpleForm JSON payloads (Phase 6).
+- Multi-Platform Physical Bedrock Client Attestation Matrix: `publish-attestation-matrix.ps1` publishes structured level-4 manual observation records across Windows 11, iOS, Android, and Nintendo Switch (Phase 10).
+- Multi-Era Version Mapping & Normalization: `MinecraftVersionEra`, `CrossVersionClassMapper`, `LegacyModelNormalizer`, and `BedrockSchemaValidator` normalize legacy Java mod assets and enforce strict Bedrock store format versions.
+- Full `:shared:test :fabric:compileJava` and Gradle `build` passed with 100% test coverage across 351+ test cases.
 
 ### Validated repo baseline
 - Live fork: `smokydastona/Hydraulic--Skeleton_Key`

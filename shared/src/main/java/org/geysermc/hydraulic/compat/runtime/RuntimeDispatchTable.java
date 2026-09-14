@@ -26,6 +26,8 @@ import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 
 public final class RuntimeDispatchTable {
@@ -43,23 +45,23 @@ public final class RuntimeDispatchTable {
         @NotNull Map<String, MappingResolver.ResolvedBlockState> blockStatesByIdentifierAndState,
         @NotNull Map<RuntimeBridgeKind, List<CompiledCompatibilityPlan>> plansByRuntimeBridgeKind
     ) {
-        this.plansByTypeAndIdentifier = Collections.unmodifiableMap(new LinkedHashMap<>(plansByTypeAndIdentifier));
-        Map<String, List<CompiledCompatibilityPlan>> copy = new LinkedHashMap<>();
+        this.plansByTypeAndIdentifier = new ConcurrentHashMap<>(plansByTypeAndIdentifier);
+        Map<String, List<CompiledCompatibilityPlan>> copy = new ConcurrentHashMap<>();
         for (Map.Entry<String, List<CompiledCompatibilityPlan>> entry : plansByModAndType.entrySet()) {
-            copy.put(entry.getKey(), List.copyOf(entry.getValue()));
+            copy.put(entry.getKey(), new CopyOnWriteArrayList<>(entry.getValue()));
         }
-        this.plansByModAndType = Collections.unmodifiableMap(copy);
+        this.plansByModAndType = copy;
         Map<String, List<MappingResolver.ResolvedBlockDefinition>> blockDefinitionCopy = new LinkedHashMap<>();
         for (Map.Entry<String, List<MappingResolver.ResolvedBlockDefinition>> entry : blockDefinitionsByIdentifier.entrySet()) {
             blockDefinitionCopy.put(entry.getKey(), List.copyOf(entry.getValue()));
         }
         this.blockDefinitionsByIdentifier = Collections.unmodifiableMap(blockDefinitionCopy);
         this.blockStatesByIdentifierAndState = Collections.unmodifiableMap(new LinkedHashMap<>(blockStatesByIdentifierAndState));
-        Map<RuntimeBridgeKind, List<CompiledCompatibilityPlan>> bridgeKindCopy = new EnumMap<>(RuntimeBridgeKind.class);
+        Map<RuntimeBridgeKind, List<CompiledCompatibilityPlan>> bridgeKindCopy = new ConcurrentHashMap<>();
         for (Map.Entry<RuntimeBridgeKind, List<CompiledCompatibilityPlan>> entry : plansByRuntimeBridgeKind.entrySet()) {
-            bridgeKindCopy.put(entry.getKey(), List.copyOf(entry.getValue()));
+            bridgeKindCopy.put(entry.getKey(), new CopyOnWriteArrayList<>(entry.getValue()));
         }
-        this.plansByRuntimeBridgeKind = Collections.unmodifiableMap(bridgeKindCopy);
+        this.plansByRuntimeBridgeKind = bridgeKindCopy;
         this.countersByType = Map.of(
             "block", new LookupCounters(),
             "item", new LookupCounters(),
@@ -68,6 +70,15 @@ public final class RuntimeDispatchTable {
             "block_entity", new LookupCounters(),
             "fluid", new LookupCounters()
         );
+    }
+
+    public void registerDynamicPlan(@NotNull CompiledCompatibilityPlan plan) {
+        String key = key(plan.contentType(), plan.javaIdentifier());
+        this.plansByTypeAndIdentifier.put(key, plan);
+        this.plansByModAndType.computeIfAbsent(key(plan.modId(), plan.contentType()), ignored -> new CopyOnWriteArrayList<>()).add(plan);
+        for (RuntimeBridgeKind kind : plan.runtimeBridgeKinds()) {
+            this.plansByRuntimeBridgeKind.computeIfAbsent(kind, ignored -> new CopyOnWriteArrayList<>()).add(plan);
+        }
     }
 
     @NotNull

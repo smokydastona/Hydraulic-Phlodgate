@@ -273,18 +273,11 @@ AUTOMATION_ACCESS
 
 This is intended to give future runtime bridges a consistent place to plug into the system.
 
-## Automatic Semantic Discovery
+## Automatic Semantic Discovery & Dynamic Machine Lifecycle
 
-The discovery layer now has a metadata-independent runtime contract path. Given a live block entity,
-menu, tank, or energy object, `SemanticDiscoveryEngine.discoverRuntimeObject` inspects its public
-method shape without invoking arbitrary third-party code and records evidence for item transfer,
-fluid transfer, energy transfer, processing/ticking state, and menu contracts. The result is typed
-discovery evidence and facts that can feed the existing compatibility analysis and machine profile
-normalization.
-
-This is deliberately evidence-based rather than magical: method shape can identify an executable
-contract, but it cannot infer undocumented recipe semantics, packet meaning, or arbitrary mod state
-from bytecode alone. Unsupported or ambiguous behavior remains explicitly reportable.
+The discovery layer provides a metadata-independent runtime contract path:
+* `SemanticDiscoveryEngine.discoverRuntimeObject` inspects public method shapes for item, fluid, energy, processing, and menu contracts.
+* `DynamicMachineLifecycleManager` binds to live server block entity ticks, automatically compiling unmapped legacy/modern machines into `CompiledCompatibilityPlan` and registering them dynamically with `RuntimeDispatchTable`.
 
 ## Automatic Recipe Discovery
 
@@ -294,6 +287,14 @@ and returns a diagnostic report for compiled, malformed, unsupported, and I/O-fa
 normalized result preserves item/fluid inputs and outputs through `UniversalRecipe`, while catalyst,
 byproduct, and condition evidence remains attached to the discovery record. No Hydraulic metadata or
 Create-specific adapter is required for a supported recipe JSON schema.
+
+## Multi-Resource Session Auto-Flush
+
+`SessionAutoFlushCoordinator` coordinates tick-driven synchronization between `MachineSynchronizationCoordinator` / `MultiResourceTransaction` and active Bedrock `GeyserSession` viewers, immediately dispatching coalesced `InventorySlotPacket` and `ContainerSetDataPacket` state updates.
+
+## Universal Menu IR Pagination & Search
+
+`PaginatedMenuForm` translates massive virtual inventory grids (AE2, Refined Storage, Storage Drawers) into Bedrock SimpleForm JSON payloads with client-side item search filtering, page chunking, and item action dispatching.
 
 ---
 
