@@ -209,6 +209,64 @@ The compatibility layer stays above the current Hydraulic conversion pipeline, b
 - Bound memory, not just thread count.
 - Prove optimization claims with artifacts and measurements.
 
+## Asymmetric Version Lifecycle: Forced Bedrock Target vs Cross-Version Java Mod Consumption
+
+A core reality of cross-platform Minecraft compatibility is version asymmetry:
+
+```text
++-----------------------------------------------------------------------------------+
+| BEDROCK ENVIRONMENT (Forced Client Updates)                                       |
+| - Automatic store updates across Windows, Android, iOS, Xbox, PlayStation, Switch |
+| - Non-negotiable client protocol & schema versions (e.g., Geometry 1.21+, Blocks) |
+| - Hard requirement: Hydraulic MUST emit packs strictly matching active Bedrock   |
++-----------------------------------------------------------------------------------+
+                                         ▲
+                                         │  (Target Bedrock Emission Engine)
++-----------------------------------------------------------------------------------+
+| HYDRAULIC UNIVERSAL IR & NORMALIZATION CORE                                       |
+| - Presentation IR (Version-agnostic models, textures, animations, materials)      |
+| - Recipe & Data IR (Normalized inputs, outputs, catalysts, process durations)     |
+| - Capability IR (Normalized item, fluid, energy, menu, and machine behaviors)     |
++-----------------------------------------------------------------------------------+
+                                         ▲
+                                         │  (Multi-Era Ingestion & Reflection)
++-----------------------------------------------------------------------------------+
+| JAVA MOD ECOSYSTEM (Historical Fragmentation & Delayed Updates)                   |
+| - Legacy Models (1.8 - 1.20.4 parented models, multipart blockstates)             |
+| - Modern Item Definitions (1.20.5+ / 1.21+ / 26.2 data component schemas)         |
+| - Disparate Capability APIs (Forge IItemHandler, NeoForge, Fabric Transfer, etc.) |
+| - Server reality: Mods continue running on servers even after versions advance    |
++-----------------------------------------------------------------------------------+
+```
+
+### 1. The Bedrock Reality: Forced Updates are a Hard Requirement
+- Bedrock players are subject to mandatory platform updates from consumer app stores. A server cannot hold Bedrock clients back on older protocol versions.
+- Hydraulic therefore treats the **current Bedrock version and its schema specifications as an uncompromisable target constraint**.
+- Generated resource packs, attachables, custom block definitions, and Geyser transport handoffs must always compile to the current Bedrock client specification.
+
+### 2. The Java Reality: Mod Fragmentation & Cross-Version Longevity
+- Java server mods rarely update synchronously with Minecraft releases. Server operators frequently run forward-ported mods, legacy modpacks, connector shims, or long-standing server versions.
+- Hydraulic must **consume mod assets, datapacks, and runtime capabilities from any Minecraft version era** without failing when encountering legacy structures or modern schema shifts.
+
+### 3. Architecture for Cross-Version Mod Ingestion & Current Bedrock Emission
+1. **Multi-Era Asset & Model Normalization**:
+   - Ingests classic `models/block` / `models/item` hierarchies (parent resolution, element coordinates, rotation matrices, texture maps).
+   - Ingests modern 1.21.4+ `assets/<namespace>/items/*.json` definition files.
+   - Degrades gracefully on unsupported third-party custom loaders (e.g. Citadel custom item models) to legacy model fallbacks or 2D sprite representations without interrupting conversion.
+   - Emits unified geometry, materials, and attachables conforming to the current Bedrock format specification.
+
+2. **Universal Recipe & Datapack Ingestion**:
+   - Ingests classic JSON crafting/smelting formats alongside modern component-based datapack recipes and kinetic assembly formats (Create, Mekanism, Thermal).
+   - Normalizes all recipe schemas into the canonical `RecipeIR` (inputs, outputs, catalysts, durations, byproducts).
+
+3. **Cross-Version Capability Normalization**:
+   - Discovers and binds across legacy Forge capabilities (`IItemHandler`, `IFluidHandler`, `IEnergyStorage`), modern NeoForge capability registrations, Fabric Transfer API (`Storage<T>`), Botarium, and native `Container`/`BlockEntity` implementations.
+   - Normalizes these into the single `ItemTransfer`, `FluidTransfer`, and `EnergyTransfer` runtime bridge substrate.
+
+4. **Decoupled Cache Invalidation**:
+   - `ConversionKey` separately fingerprints the Java source mod assets, the metadata configuration, and the **target Bedrock / Geyser version**.
+   - When Bedrock updates its schemas, Hydraulic regenerates the Bedrock artifacts cleanly from the cached universal index without requiring any changes to the source Java mod jars.
+
 ## Canonical Capability Contract
 
 Every compatibility reference, analyzer result, and runtime bridge must map to

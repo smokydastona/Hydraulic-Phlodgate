@@ -103,6 +103,16 @@ The important distinction is that **Phlodgate is trying to add the compatibility
 
 ---
 
+# Asymmetric Version Lifecycle
+
+A fundamental reality of bridging Java Edition and Bedrock Edition is **version asymmetry**:
+
+1. **Bedrock Forced Updates**: Bedrock players on mobile, console, and Windows are forced by app stores to update to the latest Minecraft release. Hydraulic treats the current Bedrock client version and its JSON/protocol specifications as a **mandatory target constraint**.
+2. **Cross-Version Java Mod Consumption**: Java server mods frequently lag behind Minecraft updates or run on older versions (e.g. 1.20.1, 1.21.x) via compatibility shims. Hydraulic is designed to **consume mod assets, recipes, and capabilities across any Minecraft version era** and normalize them into a unified intermediate representation (IR).
+3. **Decoupled Regeneration**: Cache keys (`ConversionKey`) separate source mod asset fingerprints from target Bedrock schema versions. When Bedrock updates, Hydraulic regenerates client packs without requiring changes to source Java mod files.
+
+---
+
 # What Phlodgate Adds
 
 ## Compatibility Analysis
