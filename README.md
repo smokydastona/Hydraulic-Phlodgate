@@ -118,6 +118,10 @@ Compatibility reports now carry an additive `implementationMaturity` field with 
 load as `UNKNOWN`. This prevents support level or compatibility score from being mistaken for
 runtime integration or real Bedrock-client observation.
 
+The current zero-trust audit is recorded in [.github/Audit-Report.md](.github/Audit-Report.md).
+It is the evidence boundary for release claims: selected slices are server/transport verified,
+while physical Bedrock observation and full arbitrary-mod behavior remain open.
+
 The important distinction is that **Phlodgate is trying to add the compatibility and runtime layers that sit between Hydraulic's conversion pipeline and the actual behavior of a mod.**
 
 ## External Research Boundary

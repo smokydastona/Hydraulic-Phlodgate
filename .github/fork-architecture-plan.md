@@ -36,6 +36,10 @@ The long-term scaling strategy remains:
 - 2026-09-14
 
 ### Latest verified implementation slice
+- Zero-trust audit baseline: `.github/Audit-Report.md` records the active-repository scope,
+  evidence levels, capability matrix, false-completion risks, scores, and remediation phases.
+  It explicitly classifies the current product as partially executable/server-verified for selected
+  slices, with no E6 client observation and release readiness not achieved.
 - Live lifecycle binding and position-filtered synchronization: the compiled compatibility registry
   now installs a shared runtime lifecycle coordinator. A server-side `BlockEntity.setLevel` seam
   discovers unmapped block-entity contracts, `ServerPlayer.openMenu` records concrete menu-type
