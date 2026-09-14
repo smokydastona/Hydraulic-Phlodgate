@@ -225,9 +225,6 @@ nbdist/
 # Local Copilot instruction files
 .github/copilot-instructions*.md
 
-# Local architecture planning notes
-.github/fork-architecture-plan*.md
-
 # Built Visual Studio Code Extensions
 *.vsix
 

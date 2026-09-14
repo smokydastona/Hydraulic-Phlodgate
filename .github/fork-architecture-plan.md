@@ -36,6 +36,20 @@ The long-term scaling strategy remains:
 - 2026-09-14
 
 ### Latest verified implementation slice
+- Live lifecycle binding and position-filtered synchronization: the compiled compatibility registry
+  now installs a shared runtime lifecycle coordinator. A server-side `BlockEntity.setLevel` seam
+  discovers unmapped block-entity contracts, `ServerPlayer.openMenu` records concrete menu-type
+  evidence, and Minecraft's concrete `LevelChunk$BoundTickingBlockEntity.tick` seam drains machine
+  changes through coalesced synchronization targeted to active Geyser sessions in the same level and
+  tracking range. The ticker seam is verified against the remapped 26.2 class; a full server run
+  reached pack conversion without a Hydraulic mixin-transform failure, but the supplied dev world
+  then stopped on a pre-existing duplicate `phlodgate_bridge` scoreboard objective.
+- Recipe-manager boundary correction: active resource-manager JSON recipes continue to compile into
+  normalized `UniversalRecipe` records, while live `RecipeManager` entries are always inspected and
+  counted. Opaque runtime recipe instances are reported as observed only and are not falsely
+  compiled into machine plans without a portable serialized contract.
+- Handoff resilience: malformed persisted compatibility handoff files are now skipped with a warning
+  and regression-tested instead of producing startup error noise or aborting queue loading.
 - Dynamic lifecycle transfer contract correction: `DynamicMachineLifecycleManager` now consumes the
   canonical fluid facts emitted by `SemanticDiscoveryEngine` (`has_fluid`, `can_insert_fluid`, and
   `can_extract_fluid`) instead of stale aliases, so an executable discovered tank can bind the
@@ -67,16 +81,16 @@ The long-term scaling strategy remains:
 - Broadcaster's tokens, session dumps, screenshots, external-IP discovery, friend management, and social presence are outside Hydraulic's trust boundary. Hydraulic must not import those credential or network surfaces into pack generation, corpus ingestion, reports, or runtime bridges.
 - The detailed source disposition, license notes, and security review are recorded in `.github/external-research-report.md`. No source code, asset, binary, or npm package from these projects was copied into this repository.
 
-### Verified environment gate (2026-09-13)
-- Active shell verification: `java -version` returns `OpenJDK 17.0.20`.
-- Build verification command: `./gradlew :shared:test :fabric:compileJava --console=plain` fails before project compilation because the configured Loom dependency requires a Java 21+ runtime and the active build is using Java 17.
-- Result: the current workspace is not a valid release-verification environment for a Java 25 / 26.2 production claim. Implementation status must be reported as code-complete where the repo contains source, but not runtime-verified complete in this shell.
-- The live repository is the authority over older notes that still mention `1.20.1` or Java `17`; however, the current toolchain and Gradle configuration require a JVM matching the project target before any completion claim is valid.
+### Verified environment gate (2026-09-14)
+- Active validation shell uses `D:/jdks/jdk-25.0.2` with redirected Gradle, temp, and cache directories.
+- `:shared:test` and `:fabric:compileJava` pass under Java 25.
+- A real `:fabric:runServer` reached Fabric/Minecraft bootstrap, Hydraulic indexing, Geyser startup, and conversion of 135 packs without a Hydraulic mixin-transform failure. The run then stopped because the existing dev world contains a duplicate `phlodgate_bridge` scoreboard objective.
+- Result: Java/build verification is available in this environment, but release readiness still requires resolving current pack-validation failures, using a clean runtime world, and completing real Bedrock-client observation.
 
 ### Validated repo baseline
 - Live fork: `smokydastona/Hydraulic--Skeleton_Key`
 - Current workspace branch tracks Minecraft `26.2`
-- Current environment shell currently runs Java `17` rather than the target Java `25`/`21+` toolchain required by the Gradle build.
+- Current validation shell uses the target Java `25` toolchain required by the Gradle build.
 - The live repository is the authority over older notes that still mention `1.20.1` or Java `17`
 
 ### Validated code and runtime scope
@@ -109,7 +123,7 @@ The long-term scaling strategy remains:
 
 ## Executive Verdict
 
-The architecture is directionally correct, but the current workspace is not release-verified because the active shell is running Java 17 while the project build requires Java 21+.
+The architecture is directionally correct, and the current workspace now has a valid Java 25 build environment, but it is not release-verified because pack validation and clean-world/real-client gates remain open.
 
 The implementation work already checked into the repo is substantial and materially better than the earlier prototype state: discovery, machine-runtime, menu, packet-action, transfer, sync, corpus, and invalidation layers exist in code and are codified in the repository. However, the current environment cannot legally claim full production completion, because the build does not start under the active JVM and the final Bedrock-client runtime verification remains outside this workspace.
 

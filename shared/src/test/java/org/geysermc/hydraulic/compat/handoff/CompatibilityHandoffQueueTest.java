@@ -3,12 +3,12 @@ package org.geysermc.hydraulic.compat.handoff;
 import org.geysermc.hydraulic.cache.ArtifactCache;
 import org.geysermc.hydraulic.compat.CompatibilityReport;
 import org.geysermc.hydraulic.compat.ContentInventory;
-import org.geysermc.hydraulic.metadata.MetadataIndex;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
+import java.nio.file.Files;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -44,6 +44,20 @@ class CompatibilityHandoffQueueTest {
 
         assertEquals(1, reloaded.completedEntries().size());
         assertEquals(0, reloaded.pendingEntries().size());
+    }
+
+    @Test
+    void skipsMalformedPersistedEntriesWithoutAbortingStartup() throws Exception {
+        CompatibilityHandoffQueue queue = new CompatibilityHandoffQueue(LoggerFactory.getLogger("HandoffQueueTest"), this.tempDir);
+        queue.ensureLayout();
+        Files.writeString(
+            this.tempDir.resolve("handoff-queue/completed/malformed.json"),
+            "{not-json"
+        );
+
+        queue.loadQueueState();
+
+        assertEquals(0, queue.completedEntries().size());
     }
 
     private static HandoffEnvelope envelope(String fingerprint) {

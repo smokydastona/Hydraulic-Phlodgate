@@ -106,6 +106,12 @@ and registers only the bridge kinds that can actually execute. Method-name evide
 validated operation remains `VISUAL_ONLY`; this path does not claim automatic understanding of
 arbitrary mod-specific recipes or ticking behavior.
 
+The live lifecycle boundary now also observes server-side block-entity loading, concrete menu
+creation, and Minecraft's bound block-entity ticker. Machine changes are coalesced and delivered
+only to active Geyser sessions whose Java player is in the same level and tracking range. Recipe
+JSON remains the authoritative normalized source; opaque recipe-manager entries are reported as
+observed but are not promoted to executable machine plans without a serializable recipe contract.
+
 The important distinction is that **Phlodgate is trying to add the compatibility and runtime layers that sit between Hydraulic's conversion pipeline and the actual behavior of a mod.**
 
 ## External Research Boundary

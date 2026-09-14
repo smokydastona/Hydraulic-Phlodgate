@@ -6,13 +6,16 @@
   "mixins": [
     "ext.BedrockInteractTranslatorMixin",
     "ext.BedrockInventoryTransactionTranslatorMixin",
+    "ext.BlockEntityLifecycleMixin",
+    "ext.BoundTickingBlockEntityMixin",
     "ext.BlockStateSerializerMixin",
     "ext.JavaBlockEntityDataTranslatorMixin",
     "ext.JavaOpenScreenTranslatorMixin",
     "ext.ItemTranslatorMixin",
     "ext.MinecraftResourcePackReaderImplMixin",
     "ext.ModelSerializerMixin",
-    "ext.ServerPlayerGameModeMixin"
+    "ext.ServerPlayerGameModeMixin",
+    "ext.ServerPlayerMenuLifecycleMixin"
   ],
   "injectors": {
     "defaultRequire": 1

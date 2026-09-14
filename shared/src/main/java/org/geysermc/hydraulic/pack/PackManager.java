@@ -25,6 +25,7 @@ import org.geysermc.hydraulic.compat.CompatibilityManager;
 import org.geysermc.hydraulic.compat.CompatibilityRegistry;
 import org.geysermc.hydraulic.compat.CompatibilityReport;
 import org.geysermc.hydraulic.compat.MappingResolver;
+import org.geysermc.hydraulic.compat.runtime.RuntimeLifecycleCoordinator;
 import org.geysermc.hydraulic.compat.adapter.AdapterCatalog;
 import org.geysermc.hydraulic.compat.adapter.AdapterCatalogCache;
 import org.geysermc.hydraulic.compat.corpus.AddonCorpusLoader;
@@ -589,6 +590,7 @@ public class PackManager {
                 this.compatibilityRegistry.report()
             ));
         }
+        RuntimeLifecycleCoordinator.install(this.compatibilityRegistry);
 
         if (!this.metadataIndex.isEmpty()) {
             LOGGER.info(

@@ -302,7 +302,7 @@ public final class SemanticDiscoveryEngine {
     }
 
     private static void inferMenu(Set<String> methods, Map<String, String> facts, List<DiscoveryEvidence> evidence) {
-        boolean menu = containsAny(methods, "create menu", "createmenu", "getmenu", "getcontainer", "stillvalid", "quickmovestack");
+        boolean menu = containsAny(methods, "create menu", "createmenu", "getmenu", "getcontainer", "gettype", "getslot", "stillvalid", "quickmovestack");
         if (!menu) {
             return;
         }

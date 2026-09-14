@@ -9,7 +9,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -27,7 +26,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class CompatibilityHandoffQueue {
     private static final String QUEUE_MANIFEST = "handoff-queue-manifest.json";
-    private static final String QUEUE_INDEX = "handoff-queue-index.json";
     private static final String PENDING_DIR = "pending";
     private static final String COMPLETED_DIR = "completed";
     private static final String FAILED_DIR = "failed";
@@ -260,7 +258,7 @@ public final class CompatibilityHandoffQueue {
         try (var reader = Files.newBufferedReader(path)) {
             return org.geysermc.hydraulic.Constants.GSON.fromJson(reader, type);
         } catch (Exception e) {
-            this.logger.error("Failed to read handoff queue entry {}", path, e);
+            this.logger.warn("Skipping malformed handoff queue entry {}", path, e);
             return null;
         }
     }

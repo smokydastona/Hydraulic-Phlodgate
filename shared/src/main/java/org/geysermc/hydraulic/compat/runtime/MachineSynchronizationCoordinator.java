@@ -1,5 +1,7 @@
 package org.geysermc.hydraulic.compat.runtime;
 
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,17 +39,42 @@ public final class MachineSynchronizationCoordinator {
         this.autoFlushCoordinator = autoFlushCoordinator;
     }
 
+    public MachineSynchronizationCoordinator(
+        @NotNull DirtyStateTracker dirtyStateTracker,
+        @NotNull SessionAutoFlushCoordinator autoFlushCoordinator
+    ) {
+        this(
+            dirtyStateTracker,
+            new SyncDispatcher(dirtyStateTracker, new SyncPlanner(), new SyncEncoder(), changes -> List.of()),
+            autoFlushCoordinator
+        );
+    }
+
     @NotNull
     public TickResult tickAndFlush(
         @NotNull MachineProcessingBridge machine,
         @NotNull Identifier blockIdentifier
     ) {
+        return tickAndFlush(machine, blockIdentifier, null, null);
+    }
+
+    @NotNull
+    public TickResult tickAndFlush(
+        @NotNull MachineProcessingBridge machine,
+        @NotNull Identifier blockIdentifier,
+        @Nullable ServerLevel level,
+        @Nullable BlockPos position
+    ) {
         boolean changed = machine.tick(blockIdentifier, dirtyStateTracker);
-        StateChangeSet stateChanges = recordMachineState(blockIdentifier, machine);
-        List<SyncDeliveryResult> deliveries = new ArrayList<>(syncDispatcher.flush());
-        if (autoFlushCoordinator != null && stateChanges != null && !stateChanges.changes().isEmpty()) {
-            deliveries.addAll(autoFlushCoordinator.autoFlushStateDeltas(stateChanges));
+        recordMachineState(blockIdentifier, machine);
+        if (autoFlushCoordinator != null) {
+            StateChangeSet pending = dirtyStateTracker.drain();
+            List<SyncDeliveryResult> deliveries = pending.changes().isEmpty()
+                ? List.of()
+                : autoFlushCoordinator.autoFlushStateDeltas(pending, level, position);
+            return new TickResult(changed, deliveries);
         }
+        List<SyncDeliveryResult> deliveries = new ArrayList<>(syncDispatcher.flush());
         return new TickResult(changed, deliveries);
     }
 

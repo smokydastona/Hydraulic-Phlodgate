@@ -1,6 +1,5 @@
 package org.geysermc.hydraulic.compat.machine;
 
-import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import org.geysermc.hydraulic.compat.runtime.TransferBridgeFactory;
 import org.jetbrains.annotations.NotNull;
@@ -15,7 +14,6 @@ import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,6 +35,7 @@ public final class DynamicDatapackIngestionHook {
             return 0;
         }
         int count = 0;
+        int recipeManagerEntries = 0;
         try {
             // Attempt 1: Scan server.getResourceManager()
             Object resourceManager = invokeMethod(server, "getResourceManager", "resourceManager");
@@ -64,24 +63,23 @@ public final class DynamicDatapackIngestionHook {
                 }
             }
 
-            // Attempt 2: Scan server.getRecipeManager()
-            if (count == 0) {
-                Object recipeManager = invokeMethod(server, "getRecipeManager", "recipeManager");
-                if (recipeManager != null) {
-                    Object recipesObj = invokeMethod(recipeManager, "getRecipes", "values", "recipes", "getAllRecipesFor");
-                    if (recipesObj instanceof Iterable<?> iterable) {
-                        for (Object recipeHolder : iterable) {
-                            String recipeId = recipeHolder.toString();
-                            Object idObj = invokeMethod(recipeHolder, "id", "getId", "key");
-                            if (idObj != null) {
-                                recipeId = idObj.toString();
-                            }
-                            count++;
+            // Attempt 2: inspect the live recipe manager as a consistency check. Recipe JSON
+            // remains the authoritative compilation source because opaque recipe instances do
+            // not expose a portable normalized representation.
+            Object recipeManager = invokeMethod(server, "getRecipeManager", "recipeManager");
+            if (recipeManager != null) {
+                Object recipesObj = invokeMethod(recipeManager, "getRecipes", "values", "recipes", "getAllRecipesFor");
+                if (recipesObj instanceof Iterable<?> iterable) {
+                    for (Object recipeHolder : iterable) {
+                        recipeManagerEntries++;
+                        Object idObj = invokeMethod(recipeHolder, "id", "getId", "key");
+                        if (idObj != null && !INGESTED_RECIPES.containsKey(idObj.toString())) {
+                            LOGGER.debug("Recipe manager entry {} has no compilable JSON snapshot", idObj);
                         }
                     }
                 }
             }
-            LOGGER.info("Dynamic Datapack Ingestion Hook successfully processed {} active datapack recipes.", count);
+            LOGGER.info("Dynamic Datapack Ingestion Hook compiled {} recipes from active resources and inspected {} recipe-manager entries.", count, recipeManagerEntries);
         } catch (Throwable t) {
             LOGGER.warn("Dynamic Datapack Ingestion encountered a non-fatal issue during recipe scan: {}", t.getMessage());
         }
