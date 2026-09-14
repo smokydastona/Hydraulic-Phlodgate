@@ -36,6 +36,7 @@ public final class AutomaticRecipeDiscovery {
         @NotNull String recipeId,
         @NotNull Path sourcePath,
         @NotNull Status status,
+        @Nullable RecipeIR normalizedRecipe,
         @Nullable UniversalMachineRuntime.UniversalRecipe compiledRecipe,
         @NotNull List<TransferBridgeFactory.ItemStackView> catalysts,
         @NotNull List<TransferBridgeFactory.ItemStackView> byproducts,
@@ -95,6 +96,7 @@ public final class AutomaticRecipeDiscovery {
                     normalizedRoot,
                     Status.IO_FAILURE,
                     null,
+                    null,
                     List.of(),
                     List.of(),
                     Map.of(),
@@ -122,6 +124,17 @@ public final class AutomaticRecipeDiscovery {
     }
 
     @NotNull
+    public static Map<String, RecipeIR> normalizeAll(@NotNull DiscoveryReport report) {
+        Map<String, RecipeIR> normalized = new LinkedHashMap<>();
+        for (DiscoveredRecipe recipe : report.recipes()) {
+            if (recipe.normalizedRecipe() != null) {
+                normalized.put(recipe.recipeId(), recipe.normalizedRecipe());
+            }
+        }
+        return Collections.unmodifiableMap(normalized);
+    }
+
+    @NotNull
     private static DiscoveredRecipe readRecipe(@NotNull Path root, @NotNull Path path) {
         String recipeId = recipeId(root, path);
         try (Reader reader = Files.newBufferedReader(path)) {
@@ -130,16 +143,23 @@ public final class AutomaticRecipeDiscovery {
                 return failed(recipeId, path, Status.MALFORMED, "Recipe root is not an object.");
             }
             JsonObject json = parsed.getAsJsonObject();
-            UniversalMachineRuntime.UniversalRecipe compiled = DatapackRecipeCompiler.compile(recipeId, json);
-            if (compiled == null) {
+            RecipeIR normalized = DatapackRecipeCompiler.compileRecipeIr(
+                recipeId,
+                json,
+                json.has("type") ? json.get("type").getAsString() : "minecraft:crafting",
+                RecipeIR.Source.RESOURCE_JSON,
+                new org.geysermc.hydraulic.compat.model.Confidence(0.95D, "resource_recipe_json")
+            );
+            if (normalized == null) {
                 return failed(recipeId, path, Status.UNSUPPORTED_SCHEMA, "No supported item/fluid input and output schema was found.");
             }
             return new DiscoveredRecipe(
                 recipeId,
                 path,
                 Status.COMPILED,
-                compiled,
-                parseStacks(json, "catalyst", "catalysts", false),
+                normalized,
+                normalized.executableRecipe(),
+                normalized.catalysts(),
                 parseStacks(json, "byproduct", "byproducts", true),
                 parseConditions(json),
                 null
@@ -151,7 +171,7 @@ public final class AutomaticRecipeDiscovery {
 
     @NotNull
     private static DiscoveredRecipe failed(String id, Path path, Status status, String error) {
-        return new DiscoveredRecipe(id, path, status, null, List.of(), List.of(), Map.of(), error);
+        return new DiscoveredRecipe(id, path, status, null, null, List.of(), List.of(), Map.of(), error);
     }
 
     @NotNull

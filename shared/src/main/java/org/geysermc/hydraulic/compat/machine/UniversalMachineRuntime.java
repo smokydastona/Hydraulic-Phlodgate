@@ -2,18 +2,13 @@ package org.geysermc.hydraulic.compat.machine;
 
 import net.minecraft.resources.Identifier;
 import org.geysermc.hydraulic.compat.runtime.DirtyStateTracker;
-import org.geysermc.hydraulic.compat.runtime.MachineProcessingBridge;
-import org.geysermc.hydraulic.compat.runtime.MultiResourceTransaction;
 import org.geysermc.hydraulic.compat.runtime.StateChangeSet;
 import org.geysermc.hydraulic.compat.runtime.TransferBridgeFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -42,13 +37,31 @@ public final class UniversalMachineRuntime {
         int totalProcessingTicks,
         @NotNull List<TransferBridgeFactory.ItemStackView> itemOutputs,
         @NotNull List<TransferBridgeFactory.FluidStackView> fluidOutputs,
-        int energyGenerated
+        int energyGenerated,
+        @NotNull List<TransferBridgeFactory.ItemStackView> catalysts,
+        @NotNull List<String> conditions
     ) {
         public UniversalRecipe {
             itemInputs = List.copyOf(itemInputs);
             fluidInputs = List.copyOf(fluidInputs);
             itemOutputs = List.copyOf(itemOutputs);
             fluidOutputs = List.copyOf(fluidOutputs);
+            catalysts = List.copyOf(catalysts);
+            conditions = List.copyOf(conditions);
+        }
+
+        public UniversalRecipe(
+            @NotNull String recipeId,
+            @NotNull List<TransferBridgeFactory.ItemStackView> itemInputs,
+            @NotNull List<TransferBridgeFactory.FluidStackView> fluidInputs,
+            int energyRequiredPerTick,
+            int totalProcessingTicks,
+            @NotNull List<TransferBridgeFactory.ItemStackView> itemOutputs,
+            @NotNull List<TransferBridgeFactory.FluidStackView> fluidOutputs,
+            int energyGenerated
+        ) {
+            this(recipeId, itemInputs, fluidInputs, energyRequiredPerTick, totalProcessingTicks,
+                itemOutputs, fluidOutputs, energyGenerated, List.of(), List.of());
         }
 
         public boolean matches(
@@ -75,6 +88,12 @@ public final class UniversalMachineRuntime {
                         break;
                     }
                 }
+                if (!found) return false;
+            }
+
+            for (TransferBridgeFactory.ItemStackView catalyst : catalysts) {
+                boolean found = availableItems.stream().anyMatch(available ->
+                    available.matches(catalyst) && available.count() >= catalyst.count());
                 if (!found) return false;
             }
 

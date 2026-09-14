@@ -367,9 +367,13 @@ The discovery layer provides a metadata-independent runtime contract path:
 `AutomaticRecipeDiscovery` scans local mod/data roots under `data/<namespace>/recipes`, derives stable
 recipe identifiers, delegates JSON interpretation to the existing datapack and specialized serializers,
 and returns a diagnostic report for compiled, malformed, unsupported, and I/O-failed recipes. The
-normalized result preserves item/fluid inputs and outputs through `UniversalRecipe`, while catalyst,
-byproduct, and condition evidence remains attached to the discovery record. No Hydraulic metadata or
-Create-specific adapter is required for a supported recipe JSON schema.
+normalized result is retained as typed `RecipeIR` before projection to `UniversalRecipe`. Live
+`RecipeManager` entries use Minecraft's registry-aware recipe codec and become either normalized IR or
+explicit `RECIPE_RUNTIME_UNKNOWN` evidence. Catalysts remain non-consumed requirements; unresolved tags,
+component predicates, alternative singular ingredients, conditions, chance outputs, environmental or
+kinetic requirements, and unregistered custom serializers fail closed. Successful reloads atomically
+replace the normalized recipe snapshot, while failed scans retain the last complete snapshot. Automatic
+association of arbitrary machine instances with the correct recipe set remains incomplete.
 
 ## Multi-Resource Session Auto-Flush
 

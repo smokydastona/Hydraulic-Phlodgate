@@ -1,6 +1,7 @@
 package org.geysermc.hydraulic.compat.machine;
 
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import org.geysermc.hydraulic.compat.runtime.TransferBridgeFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,10 +14,9 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Dynamic Datapack Ingestion Hook (Phase 3 Extension).
@@ -25,17 +25,24 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class DynamicDatapackIngestionHook {
     private static final Logger LOGGER = LoggerFactory.getLogger("HydraulicRecipeIngestion");
-    private static final Map<String, UniversalMachineRuntime.UniversalRecipe> INGESTED_RECIPES = new ConcurrentHashMap<>();
+    private static volatile Map<String, UniversalMachineRuntime.UniversalRecipe> ingestedRecipes = Map.of();
+    private static volatile Map<String, RecipeIR> ingestedRecipeIr = Map.of();
+    private static volatile Map<String, RuntimeRecipeNormalizer.Result> runtimeRecipeEvidence = Map.of();
 
     private DynamicDatapackIngestionHook() {
     }
 
-    public static int ingest(@Nullable MinecraftServer server) {
+    public static synchronized int ingest(@Nullable MinecraftServer server) {
         if (server == null) {
             return 0;
         }
         int count = 0;
         int recipeManagerEntries = 0;
+        int runtimeNormalized = 0;
+        int runtimeUnknown = 0;
+        Map<String, UniversalMachineRuntime.UniversalRecipe> stagedRecipes = new LinkedHashMap<>();
+        Map<String, RecipeIR> stagedRecipeIr = new LinkedHashMap<>();
+        Map<String, RuntimeRecipeNormalizer.Result> stagedEvidence = new LinkedHashMap<>();
         try {
             // Attempt 1: Scan server.getResourceManager()
             Object resourceManager = invokeMethod(server, "getResourceManager", "resourceManager");
@@ -52,9 +59,10 @@ public final class DynamicDatapackIngestionHook {
                             Object res = entry.getValue();
                             String json = readResourceContent(res);
                             if (json != null) {
-                                UniversalMachineRuntime.UniversalRecipe compiled = DatapackRecipeCompiler.compileRecipeJson(id, json);
+                                RecipeIR compiled = DatapackRecipeCompiler.compileRecipeIrJson(id, json);
                                 if (compiled != null) {
-                                    INGESTED_RECIPES.put(compiled.recipeId(), compiled);
+                                    stagedRecipeIr.put(compiled.recipeId(), compiled);
+                                    stagedRecipes.put(compiled.recipeId(), compiled.executableRecipe());
                                     count++;
                                 }
                             }
@@ -63,47 +71,79 @@ public final class DynamicDatapackIngestionHook {
                 }
             }
 
-            // Attempt 2: inspect the live recipe manager as a consistency check. Recipe JSON
-            // remains the authoritative compilation source because opaque recipe instances do
-            // not expose a portable normalized representation.
-            Object recipeManager = invokeMethod(server, "getRecipeManager", "recipeManager");
-            if (recipeManager != null) {
-                Object recipesObj = invokeMethod(recipeManager, "getRecipes", "values", "recipes", "getAllRecipesFor");
-                if (recipesObj instanceof Iterable<?> iterable) {
-                    for (Object recipeHolder : iterable) {
-                        recipeManagerEntries++;
-                        Object idObj = invokeMethod(recipeHolder, "id", "getId", "key");
-                        if (idObj != null && !INGESTED_RECIPES.containsKey(idObj.toString())) {
-                            LOGGER.debug("Recipe manager entry {} has no compilable JSON snapshot", idObj);
-                        }
-                    }
+            // Attempt 2: normalize live recipe-manager entries through Minecraft's
+            // registry-aware Recipe codec. Entries that cannot be represented safely remain
+            // explicit RECIPE_RUNTIME_UNKNOWN evidence and never become executable plans.
+            for (RecipeHolder<?> recipeHolder : server.getRecipeManager().getRecipes()) {
+                recipeManagerEntries++;
+                String recipeId = recipeHolder.id().identifier().toString();
+                if (stagedRecipes.containsKey(recipeId)) {
+                    continue;
+                }
+                RuntimeRecipeNormalizer.Result result = RuntimeRecipeNormalizer.normalize(recipeHolder, server.registryAccess());
+                stagedEvidence.put(recipeId, result);
+                if (result.recipe() != null) {
+                    stagedRecipeIr.put(recipeId, result.recipe());
+                    stagedRecipes.put(recipeId, result.recipe().executableRecipe());
+                    count++;
+                    runtimeNormalized++;
+                } else {
+                    runtimeUnknown++;
+                    LOGGER.debug("Recipe manager entry {} remains {}: {}", recipeId, result.status(), result.reason());
                 }
             }
-            LOGGER.info("Dynamic Datapack Ingestion Hook compiled {} recipes from active resources and inspected {} recipe-manager entries.", count, recipeManagerEntries);
+            ingestedRecipes = Map.copyOf(stagedRecipes);
+            ingestedRecipeIr = Map.copyOf(stagedRecipeIr);
+            runtimeRecipeEvidence = Map.copyOf(stagedEvidence);
+            LOGGER.info(
+                "Dynamic Datapack Ingestion Hook compiled {} recipes, inspected {} recipe-manager entries, normalized {} runtime entries, and classified {} as RECIPE_RUNTIME_UNKNOWN.",
+                count, recipeManagerEntries, runtimeNormalized, runtimeUnknown
+            );
         } catch (Throwable t) {
             LOGGER.warn("Dynamic Datapack Ingestion encountered a non-fatal issue during recipe scan: {}", t.getMessage());
         }
         return count;
     }
 
-    public static void registerRecipe(@NotNull UniversalMachineRuntime.UniversalRecipe recipe) {
-        INGESTED_RECIPES.put(recipe.recipeId(), recipe);
+    public static synchronized void registerRecipe(@NotNull UniversalMachineRuntime.UniversalRecipe recipe) {
+        Map<String, UniversalMachineRuntime.UniversalRecipe> recipes = new LinkedHashMap<>(ingestedRecipes);
+        recipes.put(recipe.recipeId(), recipe);
+        ingestedRecipes = Map.copyOf(recipes);
+    }
+
+    public static synchronized void registerRecipe(@NotNull RecipeIR recipe) {
+        Map<String, RecipeIR> recipeIr = new LinkedHashMap<>(ingestedRecipeIr);
+        recipeIr.put(recipe.recipeId(), recipe);
+        ingestedRecipeIr = Map.copyOf(recipeIr);
+        Map<String, UniversalMachineRuntime.UniversalRecipe> recipes = new LinkedHashMap<>(ingestedRecipes);
+        recipes.put(recipe.recipeId(), recipe.executableRecipe());
+        ingestedRecipes = Map.copyOf(recipes);
     }
 
     @NotNull
     public static Map<String, UniversalMachineRuntime.UniversalRecipe> getIngestedRecipes() {
-        return Collections.unmodifiableMap(INGESTED_RECIPES);
+        return ingestedRecipes;
+    }
+
+    @NotNull
+    public static Map<String, RecipeIR> getIngestedRecipeIr() {
+        return ingestedRecipeIr;
     }
 
     @Nullable
     public static UniversalMachineRuntime.UniversalRecipe getRecipe(@NotNull String recipeId) {
-        return INGESTED_RECIPES.get(recipeId);
+        return ingestedRecipes.get(recipeId);
+    }
+
+    @NotNull
+    public static Map<String, RuntimeRecipeNormalizer.Result> getRuntimeRecipeEvidence() {
+        return runtimeRecipeEvidence;
     }
 
     @NotNull
     public static List<UniversalMachineRuntime.UniversalRecipe> findRecipesForInput(@NotNull String itemId) {
         List<UniversalMachineRuntime.UniversalRecipe> matches = new ArrayList<>();
-        for (UniversalMachineRuntime.UniversalRecipe recipe : INGESTED_RECIPES.values()) {
+        for (UniversalMachineRuntime.UniversalRecipe recipe : ingestedRecipes.values()) {
             for (TransferBridgeFactory.ItemStackView in : recipe.itemInputs()) {
                 if (in.itemId().equalsIgnoreCase(itemId)) {
                     matches.add(recipe);

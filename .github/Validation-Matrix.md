@@ -33,3 +33,20 @@ Each completed client test must record timestamp, Java/Minecraft/Bedrock/Geyser/
 	Hydraulic lifecycle-mixin or binding failure.
 - Not proven: real third-party block-entity operation, persistence after restart, Geyser delivery for
 	this arbitrary binding, or official Bedrock-client observation.
+
+## Recipe Evidence
+
+- Focused tests cover resource JSON normalization, runtime-codec normalization, opaque/custom
+	serializer rejection, catalyst preservation, and fail-closed tag/condition/chance handling.
+- Machine and recipe test suites pass under Java 25, and Fabric compilation accepts the typed
+	Minecraft 26.2 codec path.
+- Runtime counts are recorded from the current server log when available; automatic machine
+	association and physical client behavior remain unverified.
+- Final Java 25 runtime: 8,934 live manager entries inspected, 3,126 normalized, and 5,808
+	classified `RECIPE_RUNTIME_UNKNOWN`; Minecraft and Geyser reached `Done`. Waystones custom-block
+	registration still fails independently on negative mining destructibility without aborting startup.
+- Final allowlisted runtime run: 8,934 entries inspected, 3,126 normalized, 5,808
+	`RECIPE_RUNTIME_UNKNOWN`; Minecraft reached `Done` and shut down cleanly.
+- Independent pack blockers observed in the same run include malformed McW pack format ranges,
+	negative Waystones mining destructibility, Lootr model deserialization failures, and invalid
+	empty-output packs. They remain in the pack-remediation workstream.

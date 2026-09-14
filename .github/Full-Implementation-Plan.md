@@ -13,7 +13,7 @@ Status vocabulary: `OPEN`, `IN_PROGRESS`, `SERVER_VERIFIED`, `TRANSPORT_VERIFIED
 | Clean runtime world and scoreboard lifecycle | SERVER_VERIFIED | Fresh-world startup and clean shutdown passed; reload/reconnect still require a client session | Fresh world starts, reloads, reconnects, and restarts with exactly one `phlodgate_bridge` objective |
 | Automatic third-party live binding | IN_PROGRESS | Adapter-unknown runtime inventory is discovered, verified, bound, executed, unbound, and rebound in production dispatch tests; real third-party block-entity and client round trips remain open | Real mod block entity completes discover-to-client round trip across unload, reload, and restart |
 | Universal resource index | OPEN | Config, corpus, recipe, packaging, and cache discovery paths still need classification and consolidation | Every discovery scan is indexed or explicitly runtime-owned |
-| Recipe-manager normalization | OPEN | Opaque runtime recipes are observed but not executable | Normalized `RecipeIR` or explicit `UNKNOWN` evidence for every observed entry |
+| Recipe-manager normalization | IN_PROGRESS | Resource and codec-backed runtime entries produce `RecipeIR`; unknown/custom semantics produce `RECIPE_RUNTIME_UNKNOWN`; automatic machine-to-recipe association remains open | Every observed entry has typed evidence and each machine binds only compatible executable RecipeIR records |
 | Normalized action pipeline | IN_PROGRESS | Production action routing is narrow | Typed action decoding, validation, Java-thread execution, transaction result, and sync trace for each supported action |
 | Fluid actions | OPEN | Fluid transfer substrate exists, Bedrock action contract does not | Fill/drain simulation and commit with persistence and sync evidence |
 | Energy actions | OPEN | Energy transfer substrate exists, Bedrock action contract does not | Receive/extract simulation and commit with persistence and sync evidence |
@@ -57,6 +57,24 @@ Current evidence:
 	reconnect evidence, and physical Bedrock observation.
 
 The milestone remains `IN_PROGRESS` until all open stages pass.
+
+## 2026-09-14 Recipe Normalization Evidence
+
+- `RecipeIR` is the authoritative portable record for resource JSON and codec-backed live
+	`RecipeManager` entries. Existing machine consumers receive only its executable projection.
+- Live recipes are serialized through Minecraft 26.2's registry-aware `Recipe.CODEC`. Only
+	built-in Minecraft serializers and explicitly registered specialized serializers are eligible
+	for execution; all others become `RECIPE_RUNTIME_UNKNOWN` evidence.
+- Catalysts are preserved separately and matched without consumption. Unresolved tags,
+	component predicates, alternative singular ingredients, environmental/kinetic requirements,
+	conditions, and chance outputs cannot be projected to an executable machine recipe.
+- Reload ingestion publishes immutable complete snapshots, preventing removed recipes from
+	surviving a successful reload and preventing readers from observing partial replacement.
+- Automatic association between a live machine and the correct normalized recipe set remains open.
+- Live Java 25 evidence: 8,934 `RecipeManager` entries were inspected; 3,126 were normalized
+	through allowed codec/serializer contracts and 5,808 were classified `RECIPE_RUNTIME_UNKNOWN`.
+	Minecraft and Geyser reached `Done`, and shutdown saved all worlds cleanly. Waystones custom-block
+	registration still fails independently on negative mining destructibility without aborting startup.
 
 ## 2026-09-14 Live Session Lifecycle Evidence
 

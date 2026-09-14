@@ -4,12 +4,11 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.minecraft.resources.Identifier;
+import org.geysermc.hydraulic.compat.model.Confidence;
 import org.geysermc.hydraulic.compat.runtime.TransferBridgeFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,30 +24,66 @@ public final class DatapackRecipeCompiler {
 
     @Nullable
     public static UniversalMachineRuntime.UniversalRecipe compileRecipeJson(@NotNull String recipeId, @NotNull String jsonContent) {
+        RecipeIR recipeIR = compileRecipeIrJson(recipeId, jsonContent);
+        return recipeIR == null ? null : recipeIR.executableRecipe();
+    }
+
+    @Nullable
+    public static RecipeIR compileRecipeIrJson(@NotNull String recipeId, @NotNull String jsonContent) {
         try {
             JsonElement parsed = JsonParser.parseString(jsonContent);
             if (!parsed.isJsonObject()) {
                 return null;
             }
-            return compile(recipeId, parsed.getAsJsonObject());
+            JsonObject json = parsed.getAsJsonObject();
+            String recipeType = recipeType(json);
+            return compileRecipeIr(recipeId, json, recipeType, RecipeIR.Source.RESOURCE_JSON,
+                new Confidence(0.95D, "resource_recipe_json"));
         } catch (Exception e) {
             return null;
         }
     }
 
     @Nullable
+    public static RecipeIR compileRecipeIr(
+        @NotNull String recipeId,
+        @NotNull JsonObject json,
+        @NotNull String serializer,
+        @NotNull RecipeIR.Source source,
+        @NotNull Confidence confidence
+    ) {
+        UniversalMachineRuntime.UniversalRecipe recipe = compile(recipeId, json);
+        if (recipe == null) {
+            return null;
+        }
+        return new RecipeIR(
+            recipeId, recipeType(json), recipe.itemInputs(), List.of(), recipe.fluidInputs(),
+            recipe.energyRequiredPerTick(), recipe.itemOutputs(), recipe.fluidOutputs(), List.of(),
+            recipe.totalProcessingTicks(), recipe.conditions(), recipe.catalysts(), recipe.energyGenerated(),
+            serializer, source, confidence
+        );
+    }
+
+    @NotNull
+    private static String recipeType(@NotNull JsonObject json) {
+        return json.has("type") && json.get("type").isJsonPrimitive()
+            ? json.get("type").getAsString()
+            : "minecraft:crafting";
+    }
+
+    @Nullable
     public static UniversalMachineRuntime.UniversalRecipe compile(@NotNull String recipeId, @NotNull JsonObject json) {
+        if (hasUnsupportedExecutionSemantics(json)) {
+            return null;
+        }
         UniversalMachineRuntime.UniversalRecipe specialized =
             SpecializedRecipeSerializerRegistry.tryParseSpecialized(recipeId, json);
         if (specialized != null) {
             return specialized;
         }
 
-        String type = json.has("type") && json.get("type").isJsonPrimitive()
-            ? json.get("type").getAsString()
-            : "minecraft:crafting";
-
         List<TransferBridgeFactory.ItemStackView> itemInputs = new ArrayList<>();
+        List<TransferBridgeFactory.ItemStackView> catalysts = new ArrayList<>();
         List<TransferBridgeFactory.FluidStackView> fluidInputs = new ArrayList<>();
         List<TransferBridgeFactory.ItemStackView> itemOutputs = new ArrayList<>();
         List<TransferBridgeFactory.FluidStackView> fluidOutputs = new ArrayList<>();
@@ -89,7 +124,7 @@ public final class DatapackRecipeCompiler {
             energyGenerated = json.get("power_generated").getAsInt();
         }
 
-        // Extract inputs & catalysts
+        // Extract inputs
         if (json.has("ingredient")) {
             extractItemInputs(json.get("ingredient"), itemInputs);
         } else if (json.has("ingredients")) {
@@ -104,11 +139,11 @@ public final class DatapackRecipeCompiler {
 
         // Extract multiblock catalysts / secondary tools
         if (json.has("catalyst")) {
-            extractItemInputs(json.get("catalyst"), itemInputs);
+            extractItemInputs(json.get("catalyst"), catalysts);
         } else if (json.has("catalysts")) {
-            extractItemInputs(json.get("catalysts"), itemInputs);
+            extractItemInputs(json.get("catalysts"), catalysts);
         } else if (json.has("tool")) {
-            extractItemInputs(json.get("tool"), itemInputs);
+            extractItemInputs(json.get("tool"), catalysts);
         }
 
         // Extract fluid inputs
@@ -168,15 +203,88 @@ public final class DatapackRecipeCompiler {
             Math.max(1, duration),
             itemOutputs,
             fluidOutputs,
-            energyGenerated
+            energyGenerated,
+            catalysts,
+            List.of()
         );
+    }
+
+    private static boolean hasUnsupportedExecutionSemantics(@NotNull JsonObject json) {
+        if ((json.has("conditions") && !json.get("conditions").isJsonNull())
+            || (json.has("condition") && !json.get("condition").isJsonNull())
+            || json.has("heat")
+            || json.has("temperature")
+            || json.has("pressure")
+            || json.has("minimum_rpm")
+            || json.has("stress")) {
+            return true;
+        }
+        for (String singularInput : List.of("ingredient", "input", "item_in", "catalyst", "tool")) {
+            if (json.has(singularInput) && json.get(singularInput).isJsonArray()) {
+                return true;
+            }
+        }
+        for (String semanticField : List.of(
+            "ingredient", "ingredients", "input", "inputs", "item_in", "catalyst", "catalysts", "tool",
+            "result", "output", "outputs", "results", "byproduct", "byproducts", "extra_output", "secondary_output"
+        )) {
+            if (json.has(semanticField) && containsUnsupportedStackData(json.get(semanticField))) {
+                return true;
+            }
+        }
+        for (String outputKey : List.of("result", "output", "outputs", "results", "byproduct", "byproducts", "extra_output", "secondary_output")) {
+            if (json.has(outputKey) && hasChance(json.get(outputKey))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean containsUnsupportedStackData(@Nullable JsonElement element) {
+        if (element == null || element.isJsonNull() || element.isJsonPrimitive()) {
+            return false;
+        }
+        if (element.isJsonArray()) {
+            for (JsonElement child : element.getAsJsonArray()) {
+                if (containsUnsupportedStackData(child)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        JsonObject object = element.getAsJsonObject();
+        for (String key : List.of("tag", "components", "component", "nbt", "data", "predicate")) {
+            if (object.has(key)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasChance(@Nullable JsonElement element) {
+        if (element == null || element.isJsonNull()) {
+            return false;
+        }
+        if (element.isJsonArray()) {
+            for (JsonElement child : element.getAsJsonArray()) {
+                if (hasChance(child)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        if (!element.isJsonObject()) {
+            return false;
+        }
+        JsonObject object = element.getAsJsonObject();
+        return object.has("chance") || object.has("probability");
     }
 
     private static void extractItemInputs(JsonElement element, List<TransferBridgeFactory.ItemStackView> list) {
         if (element == null) return;
         if (element.isJsonObject()) {
             JsonObject obj = element.getAsJsonObject();
-            String item = getString(obj, "item", "id", "tag");
+            String item = getString(obj, "item", "id");
             int count = getInt(obj, 1, "count", "amount");
             if (item != null) {
                 list.add(new TransferBridgeFactory.ItemStackView(item, count));

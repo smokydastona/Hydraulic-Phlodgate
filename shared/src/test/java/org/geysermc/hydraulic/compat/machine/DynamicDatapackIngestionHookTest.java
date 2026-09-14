@@ -1,6 +1,7 @@
 package org.geysermc.hydraulic.compat.machine;
 
 import org.geysermc.hydraulic.compat.runtime.TransferBridgeFactory;
+import org.geysermc.hydraulic.compat.model.Confidence;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -41,5 +42,21 @@ class DynamicDatapackIngestionHookTest {
             DynamicDatapackIngestionHook.findRecipesForInput("minecraft:raw_gold");
         assertFalse(matches.isEmpty());
         assertEquals("custom:crush_gold", matches.get(0).recipeId());
+    }
+
+    @Test
+    void registersRecipeIrAsAuthoritativeArtifactAndExecutableProjection() {
+        RecipeIR recipe = new RecipeIR(
+            "custom:ir_crush", "custom:crusher",
+            List.of(new TransferBridgeFactory.ItemStackView("minecraft:raw_iron", 1)), List.of(), List.of(), 5,
+            List.of(new TransferBridgeFactory.ItemStackView("minecraft:iron_ingot", 1)), List.of(), List.of(),
+            40, List.of(), List.of(), 0, "custom:crusher", RecipeIR.Source.RESOURCE_JSON,
+            new Confidence(0.95D, "test")
+        );
+
+        DynamicDatapackIngestionHook.registerRecipe(recipe);
+
+        assertSame(recipe, DynamicDatapackIngestionHook.getIngestedRecipeIr().get(recipe.recipeId()));
+        assertNotNull(DynamicDatapackIngestionHook.getRecipe(recipe.recipeId()));
     }
 }

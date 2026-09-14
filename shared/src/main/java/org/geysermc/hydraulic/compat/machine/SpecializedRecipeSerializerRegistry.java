@@ -8,11 +8,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -105,13 +102,11 @@ public final class SpecializedRecipeSerializerRegistry {
                 extractItemOutputs(json.get("result"), itemOutputs);
             }
 
-            int stepCount = 0;
             int totalDuration = 0;
             int energyPerTick = 10;
 
             if (json.has("sequence") && json.get("sequence").isJsonArray()) {
                 JsonArray seq = json.get("sequence").getAsJsonArray();
-                stepCount = seq.size();
                 for (JsonElement stepEl : seq) {
                     if (!stepEl.isJsonObject()) continue;
                     JsonObject stepObj = stepEl.getAsJsonObject();

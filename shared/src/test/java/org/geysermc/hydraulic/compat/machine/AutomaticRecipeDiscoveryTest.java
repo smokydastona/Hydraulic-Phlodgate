@@ -22,8 +22,7 @@ class AutomaticRecipeDiscoveryTest {
               "type": "create:pressing",
               "ingredients": [{"item": "minecraft:iron_ingot", "count": 1}],
               "results": [{"item": "create:iron_sheet", "count": 1}],
-              "processingTime": 40,
-              "heat": "heated"
+              "processingTime": 40
             }
             """);
 
@@ -36,8 +35,23 @@ class AutomaticRecipeDiscoveryTest {
         AutomaticRecipeDiscovery.DiscoveredRecipe discovered = report.recipes().getFirst();
         assertEquals("create:pressing/iron_plate", discovered.recipeId());
         assertNotNull(discovered.compiledRecipe());
+        assertNotNull(discovered.normalizedRecipe());
+        assertEquals(1, AutomaticRecipeDiscovery.normalizeAll(report).size());
         assertEquals(40, discovered.compiledRecipe().totalProcessingTicks());
-        assertEquals("heated", discovered.conditions().get("heat"));
+    }
+
+    @Test
+    void reportsUnimplementedEnvironmentalRequirementsAsUnsupported(@TempDir Path root) throws IOException {
+        Path recipePath = root.resolve("data/create/recipes/mixing/heated.json");
+        Files.createDirectories(recipePath.getParent());
+        Files.writeString(recipePath, """
+            {"type":"create:mixing","ingredients":[{"item":"minecraft:iron_ingot"}],"results":[{"item":"minecraft:iron_block"}],"heat":"heated"}
+            """);
+
+        AutomaticRecipeDiscovery.DiscoveryReport report = AutomaticRecipeDiscovery.discover(List.of(root));
+
+        assertEquals(1, report.unsupported());
+        assertTrue(AutomaticRecipeDiscovery.normalizeAll(report).isEmpty());
     }
 
     @Test

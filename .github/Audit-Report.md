@@ -78,6 +78,18 @@ This report is a focused zero-trust execution audit, not a claim that every gene
 9. Test fixtures prove generic contracts for specially constructed objects, not arbitrary third-party mod semantics. Evidence: E2/static fixture inspection.
 10. Mod-specific adapters are not justified as complete compatibility adapters until generic capability maturity and client validation gates pass. Evidence: E1/E2.
 
+### Post-Audit Remediation Status (2026-09-14)
+
+- Finding 5 is partially remediated: resource JSON and live `RecipeManager` entries now converge on
+	typed `RecipeIR`; Minecraft's registry-aware recipe codec normalizes allowlisted serializers, and
+	unsupported entries produce `RECIPE_RUNTIME_UNKNOWN`. The final runtime inspected 8,934 entries,
+	normalized 3,126, and rejected 5,808 as unknown. Automatic machine-to-recipe association remains open.
+- Finding 7 is remediated for clean startup: scoped duplicate-objective recovery reached a clean
+	Fabric/Geyser startup. Same-world restart and physical-client reconnect evidence remain separate gates.
+- Finding 9 is partially remediated: an adapter-unknown mutable inventory now proves automatic live
+	binding and Java mutation through production dispatch. This remains fixture evidence, not arbitrary-mod
+	or physical Bedrock proof.
+
 ## Pass 2 Adversarial Challenge
 
 - Pass 1 claim: generic transfer bridges are executable. Attack: verify factory selection, operation direction, simulation, mutation, and tests. Result: CONFIRMED for constructed runtime bridge shapes at E2; NOT universal arbitrary-mod proof.

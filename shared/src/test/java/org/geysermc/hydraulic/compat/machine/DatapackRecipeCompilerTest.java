@@ -111,9 +111,38 @@ class DatapackRecipeCompilerTest {
         assertEquals("immersive:gold_crushing", recipe.recipeId());
         assertEquals(60, recipe.totalProcessingTicks());
         assertEquals(500, recipe.energyGenerated());
-        assertEquals(2, recipe.itemInputs().size()); // input + catalyst
+        assertEquals(1, recipe.itemInputs().size());
+        assertEquals(1, recipe.catalysts().size());
+        assertEquals("tech:lubricant_canister", recipe.catalysts().getFirst().itemId());
         assertEquals(2, recipe.itemOutputs().size()); // primary output + byproduct
         assertEquals("tech:dust_gold", recipe.itemOutputs().get(0).itemId());
         assertEquals("minecraft:copper_nugget", recipe.itemOutputs().get(1).itemId());
+    }
+
+    @Test
+    void rejectsTagInputsUntilTagResolutionIsExecutable() {
+        assertNull(DatapackRecipeCompiler.compileRecipeJson("test:tagged", """
+            {"type":"minecraft:smelting","ingredient":{"tag":"minecraft:logs"},"result":{"id":"minecraft:charcoal"}}
+            """));
+    }
+
+    @Test
+    void rejectsConditionalAndProbabilisticRecipes() {
+        assertNull(DatapackRecipeCompiler.compileRecipeJson("test:conditional", """
+            {"input":{"item":"minecraft:stone"},"output":{"item":"minecraft:diamond"},"conditions":[{"type":"test:enabled"}]}
+            """));
+        assertNull(DatapackRecipeCompiler.compileRecipeJson("test:chance", """
+            {"input":{"item":"minecraft:stone"},"output":{"item":"minecraft:diamond","chance":0.5}}
+            """));
+    }
+
+    @Test
+    void rejectsAlternativeAndComponentRequirementsInsteadOfTreatingThemAsExactInputs() {
+        assertNull(DatapackRecipeCompiler.compileRecipeJson("test:alternatives", """
+            {"ingredient":[{"item":"minecraft:oak_log"},{"item":"minecraft:birch_log"}],"result":{"id":"minecraft:charcoal"}}
+            """));
+        assertNull(DatapackRecipeCompiler.compileRecipeJson("test:components", """
+            {"input":{"item":"minecraft:potion","components":{"minecraft:potion_contents":"minecraft:water"}},"output":{"item":"minecraft:glass_bottle"}}
+            """));
     }
 }

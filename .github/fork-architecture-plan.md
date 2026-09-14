@@ -91,9 +91,15 @@ E1-E10 evidence, real-mod validation, and a final zero-trust audit.
   reached pack conversion without a Hydraulic mixin-transform failure, but the supplied dev world
   then stopped on a pre-existing duplicate `phlodgate_bridge` scoreboard objective.
 - Recipe-manager boundary correction: active resource-manager JSON recipes continue to compile into
-  normalized `UniversalRecipe` records, while live `RecipeManager` entries are always inspected and
-  counted. Opaque runtime recipe instances are reported as observed only and are not falsely
-  compiled into machine plans without a portable serialized contract.
+  typed `RecipeIR`, while live `RecipeManager` entries are serialized through Minecraft 26.2's
+  registry-aware recipe codec. Built-in and explicitly registered specialized serializers may produce
+  executable projections; opaque or unsupported entries produce `RECIPE_RUNTIME_UNKNOWN`. Catalysts
+  remain non-consumed requirements, and unresolved tags, component predicates, alternative inputs,
+  environmental/kinetic requirements, conditions, and chance outputs fail closed. Reload publication
+  swaps immutable complete snapshots so failed scans cannot replace the last good recipe state.
+  A final Java 25 runtime inspected 8,934 manager entries, normalized 3,126, classified 5,808 as
+  `RECIPE_RUNTIME_UNKNOWN`, and reached Minecraft `Done`. Automatic association between arbitrary
+  live machines and the correct normalized recipes remains open.
 - Handoff resilience: malformed persisted compatibility handoff files are now skipped with a warning
   and regression-tested instead of producing startup error noise or aborting queue loading.
 - Machine-readable evidence maturity: `CompatibilityObject` now carries an additive
