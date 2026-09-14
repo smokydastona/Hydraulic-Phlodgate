@@ -94,6 +94,10 @@ It is a fork that builds additional systems on top of the Hydraulic conversion a
 | Mod-specific adapters             | Foundation           | Expanded adapter system            |
 | Machine/automation behavior       | Incomplete           | Generic Java-side execution substrate; incomplete client validation |
 | Fluid runtime behavior            | Incomplete           | Generic Java-side transfer substrate; incomplete world-fluid translation |
+| Kinetic presentation              | No equivalent system | Create-style RPM, axis, gear-ratio, and overstress animation transforms |
+| Processing particles               | No equivalent system | Tick-aligned smoke, sparks, laser, flame, and splash emitters |
+| Corpus change detection            | No equivalent system | Curated schema diffing with startup re-index reports and score refresh |
+| Large-topology invalidation        | No equivalent system | Cycle-safe synthetic benchmark coverage for 500+ mod graphs |
 
 The important distinction is that **Phlodgate is trying to add the compatibility and runtime layers that sit between Hydraulic's conversion pipeline and the actual behavior of a mod.**
 
@@ -310,8 +314,16 @@ The shared runtime layer now exposes fail-closed executable bridges for:
 * sided automation insertion and extraction
 * generic machine processing from compiled recipe facts
 * normalized container-to-tank transfers with fluid identity checks
+* Create-style kinetic rotation transforms for Bedrock entity bones
+* tick-aligned processing particle emitters for active machines
 
 These bridges operate against compatible Java runtime objects through the compiled dispatch table. Unsupported object shapes, missing directions, malformed recipes, and mismatched fluids do not become silent no-op behavior.
+
+Kinetic presentation is intentionally separate from kinetic behavior. The rendering bridge compiles
+network RPM, axis, direction, gear ratio, and overstress state into Bedrock bone transforms and
+animation-controller states; it does not claim to recreate Create's server-side kinetic simulation.
+Particle emitters likewise produce Bedrock particle-effect packets only while a registered machine
+emitter is active and its tick cadence is due.
 
 ---
 
@@ -494,6 +506,11 @@ Hydraulic persists the resulting versioned index and manifest as `corpus-index.j
 
 The corpus is advisory. It can enrich compatibility analysis and adapter ranking, but raw corpus records cannot directly advertise executable runtime bridges.
 
+`CorpusDiffReindexer` can scan curated schema snapshots against a persisted index and classify entries
+as `ADDED`, `MODIFIED`, `DELETED`, or `UNCHANGED`. Changed entries receive refreshed capability scores
+and the utility returns an updated typed index with deleted entries removed. This remains an offline
+local scan: Hydraulic does not crawl remote repositories at runtime.
+
 ---
 
 # Performance
@@ -518,6 +535,11 @@ The current implementation includes:
 * indexed blockstate loading
 * indexed item asset loading
 * compiled runtime lookup tables
+* startup corpus diff re-indexing for curated schema changes
+
+The invalidation benchmark also includes a 500-mod synthetic topology with injected cycles. It
+verifies that cycle-breaking topological ordering preserves every node and that repeated transitive
+invalidation remains within the benchmark's latency budget.
 
 The cache is stored under:
 
@@ -654,16 +676,20 @@ It should **not** currently be considered a universal compatibility solution for
 
 The project already has real compatibility-analysis, metadata, caching, pack-generation, validation, and runtime-bridge infrastructure, but there are still major areas to solve.
 
-The largest remaining problems are behavior-heavy systems such as:
+The largest remaining problems are behavior-heavy and client-validation systems such as:
 
 * machines
 * automation
-* item transfer
-* fluid transfer
-* energy systems
 * complex menus
 * complex block entities
 * mod-specific interactions
+* automatic semantic and recipe discovery for arbitrary mods
+* live Bedrock-client observation of synchronized state
+
+Generic item, fluid, energy, transaction, automation, machine-processing, and synchronization
+handoff paths now exist and are covered by Java-side tests. They remain fail-closed and do not imply
+that every mod's semantics have been discovered or that a real Bedrock client has observed the
+result.
 
 Those systems require actual runtime bridges rather than additional reporting alone.
 
