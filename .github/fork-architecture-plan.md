@@ -30,6 +30,27 @@ The long-term scaling strategy remains:
 4. mod-specific adapter
 5. explicit unsupported result when gaps remain
 
+## Post-Audit Execution Contract
+
+The zero-trust audit is the release baseline, not evidence of completion. The permanent
+implementation ledger is split across:
+
+- `.github/Full-Implementation-Plan.md` for workstream status and exit criteria
+- `.github/Runtime-Contract-Matrix.md` for capability lifecycle evidence
+- `.github/Validation-Matrix.md` for server, transport, and physical-client gates
+
+The current product is **not release-ready**. Selected item/block-use, transfer, machine,
+lifecycle, and Geyser transport slices are server- or transport-verified, but fluid/energy/menu/
+entity action contracts, universal indexing, recipe normalization, persistence proof, and
+physical Bedrock observation remain open. A transport handoff must never be described as client
+observation. Existing development worlds are preserved; clean runtime validation uses a separate
+world path.
+
+The implementation order is now locked: clean runtime baseline, universal index classification,
+recipe normalization, normalized action pipeline, fluid and energy actions, menu and entity
+actions, machine persistence and rollback, automation, pack-validation classification, physical
+E1-E10 evidence, real-mod validation, and a final zero-trust audit.
+
 ## Ground Truth Snapshot
 
 ### Date
@@ -40,6 +61,13 @@ The long-term scaling strategy remains:
   evidence levels, capability matrix, false-completion risks, scores, and remediation phases.
   It explicitly classifies the current product as partially executable/server-verified for selected
   slices, with no E6 client observation and release readiness not achieved.
+- Scoreboard-load recovery: the existing generated development world was preserved and replaced
+  for validation. Minecraft's failure occurred while deserializing duplicate
+  `phlodgate_bridge` objectives before Hydraulic initialization. The scoped
+  `ScoreboardObjectiveMixin` now reuses only Hydraulic's existing signal on load; Java 25
+  compilation and a clean-world Fabric/Geyser startup plus clean shutdown passed without the
+  duplicate-objective failure. Same-world restart remains blocked by a Windows Architectury
+  dev-jar lock after shutdown and is not yet claimed as verified.
 - Live lifecycle binding and position-filtered synchronization: the compiled compatibility registry
   now installs a shared runtime lifecycle coordinator. A server-side `BlockEntity.setLevel` seam
   discovers unmapped block-entity contracts, `ServerPlayer.openMenu` records concrete menu-type
@@ -75,7 +103,9 @@ The long-term scaling strategy remains:
 - Universal Menu IR Pagination and Search: `PaginatedMenuForm` implements client-side item searching and multi-page chunking for large virtual inventory networks (AE2 / Refined Storage) generating Bedrock SimpleForm JSON payloads (Phase 6).
 - Multi-Platform Physical Bedrock Client Attestation Matrix: `publish-attestation-matrix.ps1` publishes structured level-4 manual observation records across Windows 11, iOS, Android, and Nintendo Switch (Phase 10).
 - Multi-Era Version Mapping & Normalization: `MinecraftVersionEra`, `CrossVersionClassMapper`, `LegacyModelNormalizer`, and `BedrockSchemaValidator` normalize legacy Java mod assets and enforce strict Bedrock store format versions.
-- Full `:shared:test :fabric:compileJava` and Gradle `build` passed with 100% test coverage across 351+ test cases.
+- Focused runtime and conversion tests have passed for selected slices in prior Java 25 runs;
+  this is not 100% project coverage and does not replace the pending clean-world, persistence,
+  physical-client, and real-mod evidence gates.
 
 ### Porting Lib research boundary (2026-09-13)
 - The public `Fabricators-of-Create/Porting-Lib` repository was reviewed at its `1.21.1` branch. Its README and module layout confirm reusable design references for `transfer`, `fluids`, `blocks`, `items`, `gui_utils`, `resources`, `data`, `entity`, `model_data`, `model_loader`, `registry`, `tags`, and `mixin_extensions`.

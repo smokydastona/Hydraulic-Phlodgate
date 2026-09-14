@@ -28,6 +28,20 @@ The basic idea is:
 
 **Hydraulic provides the foundation. Phlodgate expands the compatibility layer around it.**
 
+## Current Release Gate
+
+Phlodgate is currently **not release-ready**. The zero-trust audit found real server and Geyser
+transport slices, but no physical Bedrock-client evidence and no basis for universal arbitrary-mod
+compatibility claims yet. The active implementation ledger is in
+[`.github/Full-Implementation-Plan.md`](.github/Full-Implementation-Plan.md), with the runtime
+contract status in [`.github/Runtime-Contract-Matrix.md`](.github/Runtime-Contract-Matrix.md) and
+validation evidence in [`.github/Validation-Matrix.md`](.github/Validation-Matrix.md).
+
+The current priority is runtime completion: clean-world startup, universal discovery boundaries,
+recipe normalization, typed action contracts for items/fluids/energy/menus/entities, machine
+persistence and rollback, automation, and physical Bedrock validation. Resource conversion or a
+transport handoff does not imply gameplay support or client observation.
+
 ---
 
 # What is Phlodgate?

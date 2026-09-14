@@ -32,14 +32,21 @@ public final class CompanionSignalBridge {
             Scoreboard scoreboard = server.getScoreboard();
             Objective existing = scoreboard.getObjective(OBJECTIVE_NAME);
             if (existing == null) {
-                scoreboard.addObjective(
-                        OBJECTIVE_NAME,
-                        ObjectiveCriteria.DUMMY,
-                        Component.literal(DISPLAY_NAME),
-                        ObjectiveCriteria.DUMMY.getDefaultRenderType(),
-                        false,
-                        null
-                );
+                try {
+                    scoreboard.addObjective(
+                            OBJECTIVE_NAME,
+                            ObjectiveCriteria.DUMMY,
+                            Component.literal(DISPLAY_NAME),
+                            ObjectiveCriteria.DUMMY.getDefaultRenderType(),
+                            false,
+                            null
+                    );
+                } catch (IllegalArgumentException duplicate) {
+                    if (scoreboard.getObjective(OBJECTIVE_NAME) == null) {
+                        throw duplicate;
+                    }
+                    this.logger.debug("Companion detection signal '{}' was installed concurrently", OBJECTIVE_NAME);
+                }
                 this.logger.info("Installed companion detection signal: scoreboard objective '{}'", OBJECTIVE_NAME);
             }
             this.installed = true;
