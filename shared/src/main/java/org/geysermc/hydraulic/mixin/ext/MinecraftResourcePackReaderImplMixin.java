@@ -1,6 +1,8 @@
 package org.geysermc.hydraulic.mixin.ext;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.stream.JsonReader;
 import net.kyori.adventure.key.Key;
 import org.slf4j.Logger;
@@ -61,6 +63,7 @@ public abstract class MinecraftResourcePackReaderImplMixin {
         }
 
         try {
+            jsonElement = sanitizePackMetadata(jsonElement);
             return instance.deserializeFromJson(jsonElement, key, packFormat);
         } catch (Exception e) {
             if (isUnsupportedItemModelSchema(e)) {
@@ -71,6 +74,40 @@ public abstract class MinecraftResourcePackReaderImplMixin {
         }
 
         return null;
+    }
+
+    private static JsonElement sanitizePackMetadata(JsonElement jsonElement) {
+        if (jsonElement == null || !jsonElement.isJsonObject()) {
+            return jsonElement;
+        }
+
+        JsonObject root = jsonElement.getAsJsonObject();
+        if (!root.has("pack") || !root.get("pack").isJsonObject()) {
+            return jsonElement;
+        }
+
+        JsonObject pack = root.getAsJsonObject("pack");
+        if (!pack.has("min_format")) {
+            return jsonElement;
+        }
+
+        JsonElement minFormat = pack.get("min_format");
+        if (minFormat == null || !minFormat.isJsonArray()) {
+            return jsonElement;
+        }
+
+        JsonElement first = minFormat.getAsJsonArray().size() > 0 ? minFormat.getAsJsonArray().get(0) : null;
+        if (first == null || !first.isJsonPrimitive() || !((JsonPrimitive) first).isNumber()) {
+            return jsonElement;
+        }
+
+        int normalized = first.getAsInt();
+        if (normalized <= 0) {
+            return jsonElement;
+        }
+
+        pack.addProperty("min_format", normalized);
+        return jsonElement;
     }
 
     private static boolean isUnsupportedItemModelSchema(Exception exception) {

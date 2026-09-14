@@ -107,6 +107,34 @@ The external Fabric and Bedrock repositories used during architecture research a
 
 Hydraulic does not copy third-party code or assets from those projects. Runtime behavior remains Java-server authoritative, with local corpus snapshots and compiled compatibility plans as the only supported integration surfaces. A downloaded or executed Bedrock behavior pack is never treated as proof of Geyser-session execution.
 
+## NetherNet Protocol Boundary
+
+Research covered the original `df-mc/nethernet-spec`, the MIT
+`PrismarineJS/node-nethernet` implementation, the MIT
+`LucienHH/bedrock-portal-nethernet` implementation, and the current MIT
+`bedrock-v/nethernet` implementation. Hydraulic includes a dependency-free
+wire codec under `org.geysermc.hydraulic.compat.nethernet` for the verified
+protocol substrate:
+
+* authenticated LAN discovery on UDP port `7551` using the AES-ECB/HMAC-SHA256
+       format and little-endian `0xdeadbeef` application key;
+* typed request, response, and message packets with hex-encoded responses;
+* current server-data version 7 fields and varint/string validation;
+* strict `CONNECTREQUEST`, `CONNECTRESPONSE`, `CANDIDATEADD`, and
+       `CONNECTERROR` signaling parsing with uint64 connection IDs;
+* raw Bedrock message segmentation on reliable channels up to 262,143 bytes
+       per segment and 256 segments, with explicit rejection of segmented
+       unreliable messages.
+
+The codec is bounded and fail-closed: malformed authentication, lengths,
+segment order, signaling types, and oversized inputs are rejected. It is not a
+live WebRTC client, identity/JWS verifier, Xbox Live/PlayFab signaling client,
+UDP listener, or Geyser transport replacement. The reference implementations
+show that current connections depend on WebRTC data channels, DTLS, identity
+assertions, and out-of-band signaling. No production path claims NetherNet
+connectivity until those dependencies and real Bedrock-client observation are
+independently verified.
+
 ---
 
 # Asymmetric Version Lifecycle

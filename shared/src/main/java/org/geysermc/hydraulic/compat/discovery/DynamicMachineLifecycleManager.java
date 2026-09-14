@@ -9,6 +9,7 @@ import org.geysermc.hydraulic.compat.model.Confidence;
 import org.geysermc.hydraulic.compat.model.SupportLevel;
 import org.geysermc.hydraulic.compat.runtime.RuntimeBridgeKind;
 import org.geysermc.hydraulic.compat.runtime.RuntimeDispatchTable;
+import org.geysermc.hydraulic.compat.runtime.TransferBridgeFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,7 +58,12 @@ public final class DynamicMachineLifecycleManager {
             initialFacts
         );
 
-        CompiledCompatibilityPlan dynamicPlan = buildPlanFromProfile(identifier, profile);
+        CompiledCompatibilityPlan candidate = buildPlanFromProfile(identifier, profile, null);
+        CompiledCompatibilityPlan dynamicPlan = buildPlanFromProfile(
+            identifier,
+            profile,
+            validateExecutableBridges(runtimeBlockEntity, candidate)
+        );
         dynamicPlans.put(identifier, dynamicPlan);
         dispatchTable.registerDynamicPlan(dynamicPlan);
         return dynamicPlan;
@@ -75,31 +81,38 @@ public final class DynamicMachineLifecycleManager {
     @NotNull
     private static CompiledCompatibilityPlan buildPlanFromProfile(
         @NotNull Identifier identifier,
-        @NotNull SemanticDiscoveryEngine.DiscoveredSemanticProfile profile
+        @NotNull SemanticDiscoveryEngine.DiscoveredSemanticProfile profile,
+        @Nullable List<RuntimeBridgeKind> executableBridges
     ) {
         Map<String, String> facts = profile.facts();
         List<RuntimeBridgeKind> bridgeKinds = new ArrayList<>();
         List<String> requirements = new ArrayList<>();
 
-        if ("true".equals(facts.get("has_inventory")) || "true".equals(facts.get("can_insert")) || "true".equals(facts.get("can_extract"))) {
+        if (supports(executableBridges, RuntimeBridgeKind.ITEM_TRANSFER)
+            && ("true".equals(facts.get("has_inventory")) || "true".equals(facts.get("can_insert")) || "true".equals(facts.get("can_extract")))) {
             bridgeKinds.add(RuntimeBridgeKind.ITEM_TRANSFER);
             requirements.add("item_transfer_bridge");
             bridgeKinds.add(RuntimeBridgeKind.MACHINE_INVENTORY);
             requirements.add("machine_inventory_bridge");
         }
-        if ("true".equals(facts.get("has_tank")) || "true".equals(facts.get("can_fill")) || "true".equals(facts.get("can_drain"))) {
+        if (supports(executableBridges, RuntimeBridgeKind.FLUID_TRANSFER)
+            && ("true".equals(facts.get("has_tank")) || "true".equals(facts.get("can_fill")) || "true".equals(facts.get("can_drain")))) {
             bridgeKinds.add(RuntimeBridgeKind.FLUID_TRANSFER);
             requirements.add("fluid_transfer_bridge");
         }
-        if ("true".equals(facts.get("has_energy")) || "true".equals(facts.get("can_receive_energy")) || "true".equals(facts.get("can_provide_energy"))) {
+        if (supports(executableBridges, RuntimeBridgeKind.ENERGY_TRANSFER)
+            && ("true".equals(facts.get("has_energy")) || "true".equals(facts.get("can_receive_energy")) || "true".equals(facts.get("can_provide_energy")))) {
             bridgeKinds.add(RuntimeBridgeKind.ENERGY_TRANSFER);
             requirements.add("energy_transfer_bridge");
         }
-        if ("true".equals(facts.get("is_ticking_machine")) || "true".equals(facts.get("has_processing")) || "true".equals(facts.get("machine.ticking.discovered"))) {
+        if (supports(executableBridges, RuntimeBridgeKind.MACHINE_BEHAVIOR)
+            && "true".equals(facts.get("has_processing"))
+            && facts.containsKey("machine.processing.recipe.0.input")
+            && facts.containsKey("machine.processing.recipe.0.output")) {
             bridgeKinds.add(RuntimeBridgeKind.MACHINE_BEHAVIOR);
             requirements.add("machine_behavior_bridge");
         }
-        if ("true".equals(facts.get("has_menu"))) {
+        if (supports(executableBridges, RuntimeBridgeKind.MENU_CONTAINER) && "true".equals(facts.get("has_menu"))) {
             bridgeKinds.add(RuntimeBridgeKind.MENU_CONTAINER);
             requirements.add("menu_container_bridge");
         }
@@ -141,5 +154,35 @@ public final class DynamicMachineLifecycleManager {
             "dynamic_machine",
             List.of()
         );
+    }
+
+    @NotNull
+    private static List<RuntimeBridgeKind> validateExecutableBridges(
+        @NotNull Object runtimeObject,
+        @NotNull CompiledCompatibilityPlan candidate
+    ) {
+        List<RuntimeBridgeKind> executable = new ArrayList<>();
+        TransferBridgeFactory.ItemTransferBridge item = TransferBridgeFactory.createItemTransfer(candidate, runtimeObject);
+        if (item != null && item.executable()) {
+            executable.add(RuntimeBridgeKind.ITEM_TRANSFER);
+            executable.add(RuntimeBridgeKind.MACHINE_INVENTORY);
+            if (candidate.inventoryFacts().containsKey("machine.processing.recipe.0.input")
+                && candidate.inventoryFacts().containsKey("machine.processing.recipe.0.output")) {
+                executable.add(RuntimeBridgeKind.MACHINE_BEHAVIOR);
+            }
+        }
+        TransferBridgeFactory.FluidTransferBridge fluid = TransferBridgeFactory.createFluidTransfer(candidate, runtimeObject);
+        if (fluid != null && fluid.executable()) {
+            executable.add(RuntimeBridgeKind.FLUID_TRANSFER);
+        }
+        TransferBridgeFactory.EnergyTransferBridge energy = TransferBridgeFactory.createEnergyTransfer(candidate, runtimeObject);
+        if (energy != null && energy.executable()) {
+            executable.add(RuntimeBridgeKind.ENERGY_TRANSFER);
+        }
+        return List.copyOf(executable);
+    }
+
+    private static boolean supports(@Nullable List<RuntimeBridgeKind> executableBridges, @NotNull RuntimeBridgeKind kind) {
+        return executableBridges == null || executableBridges.contains(kind);
     }
 }

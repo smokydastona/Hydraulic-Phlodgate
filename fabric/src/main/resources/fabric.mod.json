@@ -27,7 +27,7 @@
     "hydraulic-fabric.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.19.3",
+    "fabricloader": ">=0.19.5",
     "fabric-api": "*",
     "geyser-fabric": "*",
     "minecraft": ">=${minecraft_version}",

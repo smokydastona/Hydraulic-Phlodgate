@@ -13,7 +13,7 @@ configurate = "4.2.0-GeyserMC-20251111.004649-11"
 configurate-core = "4.2.0-GeyserMC-20251111.004649-12"
 
 # Fabric
-fabric-loader = "0.19.3"
+fabric-loader = "0.19.5"
 fabric-api = "0.158.0+26.2"
 
 # NeoForge
