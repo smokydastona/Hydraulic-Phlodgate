@@ -54,6 +54,8 @@ The long-term scaling strategy remains:
 - The old `bridge-core/bridge.` repository is superseded by `bridge-core/editor`; both are GPL-3.0 applications. Their schema-aware editing, diagnostics, and packaging concepts may inform offline validation, but their application code must not be embedded or linked into Hydraulic's current distribution.
 - `JaylyDev/ScriptAPI` is an MIT-licensed community sample repository. Stable-branch scripts and official Script API references may supply corpus evidence for Bedrock capability classification. They do not prove behavior-pack execution in a Java/Geyser session, and no script is a Hydraulic runtime dependency.
 - `InnateAlpaca/BedrockBridge` is an MIT-licensed Bedrock Dedicated Server plus Discord add-on. Its BDS-only modules, permissions, experiments, and Discord token flow are outside Hydraulic's Java/Geyser runtime and must not be presented as a Hydraulic bridge.
+- `Broadcaster-master.zip` is the GPL-3.0 MCXboxBroadcast project. Its Geyser extension broadcasts Bedrock listener state to Xbox Live through authenticated REST/WebSocket/NetherNet/WebRTC code; it does not convert content or execute Hydraulic runtime plans. It is reference-only and must not be copied, shaded, linked, or added as a dependency.
+- Broadcaster's tokens, session dumps, screenshots, external-IP discovery, friend management, and social presence are outside Hydraulic's trust boundary. Hydraulic must not import those credential or network surfaces into pack generation, corpus ingestion, reports, or runtime bridges.
 - The detailed source disposition, license notes, and security review are recorded in `.github/external-research-report.md`. No source code, asset, binary, or npm package from these projects was copied into this repository.
 
 ### Validated repo baseline
@@ -2241,6 +2243,7 @@ Exit criteria:
 - corpus snapshots can be loaded offline, matched deterministically, and used to enrich compatibility reporting without direct runtime lookups
 - external catalogs are used only to discover candidate sources; every promoted source has independent license, version, provenance, and evidence checks
 - optional Creator Tools validation is an operator/CI concern with an explicit tool-version and failure report, never a startup dependency
+- Xbox presence broadcasters and BDS/Discord bridges remain external products; Geyser listener observation is not a compatibility capability and must not enter compiled runtime plans
 
 Phase note:
 - corpus contract, source-policy, and harvesting work can begin earlier, but Hydraulic consumption belongs here after the typed bridge and compiled-plan seams are stable enough to accept external evidence safely
