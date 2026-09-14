@@ -22,8 +22,14 @@ This matrix records the strongest verified state, not the intended design.
 | Machine processing | PASS | PASS | PASS | PASS | PASS | PARTIAL | TRANSPORT | OPEN | PASS |
 | Machine persistence | PASS | PASS | PASS | PASS | PARTIAL | OPEN | OPEN | OPEN | PARTIAL |
 | Automation route | PASS | PASS | PASS | PARTIAL | PARTIAL | OPEN | PARTIAL | OPEN | PARTIAL |
+| Adapter-unknown live inventory | PASS | PASS | PASS | PASS | PASS | OPEN | OPEN | OPEN | PASS |
 
 `TRANSPORT` means a concrete Geyser packet handoff was tested. It never means that an official Bedrock client displayed or applied the result.
 
 Session pipeline lifecycle is `SERVER_VERIFIED`: active sessions are reconciled on machine ticks,
 and stale session pipelines are removed. This does not establish client delivery or observation.
+
+Live object binding is `SERVER_VERIFIED` for the adapter-unknown inventory contract: an existing
+presentation plan is preserved, verified runtime bridges are merged into dispatch, simulation does
+not mutate state, commit does mutate Java state, and removal/reload replaces the ephemeral binding.
+Real third-party block entities and physical Bedrock observation remain open.

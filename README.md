@@ -47,6 +47,13 @@ on each machine tick, so disconnected sessions do not retain dirty-state or tran
 This is server-side lifecycle handling, not evidence that a Bedrock client received or displayed an
 update.
 
+Live capability binding now owns ephemeral links between runtime block entities and verified compiled
+plans. The binder records object identity, runtime type, discovered capabilities, selected adapters,
+verified bridge kinds, contract version, and confidence; Minecraft `setRemoved`/`clearRemoved` lifecycle
+events remove and recreate those bindings. An adapter-unknown inventory fixture is automatically bound
+and mutated through production dispatch, including augmentation of an existing presentation plan. This
+is server-side evidence, not arbitrary real-mod or physical Bedrock completion.
+
 ---
 
 # What is Phlodgate?
@@ -799,7 +806,7 @@ The current implementation report is:
 | Machine synchronization | Coordinator records progress/active deltas, coalesces, encodes, and delivers through the existing transport abstraction; focused tests pass |
 | Generic machine execution | Existing item/fluid/energy transaction and processing bridges remain fail-closed and full-suite verified |
 | Real Bedrock observation | Not verified in this environment; transport handoff is not client observation |
-| Arbitrary third-party automatic binding | Not complete; discovery facts still require a live integration owner to bind them into each mod's block/entity lifecycle |
+| Arbitrary third-party automatic binding | In progress: `LiveCapabilityBinder` owns verified runtime-object bindings and block-entity removal/reload hooks; adapter-unknown inventory execution passes, while real-mod and physical-client round trips remain open |
 
 The largest remaining problems are behavior-heavy and client-validation systems such as:
 

@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -28,6 +29,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class DynamicMachineLifecycleManager {
     private final RuntimeDispatchTable dispatchTable;
     private final Map<Identifier, CompiledCompatibilityPlan> dynamicPlans = new ConcurrentHashMap<>();
+    private final Map<Identifier, CompiledCompatibilityPlan> basePlans = new ConcurrentHashMap<>();
+    private final Set<Identifier> initializedIdentifiers = ConcurrentHashMap.newKeySet();
 
     public DynamicMachineLifecycleManager(@NotNull RuntimeDispatchTable dispatchTable) {
         this.dispatchTable = Objects.requireNonNull(dispatchTable, "dispatchTable");
@@ -37,7 +40,7 @@ public final class DynamicMachineLifecycleManager {
      * Inspects a live machine block entity and dynamically compiles a runtime plan if not already registered.
      */
     @NotNull
-    public CompiledCompatibilityPlan registerAndCompile(
+    public synchronized CompiledCompatibilityPlan registerAndCompile(
         @NotNull Identifier identifier,
         @NotNull Object runtimeBlockEntity,
         @NotNull Map<String, String> initialFacts
@@ -45,15 +48,13 @@ public final class DynamicMachineLifecycleManager {
         Objects.requireNonNull(identifier, "identifier");
         Objects.requireNonNull(runtimeBlockEntity, "runtimeBlockEntity");
 
-        CompiledCompatibilityPlan existing = dispatchTable.block(identifier);
-        if (existing != null) {
-            return existing;
+        if (initializedIdentifiers.add(identifier)) {
+            CompiledCompatibilityPlan existing = dispatchTable.block(identifier);
+            if (existing != null) {
+                basePlans.put(identifier, existing);
+            }
         }
-
-        CompiledCompatibilityPlan cached = dynamicPlans.get(identifier);
-        if (cached != null) {
-            return cached;
-        }
+        CompiledCompatibilityPlan basePlan = basePlans.get(identifier);
 
         SemanticDiscoveryEngine.DiscoveredSemanticProfile profile = SemanticDiscoveryEngine.discoverRuntimeObject(
             identifier,
@@ -62,17 +63,47 @@ public final class DynamicMachineLifecycleManager {
         );
 
         CompiledCompatibilityPlan candidate = buildPlanFromProfile(identifier, profile, null);
-        CompiledCompatibilityPlan dynamicPlan = buildPlanFromProfile(
+        CompiledCompatibilityPlan discoveredPlan = buildPlanFromProfile(
             identifier,
             profile,
             validateExecutableBridges(runtimeBlockEntity, candidate)
         );
-        CompiledCompatibilityPlan winner = dynamicPlans.putIfAbsent(identifier, dynamicPlan);
-        if (winner != null) {
-            return winner;
-        }
+        CompiledCompatibilityPlan dynamicPlan = basePlan == null ? discoveredPlan : mergePlan(basePlan, discoveredPlan);
+        dynamicPlans.put(identifier, dynamicPlan);
         dispatchTable.registerDynamicPlan(dynamicPlan);
         return dynamicPlan;
+    }
+
+    @NotNull
+    private static CompiledCompatibilityPlan mergePlan(
+        @NotNull CompiledCompatibilityPlan base,
+        @NotNull CompiledCompatibilityPlan discovered
+    ) {
+        List<AdapterBinding> adapters = new ArrayList<>(base.adapterBindings());
+        for (AdapterBinding adapter : discovered.adapterBindings()) {
+            if (adapters.stream().noneMatch(existing -> existing.adapterId().equals(adapter.adapterId()))) {
+                adapters.add(adapter);
+            }
+        }
+        List<String> requirements = new ArrayList<>(base.runtimeRequirements());
+        discovered.runtimeRequirements().stream().filter(requirement -> !requirements.contains(requirement)).forEach(requirements::add);
+        List<RuntimeBridgeKind> bridgeKinds = new ArrayList<>(base.runtimeBridgeKinds());
+        discovered.runtimeBridgeKinds().stream().filter(kind -> !bridgeKinds.contains(kind)).forEach(bridgeKinds::add);
+        Map<String, String> facts = new java.util.LinkedHashMap<>(discovered.inventoryFacts());
+        facts.putAll(base.inventoryFacts());
+
+        return new CompiledCompatibilityPlan(
+            base.modId(), base.contentType(), base.javaIdentifier(), base.resolvedIdentifier(),
+            base.overallLevel(), base.overallStatus(), base.overallScore(), base.confidence(),
+            adapters, requirements, bridgeKinds, facts,
+            base.allowsCreativeExposure(), base.creativeExposureReason(), base.allowsCustomRegistration(),
+            base.customRegistrationReason(), base.supportsBlockItemTextureFallback(), base.supportsBlockPlacement(),
+            base.supportsWearablePresentation(), base.supportsAttachablePresentation(), base.requiresMenuBridge(),
+            base.menuFallbackContainerType(), base.interactionPrompt(), base.menuRuntimeRequirements(),
+            base.blockEntityRuntimeRequirements(), base.fluidRuntimeRequirements(), base.blockEntityPatchTemplate(),
+            base.requiresBlockEntityRuntime(), base.requiresFluidRuntime(), base.behaviorLevel(), base.behaviorTag(),
+            base.corpusEvidence()
+        );
     }
 
     @Nullable

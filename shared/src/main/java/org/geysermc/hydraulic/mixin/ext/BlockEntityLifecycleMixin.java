@@ -11,6 +11,21 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class BlockEntityLifecycleMixin {
     @Inject(method = "setLevel", at = @At("TAIL"))
     private void hydraulic$discoverRuntimeContract(CallbackInfo callbackInfo) {
+        BlockEntity blockEntity = (BlockEntity) (Object) this;
+        if (blockEntity.getLevel() == null) {
+            RuntimeLifecycleCoordinator.unbindBlockEntity(blockEntity);
+            return;
+        }
+        RuntimeLifecycleCoordinator.discoverBlockEntity(blockEntity);
+    }
+
+    @Inject(method = "setRemoved", at = @At("TAIL"))
+    private void hydraulic$unbindRuntimeContract(CallbackInfo callbackInfo) {
+        RuntimeLifecycleCoordinator.unbindBlockEntity((BlockEntity) (Object) this);
+    }
+
+    @Inject(method = "clearRemoved", at = @At("TAIL"))
+    private void hydraulic$rebindRuntimeContract(CallbackInfo callbackInfo) {
         RuntimeLifecycleCoordinator.discoverBlockEntity((BlockEntity) (Object) this);
     }
 }

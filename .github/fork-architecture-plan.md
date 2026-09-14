@@ -73,6 +73,15 @@ E1-E10 evidence, real-mod validation, and a final zero-trust audit.
   disconnected ones. This prevents retained dirty-state and transport references while preserving
   the existing same-level/range delivery filter. Focused coordinator tests pass; physical client
   delivery remains unverified.
+- Universal live capability binding: `LiveCapabilityBinder` now owns weak, ephemeral bindings from
+  live runtime objects to dynamically verified compiled plans. Bindings carry object/type identity,
+  capability and adapter evidence, bridge kinds, contract version, and confidence. Existing indexed
+  presentation plans are augmented with verified runtime bridges without promoting their support level,
+  and stale dynamic dispatch indexes are replaced. Minecraft 26.2 `setRemoved` and `clearRemoved` hooks
+  remove and recreate bindings. Focused tests prove an adapter-unknown inventory can be simulated,
+  mutated through production dispatch, unbound, rebound, and reverified; real-mod and Bedrock-client
+  round trips remain open. A live Fabric run reached `Done` and started Geyser with the Minecraft
+  26.2 lifecycle hooks applied and no Hydraulic binding/mixin failure.
 - Live lifecycle binding and position-filtered synchronization: the compiled compatibility registry
   now installs a shared runtime lifecycle coordinator. A server-side `BlockEntity.setLevel` seam
   discovers unmapped block-entity contracts, `ServerPlayer.openMenu` records concrete menu-type
@@ -756,7 +765,8 @@ of support or reuse rights.
 - Focused shared regression coverage now also proves the compatibility cache identity expands with the compatibility-engine fingerprint and that persisted compatibility manifests retain that fingerprint across store/load, closing the stale-report path that previously required manual cache clearing after analyzer changes.
 - Focused shared runtime-dispatch coverage now also proves that bucket-item creative exposure follows the linked fluid plan instead of only the bucket item's local presentation state, closing a real false-positive exposure path for partially supported fluids.
 - Fresh Java 25 validation after the transaction, synchronization, mixed-machine, automation, and compiled mixed-recipe slices now also confirms the full Gradle `build` succeeds and `:fabric:runServer` reaches Geyser ready state on UDP `19132`. The run converted eight packs with `failedPacks = 0`, registered 857 custom blocks, 989 custom items, and 1 custom entity, and `pack-validation-report.json` marked `create`, `travelersbackpack`, `lootr`, `apollib`, `citadel`, `farmersdelight`, `hydraulic`, and `hydraulic_test_mod` as valid. Create still emits fourteen `pack.path.long` warnings and one manual action for long Bedrock pack paths.
-- Complete execution substrate and formal IR across all 10 major systems (Phases 1 through 10) are now shipped and verified with 100% test coverage:
+- Architecture and focused execution slices exist across the named Phase 1-10 systems below. Their
+  presence is not 100% implementation coverage, universal live binding, or physical-client proof:
   - Phase 1: `CapabilityIR`, `RuntimeCapabilityDiscoveryEngine`, `DynamicCapabilityBinder`, `CapabilityCompletenessEvaluator`.
   - Phase 2: `UniversalAutomationEngine` (Sided filters, prioritized multi-node routes, rate limits).
   - Phase 3: `UniversalMachineRuntime` (Machine state machines, dynamic recipe matching, dirty-state progress/state tracking), `DatapackRecipeCompiler` for deep mod/datapack JSON recipe ingestion with catalyst/byproduct support, `SpecializedRecipeSerializerRegistry` for complex kinetic assemblies (Create Sequenced Assembly, Mekanism Infusion, Thermal Smelter, Farmer's Delight Cooking), and `DynamicDatapackIngestionHook` invoked on `ServerLifecycleEvents.SERVER_STARTED` to automatically compile active World datapack recipes.
@@ -770,7 +780,9 @@ of support or reuse rights.
 - NetherNet wire-format support: `NetherNetDiscovery`, `NetherNetSignalingMessage`, and `NetherNetFrameCodec` provide bounded, tested current-wire protocol primitives without changing Geyser's active transport path. This is protocol evidence and reusable infrastructure, not a connectivity claim.
 
 ### What is still too narrow
-- The current environment is still not release-ready because the active Java runtime is 17 while the Gradle build needs 21+; until the correct JVM is booted, no production completion claim is valid.
+- The current validation shell uses Java 25 successfully. Release readiness remains blocked by
+  incomplete universal contracts, persistence/restart evidence, pack remediation, and physical
+  Bedrock-client validation rather than by the active Java version.
 - Discovery facts are not yet universally wired from every arbitrary third-party block entity lifecycle into `CompiledCompatibilityPlan` construction. The new classifier is a reusable evidence source, not proof that an unfamiliar mod has been fully understood.
 - Recipe discovery still depends on schemas that expose enough JSON or runtime registry information for the existing serializers; arbitrary hardcoded recipe managers and opaque custom conditions remain explicit unsupported/ambiguous cases.
 - The corpus schema, local importer, loader, admissibility checks, matcher, report writer, and compatibility evidence seam are implemented. Startup seeds 15 reviewed Bedrock corpus records into `config/hydraulic/corpus/curated/builtin` (12 admissible) and two admissible Java capability references into `config/hydraulic/corpus/java/curated/builtin`; the bundled records remain offline evidence and do not become runtime bridge inputs. Live remote harvesting, CurseForge API ingestion, and human review of additional records remain intentionally external/offline inputs rather than startup behavior. Server-owned records belong outside the overwritten `builtin` directories.
@@ -2656,22 +2668,26 @@ OVERALL STATUS: [FULL_SUPPORT | PARTIAL_SUPPORT | VISUAL_ONLY | UNSUPPORTED]
 
 ## Mod Compatibility & Implementation Report
 
-Representative evaluation across major mod archetypes against Hydraulic's current runtime architecture:
+This table records evidence, not projected compatibility. `NOT ASSESSED` means no current object-level
+runtime and physical-client evidence supports a compatibility classification.
 
-| Mod Ecosystem | Presentation Status | Interaction Status | Behavior Status | Synchronization Status | Overall Compatibility Level | Key Gaps & Required Action |
-| --- | --- | --- | --- | --- | --- | --- |
-| **Create** | `AUTOMATIC` (Blocks/Items/Models) | `ADAPTED` (Block-use insertion/extraction) | `APPROXIMATED` (Generic processing / recipes) | `TRANSPORT_HANDOFF_VERIFIED` (Inventory slots) | `APPROXIMATED` | Kinetic rotational physics engine is server-side only; moving contraptions require specialized entity presentation. |
-| **Mekanism** | `AUTOMATIC` (Blocks/Items/GUI) | `ADAPTED` (Held-item insertion, container) | `ADAPTED` (Mixed-resource transactions: Item+Fluid+Energy) | `TRANSPORT_HANDOFF_VERIFIED` (Inventory + DataSlots) | `ADAPTED` | Gas/Infusion pipelines map to normalized Fluid/Energy equivalents; multiblock structures need bounding box sync. |
-| **Thermal Series** | `AUTOMATIC` (Blocks/Items/Textures) | `ADAPTED` (Block use, Menus) | `ADAPTED` (Item/Fluid/Energy processing) | `TRANSPORT_HANDOFF_VERIFIED` (Slots & Properties) | `ADAPTED` | Augment slot filtering and side-configuration UI require Menu IR custom property translation. |
-| **Immersive Engineering** | `AUTOMATIC` (Blocks/Items) | `ADAPTED` (Block use) | `APPROXIMATED` (Multiblock processing) | `TRANSPORT_HANDOFF_VERIFIED` (Slots) | `APPROXIMATED` | Multiblock formation animations and wire rendering require semantic rendering bridges. |
-| **Botania** | `AUTOMATIC` (Blocks/Items) | `ADAPTED` (Wand of Forest interaction) | `APPROXIMATED` (Mana storage & transfer) | `TRANSPORT_HANDOFF_VERIFIED` (Slots) | `APPROXIMATED` | Mana optics/bursts are custom particle/entity renderers; Petal Apothecary maps to Fluid Container Bridge. |
-| **Farmer's Delight** | `AUTOMATIC` (Blocks/Items/Models) | `ADAPTED` (Cutting board / Cooking pot use) | `ADAPTED` (Processing recipes) | `TRANSPORT_HANDOFF_VERIFIED` (Inventory slots) | `NATIVE / ADAPTED` | High native compatibility; Cooking pot maps directly to generic machine processing with item + fluid inputs. |
-| **Applied Energistics 2** | `AUTOMATIC` (Blocks/Items) | `APPROXIMATED` (Terminal menus) | `APPROXIMATED` (Virtual storage networks) | `PARTIAL` (Slot sync) | `APPROXIMATED` | Massive virtual inventory virtualization requires dedicated Menu IR pagination and search packet handling. |
-| **Refined Storage** | `AUTOMATIC` (Blocks/Items) | `APPROXIMATED` (Grid menus) | `APPROXIMATED` (Network storage) | `PARTIAL` (Slot sync) | `APPROXIMATED` | Grid UI requires Menu IR scrolling/search bridge; cable network topology operates on server thread. |
-| **Traveler's Backpack** | `AUTOMATIC` (Wearable/Item) | `ADAPTED` (Backpack inventory/tanks) | `ADAPTED` (Equippable & tank transfer) | `TRANSPORT_HANDOFF_VERIFIED` (Slots/tanks) | `ADAPTED` | Equippable attachable generated; internal tank uses Fluid Container Bridge; GUI maps to container fallback. |
-| **Lootr** | `AUTOMATIC` (Chest models) | `NATIVE` (Per-player container opening) | `NATIVE` (Server-side loot generation) | `NATIVE` (Vanilla container sync) | `NATIVE` | Full compatibility; operates entirely through server-side container virtualization. |
-| **Citadel / Apollib** | `AUTOMATIC` (With schema fallback) | `NATIVE` (Standard interaction) | `NATIVE` (Entity animations) | `NATIVE` | `AUTOMATIC` | Unsupported item definition schemas degrade safely to legacy model loaders without breaking startup. |
-| **Storage Drawers** | `AUTOMATIC` (Models/Textures) | `ADAPTED` (Block-use insert/extract) | `ADAPTED` (Single-item multi-stack storage) | `TRANSPORT_HANDOFF_VERIFIED` (Slot counts) | `ADAPTED` | Dynamic item count label rendering on drawer front requires Bedrock block entity text/tag synchronization. |
+| Mod ecosystem | Verified artifact evidence | Verified runtime evidence | Physical Bedrock evidence | Current classification |
+| --- | --- | --- | --- | --- |
+| **Create** | Generated pack previously validated with long-path warnings | Generic item/fluid/energy/machine contracts exist; no complete Create object contract | None | `PARTIAL / UNVERIFIED` |
+| **Farmer's Delight** | Generated pack previously validated; specialized recipe serializer tests exist | No complete cooking-machine live-binding round trip | None | `PARTIAL / UNVERIFIED` |
+| **Traveler's Backpack** | Generated pack previously validated | Generic inventory/fluid substrate exists; backpack-specific execution not physically verified | None | `PARTIAL / UNVERIFIED` |
+| **Lootr** | Generated pack previously validated | Vanilla container paths are available; per-player behavior has no current Bedrock attestation | None | `PARTIAL / UNVERIFIED` |
+| **Citadel / Apollib** | Schema fallback and generated-pack startup were previously validated | No broad entity-behavior compatibility proof | None | `PRESENTATION-ONLY EVIDENCE` |
+| **Mekanism** | No current active-runtime artifact proving the listed machines | Generic mixed-resource substrate only | None | `NOT ASSESSED` |
+| **Thermal Series** | No current active-runtime artifact proving the listed machines | Generic mixed-resource substrate only | None | `NOT ASSESSED` |
+| **Immersive Engineering** | No current active-runtime artifact proving multiblocks | Generic transfer substrate only | None | `NOT ASSESSED` |
+| **Botania** | No current active-runtime artifact proving mana semantics | No verified mana normalization contract | None | `NOT ASSESSED` |
+| **Applied Energistics 2** | No current active-runtime artifact proving terminal behavior | Pagination/search infrastructure is not an AE2 round trip | None | `NOT ASSESSED` |
+| **Refined Storage** | No current active-runtime artifact proving grid behavior | Pagination/search infrastructure is not a Refined Storage round trip | None | `NOT ASSESSED` |
+| **Storage Drawers** | No current active-runtime artifact proving drawer behavior | Generic inventory binding is not drawer-specific proof | None | `NOT ASSESSED` |
+
+No ecosystem is currently classified `NATIVE`, `AUTOMATIC`, or `ADAPTED` end to end. Those labels require
+object-level contract evidence plus physical Bedrock observation for every critical capability.
 
 ---
 

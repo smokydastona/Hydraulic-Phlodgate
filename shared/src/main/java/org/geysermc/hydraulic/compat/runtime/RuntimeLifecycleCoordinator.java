@@ -22,6 +22,7 @@ import java.util.WeakHashMap;
 public final class RuntimeLifecycleCoordinator {
     private static final Logger LOGGER = LoggerFactory.getLogger("HydraulicRuntimeLifecycle");
     private static volatile DynamicMachineLifecycleManager machineLifecycleManager;
+    private static volatile LiveCapabilityBinder capabilityBinder;
     private static volatile CompatibilityRegistry compatibilityRegistry;
     private static volatile SessionAutoFlushCoordinator sessionAutoFlushCoordinator;
     private static final Map<BlockEntity, MachineSynchronizationCoordinator> machineSynchronizers = new WeakHashMap<>();
@@ -30,8 +31,13 @@ public final class RuntimeLifecycleCoordinator {
     }
 
     public static void install(@NotNull CompatibilityRegistry compatibilityRegistry) {
+        LiveCapabilityBinder previousBinder = capabilityBinder;
+        if (previousBinder != null) {
+            previousBinder.clear();
+        }
         RuntimeLifecycleCoordinator.compatibilityRegistry = compatibilityRegistry;
         machineLifecycleManager = new DynamicMachineLifecycleManager(compatibilityRegistry.dispatchTable());
+        capabilityBinder = new LiveCapabilityBinder(machineLifecycleManager);
         sessionAutoFlushCoordinator = new SessionAutoFlushCoordinator();
         synchronized (machineSynchronizers) {
             machineSynchronizers.clear();
@@ -43,8 +49,8 @@ public final class RuntimeLifecycleCoordinator {
             return;
         }
 
-        DynamicMachineLifecycleManager manager = machineLifecycleManager;
-        if (manager == null) {
+        LiveCapabilityBinder binder = capabilityBinder;
+        if (binder == null) {
             return;
         }
 
@@ -54,9 +60,19 @@ public final class RuntimeLifecycleCoordinator {
         }
 
         try {
-            manager.registerAndCompile(identifier, blockEntity, Map.of("category", "block_entity"));
+            binder.bind(identifier, blockEntity, Map.of("category", "block_entity"));
         } catch (Throwable throwable) {
             LOGGER.warn("Dynamic block-entity discovery failed for {} and was skipped", identifier, throwable);
+        }
+    }
+
+    public static void unbindBlockEntity(@NotNull BlockEntity blockEntity) {
+        LiveCapabilityBinder binder = capabilityBinder;
+        if (binder != null) {
+            binder.unbind(blockEntity);
+        }
+        synchronized (machineSynchronizers) {
+            machineSynchronizers.remove(blockEntity);
         }
     }
 
@@ -69,6 +85,14 @@ public final class RuntimeLifecycleCoordinator {
     }
 
     public static void tickBlockEntity(@NotNull BlockEntity blockEntity) {
+        try {
+            tickBlockEntitySafely(blockEntity);
+        } catch (Throwable throwable) {
+            LOGGER.warn("Runtime block-entity synchronization failed at {} and was skipped", blockEntity.getBlockPos(), throwable);
+        }
+    }
+
+    private static void tickBlockEntitySafely(@NotNull BlockEntity blockEntity) {
         if (!(blockEntity.getLevel() instanceof ServerLevel level)) {
             return;
         }
@@ -94,8 +118,19 @@ public final class RuntimeLifecycleCoordinator {
         if (identifier == null) {
             return;
         }
-        TransferBridgeFactory.ItemTransferBridge inventory = registry.dispatchTable().itemTransfer(identifier, blockEntity);
-        MachineProcessingBridge machine = registry.dispatchTable().machineProcessing(identifier, inventory);
+        LiveCapabilityBinder binder = capabilityBinder;
+        if (binder == null) {
+            return;
+        }
+        LiveCapabilityBinder.LiveBinding binding = binder.resolve(blockEntity);
+        if (binding == null) {
+            binding = binder.bind(identifier, blockEntity, Map.of("category", "block_entity"));
+        }
+        if (!binding.identifier().equals(identifier)) {
+            binding = binder.refresh(identifier, blockEntity, Map.of("category", "block_entity"));
+        }
+        TransferBridgeFactory.ItemTransferBridge inventory = registry.dispatchTable().itemTransfer(binding.identifier(), blockEntity);
+        MachineProcessingBridge machine = registry.dispatchTable().machineProcessing(binding.identifier(), inventory);
         if (machine == null) {
             return;
         }
@@ -106,7 +141,7 @@ public final class RuntimeLifecycleCoordinator {
                 createMachineTracker(),
                 autoFlush));
         }
-        synchronizer.tickAndFlush(machine, identifier, level, blockEntity.getBlockPos());
+        synchronizer.tickAndFlush(machine, binding.identifier(), level, blockEntity.getBlockPos());
     }
 
     @NotNull

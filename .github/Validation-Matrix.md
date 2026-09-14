@@ -20,5 +20,16 @@ Each completed client test must record timestamp, Java/Minecraft/Bedrock/Geyser/
 
 - The previous development world contained scoreboard residue and was preserved as `fabric/run/world-scoreboard-audit-backup-20260914`. A fresh generated world reached Geyser-ready startup and clean shutdown after the scoped scoreboard-load recovery fix; same-world restart is pending a Windows Architectury dev-jar lock workaround.
 - The current environment has no accessible official Bedrock client/device for E4-E6.
-- The full Gradle compile must be rerun after dependency resolution completes; the latest attempt timed out during configuration.
+- Java 25 focused tests and Fabric compilation pass for the live-binding slice. A live server/client
+	round trip is still required before promotion beyond server evidence.
 - Pack-validation findings still require per-pack root-cause classification before release claims.
+
+## Live-Binding Evidence
+
+- Adapter-unknown runtime inventory: discovery, classification, executable contract verification,
+	binding, simulation, Java mutation, unbind, rebind, and stale-plan replacement pass focused tests.
+- Minecraft 26.2 lifecycle: `setLevel`, `setRemoved`, and `clearRemoved` hooks compile through the
+	Fabric transformation path. A live `:fabric:runServer` reached `Done` and started Geyser with no
+	Hydraulic lifecycle-mixin or binding failure.
+- Not proven: real third-party block-entity operation, persistence after restart, Geyser delivery for
+	this arbitrary binding, or official Bedrock-client observation.

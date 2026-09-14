@@ -11,6 +11,7 @@ Status vocabulary: `OPEN`, `IN_PROGRESS`, `SERVER_VERIFIED`, `TRANSPORT_VERIFIED
 | Workstream | Current status | Blocking evidence | Exit condition |
 | --- | --- | --- | --- |
 | Clean runtime world and scoreboard lifecycle | SERVER_VERIFIED | Fresh-world startup and clean shutdown passed; reload/reconnect still require a client session | Fresh world starts, reloads, reconnects, and restarts with exactly one `phlodgate_bridge` objective |
+| Automatic third-party live binding | IN_PROGRESS | Adapter-unknown runtime inventory is discovered, verified, bound, executed, unbound, and rebound in production dispatch tests; real third-party block-entity and client round trips remain open | Real mod block entity completes discover-to-client round trip across unload, reload, and restart |
 | Universal resource index | OPEN | Config, corpus, recipe, packaging, and cache discovery paths still need classification and consolidation | Every discovery scan is indexed or explicitly runtime-owned |
 | Recipe-manager normalization | OPEN | Opaque runtime recipes are observed but not executable | Normalized `RecipeIR` or explicit `UNKNOWN` evidence for every observed entry |
 | Normalized action pipeline | IN_PROGRESS | Production action routing is narrow | Typed action decoding, validation, Java-thread execution, transaction result, and sync trace for each supported action |
@@ -25,6 +26,37 @@ Status vocabulary: `OPEN`, `IN_PROGRESS`, `SERVER_VERIFIED`, `TRANSPORT_VERIFIED
 | Physical Bedrock validation | BLOCKED | No accessible official Bedrock client/device evidence in this environment | E1-E10 artifacts recorded by a human-operated client |
 | Real-mod validation | BLOCKED | Universal contracts and physical evidence are prerequisites | Adapter-free arbitrary-mod test plus evidence-backed matrix |
 | Final zero-trust audit | OPEN | Must run after implementation and validation workstreams | No unsupported completion claims and all classifications have evidence |
+
+## Capability Round-Trip Matrix
+
+Status values: `PASS`, `PARTIAL`, `OPEN`, and `BLOCKED`. `PASS` applies only to the named stage.
+
+| Capability | Discovery | Classification | Runtime contract | Live binding | Java execution | State persistence | Java to Bedrock sync | Bedrock to Java action | Physical Bedrock validation |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Item inventory/transfer | PASS | PASS | PASS | PASS | PASS | PARTIAL | PARTIAL | PARTIAL | BLOCKED |
+| Fluid transfer | PASS | PASS | PASS | PASS | PASS | OPEN | OPEN | OPEN | BLOCKED |
+| Energy transfer | PASS | PASS | PASS | PASS | PASS | OPEN | OPEN | OPEN | BLOCKED |
+| Machine processing | PASS | PASS | PASS | PARTIAL | PASS | PARTIAL | PARTIAL | PARTIAL | BLOCKED |
+| Menu/container | PASS | PASS | PARTIAL | PARTIAL | PARTIAL | OPEN | PARTIAL | OPEN | BLOCKED |
+| Entity interaction | PARTIAL | PARTIAL | OPEN | OPEN | OPEN | OPEN | OPEN | OPEN | BLOCKED |
+| Automation | PASS | PASS | PASS | PARTIAL | PARTIAL | OPEN | PARTIAL | OPEN | BLOCKED |
+
+No row is a support claim unless every required stage for that object is `PASS`.
+
+## Milestone: Universal Live Binding
+
+Current evidence:
+
+- `PASS`: adapter-unknown runtime object discovery, capability evidence, executable bridge verification,
+	generic adapter selection, live binding, simulated operation, authoritative Java mutation, explicit
+	unbind/rebind, static-plan augmentation, and stale dynamic-plan replacement.
+- `PARTIAL`: Minecraft block-entity lifecycle wiring through `setLevel`, `setRemoved`, `clearRemoved`,
+	and ticking. Fabric transformation compiles, but a real third-party block entity has not completed
+	the full runtime/client ladder.
+- `OPEN`: persisted machine recovery, dirty-state-to-client proof for the arbitrary object, Geyser
+	reconnect evidence, and physical Bedrock observation.
+
+The milestone remains `IN_PROGRESS` until all open stages pass.
 
 ## 2026-09-14 Live Session Lifecycle Evidence
 

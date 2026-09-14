@@ -8,7 +8,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.hydraulic.compat.CompatibilityProfile;
-import org.geysermc.hydraulic.compat.CompatibilityRegistry;
 import org.geysermc.hydraulic.compat.CompatibilityReport;
 import org.geysermc.hydraulic.compat.MappingResolver;
 import org.geysermc.hydraulic.compat.ir.CompiledCompatibilityPlan;
@@ -21,7 +20,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -74,7 +72,11 @@ public final class RuntimeDispatchTable {
 
     public void registerDynamicPlan(@NotNull CompiledCompatibilityPlan plan) {
         String key = key(plan.contentType(), plan.javaIdentifier());
-        this.plansByTypeAndIdentifier.put(key, plan);
+        CompiledCompatibilityPlan previous = this.plansByTypeAndIdentifier.put(key, plan);
+        if (previous != null) {
+            this.plansByModAndType.values().forEach(plans -> plans.removeIf(candidate -> candidate == previous));
+            this.plansByRuntimeBridgeKind.values().forEach(plans -> plans.removeIf(candidate -> candidate == previous));
+        }
         this.plansByModAndType.computeIfAbsent(key(plan.modId(), plan.contentType()), ignored -> new CopyOnWriteArrayList<>()).add(plan);
         for (RuntimeBridgeKind kind : plan.runtimeBridgeKinds()) {
             this.plansByRuntimeBridgeKind.computeIfAbsent(kind, ignored -> new CopyOnWriteArrayList<>()).add(plan);
