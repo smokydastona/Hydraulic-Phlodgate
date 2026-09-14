@@ -99,6 +99,13 @@ It is a fork that builds additional systems on top of the Hydraulic conversion a
 | Corpus change detection            | No equivalent system | Curated schema diffing with startup re-index reports and score refresh |
 | Large-topology invalidation        | No equivalent system | Cycle-safe synthetic benchmark coverage for 500+ mod graphs |
 
+Dynamic machine discovery is conservative and executable-state driven. When a live unmapped block
+entity is registered through the dynamic lifecycle manager, Hydraulic inspects its public runtime
+contract, validates item, fluid, and energy operations against the reflective transfer factories,
+and registers only the bridge kinds that can actually execute. Method-name evidence without a
+validated operation remains `VISUAL_ONLY`; this path does not claim automatic understanding of
+arbitrary mod-specific recipes or ticking behavior.
+
 The important distinction is that **Phlodgate is trying to add the compatibility and runtime layers that sit between Hydraulic's conversion pipeline and the actual behavior of a mod.**
 
 ## External Research Boundary

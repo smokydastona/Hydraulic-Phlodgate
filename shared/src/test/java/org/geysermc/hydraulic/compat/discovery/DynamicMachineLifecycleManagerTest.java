@@ -81,6 +81,23 @@ public class DynamicMachineLifecycleManagerTest {
         assertFalse(plan.requiresRuntimeBridge(RuntimeBridgeKind.MACHINE_BEHAVIOR));
     }
 
+    @Test
+    void compilesDiscoveredFluidTransferUsingSemanticDiscoveryFacts() {
+        RuntimeDispatchTable dispatchTable = RuntimeDispatchTable.empty();
+        DynamicMachineLifecycleManager manager = new DynamicMachineLifecycleManager(dispatchTable);
+        Identifier machineId = Identifier.parse("custom_mod:fluid_storage");
+
+        CompiledCompatibilityPlan plan = manager.registerAndCompile(
+            machineId,
+            new ExecutableFluidStorage(),
+            Map.of("category", "machine")
+        );
+
+        assertEquals(SupportLevel.ADAPTED, plan.overallLevel());
+        assertTrue(plan.requiresRuntimeBridge(RuntimeBridgeKind.FLUID_TRANSFER));
+        assertEquals(plan, dispatchTable.block(machineId));
+    }
+
     public static final class ExecutableStorage {
         public int getContainerSize() {
             return 1;
@@ -96,6 +113,28 @@ public class DynamicMachineLifecycleManagerTest {
 
         public int extractItem(TransferBridgeFactory.ItemStackView item, int slot, String side, boolean simulate) {
             return item.count();
+        }
+    }
+
+    public static final class ExecutableFluidStorage {
+        public int getTanks() {
+            return 1;
+        }
+
+        public TransferBridgeFactory.FluidStackView getFluidInTank(int tank) {
+            return new TransferBridgeFactory.FluidStackView("minecraft:water", 0);
+        }
+
+        public int getTankCapacity(int tank) {
+            return 1000;
+        }
+
+        public int fill(int tank, TransferBridgeFactory.FluidStackView fluid, boolean simulate) {
+            return fluid.amount();
+        }
+
+        public int drain(int tank, int amount, boolean simulate) {
+            return amount;
         }
     }
 }

@@ -14,8 +14,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -52,6 +50,11 @@ public final class DynamicMachineLifecycleManager {
             return existing;
         }
 
+        CompiledCompatibilityPlan cached = dynamicPlans.get(identifier);
+        if (cached != null) {
+            return cached;
+        }
+
         SemanticDiscoveryEngine.DiscoveredSemanticProfile profile = SemanticDiscoveryEngine.discoverRuntimeObject(
             identifier,
             runtimeBlockEntity,
@@ -64,7 +67,10 @@ public final class DynamicMachineLifecycleManager {
             profile,
             validateExecutableBridges(runtimeBlockEntity, candidate)
         );
-        dynamicPlans.put(identifier, dynamicPlan);
+        CompiledCompatibilityPlan winner = dynamicPlans.putIfAbsent(identifier, dynamicPlan);
+        if (winner != null) {
+            return winner;
+        }
         dispatchTable.registerDynamicPlan(dynamicPlan);
         return dynamicPlan;
     }
@@ -96,7 +102,9 @@ public final class DynamicMachineLifecycleManager {
             requirements.add("machine_inventory_bridge");
         }
         if (supports(executableBridges, RuntimeBridgeKind.FLUID_TRANSFER)
-            && ("true".equals(facts.get("has_tank")) || "true".equals(facts.get("can_fill")) || "true".equals(facts.get("can_drain")))) {
+            && ("true".equals(facts.get("has_fluid"))
+                || "true".equals(facts.get("can_insert_fluid"))
+                || "true".equals(facts.get("can_extract_fluid")))) {
             bridgeKinds.add(RuntimeBridgeKind.FLUID_TRANSFER);
             requirements.add("fluid_transfer_bridge");
         }
