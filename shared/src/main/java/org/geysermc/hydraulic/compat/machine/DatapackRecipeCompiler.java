@@ -38,6 +38,12 @@ public final class DatapackRecipeCompiler {
 
     @Nullable
     public static UniversalMachineRuntime.UniversalRecipe compile(@NotNull String recipeId, @NotNull JsonObject json) {
+        UniversalMachineRuntime.UniversalRecipe specialized =
+            SpecializedRecipeSerializerRegistry.tryParseSpecialized(recipeId, json);
+        if (specialized != null) {
+            return specialized;
+        }
+
         String type = json.has("type") && json.get("type").isJsonPrimitive()
             ? json.get("type").getAsString()
             : "minecraft:crafting";

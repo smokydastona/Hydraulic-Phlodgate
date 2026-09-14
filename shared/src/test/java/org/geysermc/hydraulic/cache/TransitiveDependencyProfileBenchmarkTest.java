@@ -49,4 +49,27 @@ class TransitiveDependencyProfileBenchmarkTest {
         assertTrue(metrics.singleNodeInvalidationP50Micros() < 5000, "p50 invalidation should be fast");
         assertTrue(metrics.singleNodeInvalidationP99Micros() < 50000, "p99 invalidation should be fast");
     }
+
+    @Test
+    @DisplayName("Benchmark large-scale 250+ mod random topology with circular dependency cycle-safety")
+    void benchmarkLargeRandomModpackWithCircularDependencies() {
+        // Build 250 mod random DAG with injected cycle
+        TransitiveDependencyProfileBenchmark.ModDependencyGraph graph =
+            TransitiveDependencyProfileBenchmark.SyntheticTopologyBuilder.buildRandomLargeGraph(250, 4, true, 42L);
+
+        assertEquals(250, graph.modCount());
+        assertTrue(graph.edgeCount() > 250);
+        assertTrue(graph.hasCycles(), "Graph should detect injected circular dependency");
+
+        // Topological sort should break cycles cleanly without throwing or hanging
+        var sorted = graph.topologicalSort();
+        assertEquals(250, sorted.size(), "All nodes should be preserved in sorted result even with cycles");
+
+        TransitiveDependencyProfileBenchmark.BenchmarkMetrics metrics =
+            TransitiveDependencyProfileBenchmark.benchmark(graph, 500);
+
+        assertNotNull(metrics);
+        assertEquals(250, metrics.totalMods());
+        assertTrue(metrics.singleNodeInvalidationP50Micros() < 10000, "p50 invalidation should remain sub-10ms for 250+ mods");
+    }
 }

@@ -97,18 +97,65 @@ public final class TransitiveDependencyProfileBenchmark {
             }
 
             List<String> sorted = new ArrayList<>();
+            Set<String> visited = new LinkedHashSet<>();
+
             while (!queue.isEmpty()) {
                 String current = queue.poll();
-                sorted.add(current);
-                for (String dep : getDirectDependencies(current)) {
-                    int remaining = inDegree.get(dep) - 1;
-                    inDegree.put(dep, remaining);
-                    if (remaining == 0) {
-                        queue.add(dep);
+                if (visited.add(current)) {
+                    sorted.add(current);
+                    for (String dep : getDirectDependencies(current)) {
+                        int remaining = inDegree.getOrDefault(dep, 1) - 1;
+                        inDegree.put(dep, remaining);
+                        if (remaining == 0) {
+                            queue.add(dep);
+                        }
                     }
                 }
             }
+
+            // Cycle fallback / cycle breaking: append unvisited nodes to guarantee full node inclusion
+            if (sorted.size() < dependencies.size()) {
+                for (String modId : dependencies.keySet()) {
+                    if (visited.add(modId)) {
+                        sorted.add(modId);
+                    }
+                }
+            }
+
             return sorted;
+        }
+
+        public boolean hasCycles() {
+            Set<String> visited = new LinkedHashSet<>();
+            Set<String> recursionStack = new LinkedHashSet<>();
+
+            for (String node : dependencies.keySet()) {
+                if (checkCycleDfs(node, visited, recursionStack)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private boolean checkCycleDfs(String current, Set<String> visited, Set<String> stack) {
+            if (stack.contains(current)) {
+                return true;
+            }
+            if (visited.contains(current)) {
+                return false;
+            }
+
+            visited.add(current);
+            stack.add(current);
+
+            for (String neighbor : getDirectDependencies(current)) {
+                if (checkCycleDfs(neighbor, visited, stack)) {
+                    return true;
+                }
+            }
+
+            stack.remove(current);
+            return false;
         }
 
         public int modCount() {
@@ -148,6 +195,31 @@ public final class TransitiveDependencyProfileBenchmark {
                     }
                 }
             }
+            return graph;
+        }
+
+        @NotNull
+        public static ModDependencyGraph buildRandomLargeGraph(int modCount, int maxEdgesPerNode, boolean injectCycles, long seed) {
+            ModDependencyGraph graph = new ModDependencyGraph();
+            java.util.Random random = new java.util.Random(seed);
+
+            for (int i = 0; i < modCount; i++) {
+                graph.addMod("mod_" + i);
+            }
+
+            for (int i = 1; i < modCount; i++) {
+                int edgeCount = random.nextInt(Math.max(1, maxEdgesPerNode)) + 1;
+                for (int e = 0; e < edgeCount; e++) {
+                    int parentIndex = random.nextInt(i); // DAG directed backwards
+                    graph.addDependency("mod_" + i, "mod_" + parentIndex);
+                }
+            }
+
+            if (injectCycles && modCount > 5) {
+                // Deliberately inject a cycle to verify cycle-safety
+                graph.addDependency("mod_0", "mod_" + (modCount - 1));
+            }
+
             return graph;
         }
     }
