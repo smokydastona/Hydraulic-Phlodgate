@@ -101,6 +101,12 @@ It is a fork that builds additional systems on top of the Hydraulic conversion a
 
 The important distinction is that **Phlodgate is trying to add the compatibility and runtime layers that sit between Hydraulic's conversion pipeline and the actual behavior of a mod.**
 
+## External Research Boundary
+
+The external Fabric and Bedrock repositories used during architecture research are not bundled as runtime dependencies. The awesome lists are discovery catalogs; Mojang Creator Tools is an optional external validator; ScriptAPI is an offline evidence source; bridge. is authoring software; and BedrockBridge targets Bedrock Dedicated Server rather than a Java/Geyser session. Their source, assets, licenses, versions, and runtime assumptions are tracked in [.github/external-research-report.md](.github/external-research-report.md).
+
+Hydraulic does not copy third-party code or assets from those projects. Runtime behavior remains Java-server authoritative, with local corpus snapshots and compiled compatibility plans as the only supported integration surfaces. A downloaded or executed Bedrock behavior pack is never treated as proof of Geyser-session execution.
+
 ---
 
 # Asymmetric Version Lifecycle
@@ -277,7 +283,7 @@ This is intended to give future runtime bridges a consistent place to plug into 
 
 The discovery layer provides a metadata-independent runtime contract path:
 * `SemanticDiscoveryEngine.discoverRuntimeObject` inspects public method shapes for item, fluid, energy, processing, and menu contracts.
-* `DynamicMachineLifecycleManager` binds to live server block entity ticks, automatically compiling unmapped legacy/modern machines into `CompiledCompatibilityPlan` and registering them dynamically with `RuntimeDispatchTable`.
+* `DynamicMachineLifecycleManager` compiles an unmapped object into `CompiledCompatibilityPlan` only after the existing reflective transfer factory constructs an executable bridge. Method-name evidence alone remains visual-only, and processing behavior additionally requires concrete recipe facts before `MACHINE_BEHAVIOR` is advertised.
 
 ## Automatic Recipe Discovery
 

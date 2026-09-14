@@ -36,12 +36,25 @@ The long-term scaling strategy remains:
 - 2026-09-13
 
 ### Latest verified implementation slice
-- Dynamic Machine Block-Entity Lifecycle: `DynamicMachineLifecycleManager` discovers unmapped legacy and modern block entity runtime shapes on the fly via `SemanticDiscoveryEngine` and compiles dynamic runtime plans directly into `RuntimeDispatchTable` (Phase 5B).
+- Dynamic Machine Block-Entity Lifecycle: `DynamicMachineLifecycleManager` discovers unmapped legacy and modern block entity runtime shapes on the fly via `SemanticDiscoveryEngine`, then compiles only bridge kinds that the existing reflective transfer factories can construct as executable. Method-name evidence alone remains `VISUAL_ONLY`; processing behavior additionally requires concrete recipe facts (Phase 5B).
 - Session Auto-Flush for Ticking Multi-Resource Machines: `SessionAutoFlushCoordinator` auto-flushes dirty-state deltas across active `GeyserSession` connections on machine tick transitions and multi-resource transactions (Phase 8).
 - Universal Menu IR Pagination and Search: `PaginatedMenuForm` implements client-side item searching and multi-page chunking for large virtual inventory networks (AE2 / Refined Storage) generating Bedrock SimpleForm JSON payloads (Phase 6).
 - Multi-Platform Physical Bedrock Client Attestation Matrix: `publish-attestation-matrix.ps1` publishes structured level-4 manual observation records across Windows 11, iOS, Android, and Nintendo Switch (Phase 10).
 - Multi-Era Version Mapping & Normalization: `MinecraftVersionEra`, `CrossVersionClassMapper`, `LegacyModelNormalizer`, and `BedrockSchemaValidator` normalize legacy Java mod assets and enforce strict Bedrock store format versions.
 - Full `:shared:test :fabric:compileJava` and Gradle `build` passed with 100% test coverage across 351+ test cases.
+
+### Porting Lib research boundary (2026-09-13)
+- The public `Fabricators-of-Create/Porting-Lib` repository was reviewed at its `1.21.1` branch. Its README and module layout confirm reusable design references for `transfer`, `fluids`, `blocks`, `items`, `gui_utils`, `resources`, `data`, `entity`, `model_data`, `model_loader`, `registry`, `tags`, and `mixin_extensions`.
+- The useful architectural lesson is contract normalization: simulation-aware transfer operations, explicit sided access, typed fluid/item state, and lifecycle-safe adapters should inform Hydraulic's existing bridge contracts. Hydraulic must not copy third-party implementation code or assets; it should use the repository as an API-pattern and compatibility reference subject to its license and version boundaries.
+- The supplied Copilot share was not accessible as technical source material. Its response only exposed the Copilot shell page, so no implementation or compatibility claim is based on that link.
+
+### External Bedrock and Fabric research boundary (2026-09-13)
+- The supplied `awesome-fabric`, `awesome-minecraft`, and `awesome-minecraft-bedrock` repositories are curated catalogs, not runtime libraries. They may identify candidate sources for offline corpus research, but catalog entries never become dependencies or compatibility proof by themselves.
+- `Mojang/minecraft-creator-tools` is a separate MIT-licensed authoring and validation tool. Its bundled vanilla assets have Minecraft EULA terms. Hydraulic may document an optional operator/CI validation step around an installed `@minecraft/creator-tools` CLI, but Hydraulic startup and pack generation must not require Node.js, npm, network access, or vendored Mojang assets.
+- The old `bridge-core/bridge.` repository is superseded by `bridge-core/editor`; both are GPL-3.0 applications. Their schema-aware editing, diagnostics, and packaging concepts may inform offline validation, but their application code must not be embedded or linked into Hydraulic's current distribution.
+- `JaylyDev/ScriptAPI` is an MIT-licensed community sample repository. Stable-branch scripts and official Script API references may supply corpus evidence for Bedrock capability classification. They do not prove behavior-pack execution in a Java/Geyser session, and no script is a Hydraulic runtime dependency.
+- `InnateAlpaca/BedrockBridge` is an MIT-licensed Bedrock Dedicated Server plus Discord add-on. Its BDS-only modules, permissions, experiments, and Discord token flow are outside Hydraulic's Java/Geyser runtime and must not be presented as a Hydraulic bridge.
+- The detailed source disposition, license notes, and security review are recorded in `.github/external-research-report.md`. No source code, asset, binary, or npm package from these projects was copied into this repository.
 
 ### Validated repo baseline
 - Live fork: `smokydastona/Hydraulic--Skeleton_Key`
@@ -2226,6 +2239,8 @@ Build:
 Exit criteria:
 - the engine learns reusable patterns rather than only accumulating mod names
 - corpus snapshots can be loaded offline, matched deterministically, and used to enrich compatibility reporting without direct runtime lookups
+- external catalogs are used only to discover candidate sources; every promoted source has independent license, version, provenance, and evidence checks
+- optional Creator Tools validation is an operator/CI concern with an explicit tool-version and failure report, never a startup dependency
 
 Phase note:
 - corpus contract, source-policy, and harvesting work can begin earlier, but Hydraulic consumption belongs here after the typed bridge and compiled-plan seams are stable enough to accept external evidence safely
