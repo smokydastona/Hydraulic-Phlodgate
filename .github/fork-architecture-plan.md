@@ -50,6 +50,13 @@ The long-term scaling strategy remains:
   compiled into machine plans without a portable serialized contract.
 - Handoff resilience: malformed persisted compatibility handoff files are now skipped with a warning
   and regression-tested instead of producing startup error noise or aborting queue loading.
+- Machine-readable evidence maturity: `CompatibilityObject` now carries an additive
+  `implementationMaturity` value distinguishing `UNKNOWN`, `ARCHITECTURE_IMPLEMENTED`,
+  `CAPABILITY_IMPLEMENTED`, `INTEGRATED`, `VERIFIED`, and `CLIENT_VERIFIED`. Analyzer-created
+  objects begin at `ARCHITECTURE_IMPLEMENTED`, legacy constructor/report data defaults to `UNKNOWN`,
+  and maturity is independent of support level and score. This establishes the evidence model;
+  validation promotion to `VERIFIED` and manual Level 4 promotion to `CLIENT_VERIFIED` remain
+  explicitly gated by recorded evidence.
 - Dynamic lifecycle transfer contract correction: `DynamicMachineLifecycleManager` now consumes the
   canonical fluid facts emitted by `SemanticDiscoveryEngine` (`has_fluid`, `can_insert_fluid`, and
   `can_extract_fluid`) instead of stale aliases, so an executable discovered tank can bind the

@@ -112,6 +112,12 @@ only to active Geyser sessions whose Java player is in the same level and tracki
 JSON remains the authoritative normalized source; opaque recipe-manager entries are reported as
 observed but are not promoted to executable machine plans without a serializable recipe contract.
 
+Compatibility reports now carry an additive `implementationMaturity` field with the values
+`UNKNOWN`, `ARCHITECTURE_IMPLEMENTED`, `CAPABILITY_IMPLEMENTED`, `INTEGRATED`, `VERIFIED`, and
+`CLIENT_VERIFIED`. Analyzer output starts at `ARCHITECTURE_IMPLEMENTED`; older cached reports
+load as `UNKNOWN`. This prevents support level or compatibility score from being mistaken for
+runtime integration or real Bedrock-client observation.
+
 The important distinction is that **Phlodgate is trying to add the compatibility and runtime layers that sit between Hydraulic's conversion pipeline and the actual behavior of a mod.**
 
 ## External Research Boundary

@@ -13,6 +13,7 @@ import org.geysermc.hydraulic.compat.model.CompatibilityFinding;
 import org.geysermc.hydraulic.compat.model.CompatibilityObject;
 import org.geysermc.hydraulic.compat.model.Confidence;
 import org.geysermc.hydraulic.compat.model.Provenance;
+import org.geysermc.hydraulic.compat.model.ImplementationMaturity;
 import org.geysermc.hydraulic.compat.model.SupportLevel;
 import org.geysermc.hydraulic.compat.model.SupportResult;
 import org.geysermc.hydraulic.compat.mapping.ContentPatch;
@@ -117,7 +118,7 @@ final class AnalyzerSupport {
             merged.addAll(customRuntimeRequirements);
             runtimeRequirements = List.copyOf(merged);
         }
-        return new CompatibilityObject(javaIdentifier, contentType, modId, inventoryFacts, capabilityProfile, adapterBindings, runtimeRequirements, supportResults, overallLevel, overallStatus, overallScore, confidence, provenance, findings);
+        return new CompatibilityObject(javaIdentifier, contentType, modId, inventoryFacts, capabilityProfile, adapterBindings, runtimeRequirements, supportResults, overallLevel, overallStatus, overallScore, confidence, provenance, findings, ImplementationMaturity.ARCHITECTURE_IMPLEMENTED);
     }
 
     @NotNull
