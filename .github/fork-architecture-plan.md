@@ -40,16 +40,17 @@ implementation ledger is split across:
 - `.github/Validation-Matrix.md` for server, transport, and physical-client gates
 
 The current product is **not release-ready**. Selected item/block-use, transfer, machine,
-lifecycle, and Geyser transport slices are server- or transport-verified, but fluid/energy/menu/
-entity action contracts, universal indexing, recipe normalization, persistence proof, and
-physical Bedrock observation remain open. A transport handoff must never be described as client
+lifecycle, menu, and Geyser transport slices are server- or transport-verified, but fluid, energy,
+and entity action contracts, universal indexing, machine-to-recipe association, persistence proof,
+and physical Bedrock observation remain open. A transport handoff must never be described as client
 observation. Existing development worlds are preserved; clean runtime validation uses a separate
 world path.
 
-The implementation order is now locked: clean runtime baseline, universal index classification,
-recipe normalization, normalized action pipeline, fluid and energy actions, menu and entity
-actions, machine persistence and rollback, automation, pack-validation classification, physical
-E1-E10 evidence, real-mod validation, and a final zero-trust audit.
+The implementation order is now locked: fluid actions, energy actions/state, entity actions,
+machine persistence and rollback, automation lifecycle, pack-validation remediation, physical
+E1-E10 evidence, Create-first real-mod validation, and a final zero-trust audit. The clean runtime,
+recipe normalization, live binding, and menu transaction slices remain foundations, not completion
+claims.
 
 ## Ground Truth Snapshot
 
@@ -100,6 +101,14 @@ E1-E10 evidence, real-mod validation, and a final zero-trust audit.
   A final Java 25 runtime inspected 8,934 manager entries, normalized 3,126, classified 5,808 as
   `RECIPE_RUNTIME_UNKNOWN`, and reached Minecraft `Done`. Automatic association between arbitrary
   live machines and the correct normalized recipes remains open.
+- Authoritative menu transaction round trip: Geyser-originated Java container clicks and buttons are
+  validated after Minecraft's server-thread scheduling barrier and delegated to vanilla menu handling
+  for mutation. Exact before/after stack and component state produces traceable transactions, while
+  completion and rejection use `AbstractContainerMenu.broadcastFullState()` for canonical resync.
+  Explicit `menu.button.<id>=button|toggle` facts compile into the runtime action plan; the bundled
+  menu-machine fixture supplies a persisted toggle target. Focused and full Java tests pass, Fabric
+  compilation passes, and a live run reached Minecraft and Geyser readiness without menu-mixin failure.
+  Physical Bedrock action and observation remain unverified.
 - Handoff resilience: malformed persisted compatibility handoff files are now skipped with a warning
   and regression-tested instead of producing startup error noise or aborting queue loading.
 - Machine-readable evidence maturity: `CompatibilityObject` now carries an additive
@@ -124,7 +133,7 @@ E1-E10 evidence, real-mod validation, and a final zero-trust audit.
 - Multi-Platform Physical Bedrock Client Attestation Matrix: `publish-attestation-matrix.ps1` publishes structured level-4 manual observation records across Windows 11, iOS, Android, and Nintendo Switch (Phase 10).
 - Multi-Era Version Mapping & Normalization: `MinecraftVersionEra`, `CrossVersionClassMapper`, `LegacyModelNormalizer`, and `BedrockSchemaValidator` normalize legacy Java mod assets and enforce strict Bedrock store format versions.
 - Focused runtime and conversion tests have passed for selected slices in prior Java 25 runs;
-  this is not 100% project coverage and does not replace the pending clean-world, persistence,
+  this is not 100% project coverage and does not replace the pending restart/persistence,
   physical-client, and real-mod evidence gates.
 
 ### Porting Lib research boundary (2026-09-13)
@@ -145,8 +154,12 @@ E1-E10 evidence, real-mod validation, and a final zero-trust audit.
 ### Verified environment gate (2026-09-14)
 - Active validation shell uses `D:/jdks/jdk-25.0.2` with redirected Gradle, temp, and cache directories.
 - `:shared:test` and `:fabric:compileJava` pass under Java 25.
-- A real `:fabric:runServer` reached Fabric/Minecraft bootstrap, Hydraulic indexing, Geyser startup, and conversion of 135 packs without a Hydraulic mixin-transform failure. The run then stopped because the existing dev world contains a duplicate `phlodgate_bridge` scoreboard objective.
-- Result: Java/build verification is available in this environment, but release readiness still requires resolving current pack-validation failures, using a clean runtime world, and completing real Bedrock-client observation.
+- A fresh validation world reached Minecraft `Done`, started Geyser on UDP `19132`, and applied the
+  menu and lifecycle mixins without an injection failure. The previous world remains preserved as
+  audit evidence; it is not reused as a release baseline.
+- Result: Java/build and server-startup verification are available in this environment, but release
+  readiness still requires persistence/restart evidence, pack-failure classification, generic
+  non-menu action round trips, and real Bedrock-client observation.
 
 ### Validated repo baseline
 - Live fork: `smokydastona/Hydraulic--Skeleton_Key`
@@ -184,9 +197,16 @@ E1-E10 evidence, real-mod validation, and a final zero-trust audit.
 
 ## Executive Verdict
 
-The architecture is directionally correct, and the current workspace now has a valid Java 25 build environment, but it is not release-verified because pack validation and clean-world/real-client gates remain open.
+The architecture is directionally correct, and the current workspace has a valid Java 25 build and
+clean-world Fabric/Geyser startup, but it is not release-verified because gameplay, persistence,
+pack-remediation, real-mod, and physical-client gates remain open.
 
-The implementation work already checked into the repo is substantial and materially better than the earlier prototype state: discovery, machine-runtime, menu, packet-action, transfer, sync, corpus, and invalidation layers exist in code and are codified in the repository. However, the current environment cannot legally claim full production completion, because the build does not start under the active JVM and the final Bedrock-client runtime verification remains outside this workspace.
+The implementation work already checked into the repo is substantial and materially better than the
+earlier prototype state: discovery, machine-runtime, menu, packet-action, transfer, sync, corpus, and
+invalidation layers exist in code and are codified in the repository. However, the current environment
+cannot claim full production completion. The build and server start under Java 25, but no official
+Bedrock client has completed the required gameplay and persistence matrix, and several universal
+contracts remain incomplete.
 
 The main performance problem is not one isolated slow method.
 
@@ -801,11 +821,11 @@ of support or reuse rights.
 - Runtime dispatch is now identifier-driven for the shipped bridge seams, unsupported diagnostics, and the first block-state registration paths, but transfer-heavy paths and deeper behavior surfaces still have too much flexible runtime reasoning.
 - Runtime dispatch now also compiles the current menu fallback seam into a typed container enum instead of keeping that bridge input as a late-parsed string, but transfer-heavy paths and deeper behavior surfaces still have too much flexible runtime reasoning.
 - Runtime bridge requirements now also compile into typed categories instead of only freeform requirement strings, and item/fluid/energy transactions plus mixed-resource coordination are executable through shared runtime infrastructure. Those categories still need broader use in rich menus, block-entity behavior, entity behavior, and rendering.
-- Runtime diagnostics now consume typed bridge-group queries for menu and block-entity candidate selection, fluid presentation has a first real bucket-item consumer, generic machine processing has an executable item-transfer-backed bridge, mixed-resource machine processing can execute through one atomic transaction substrate from compiled compatibility facts, inventory and sided automation access are executable through direct dispatch, request-oriented item/fluid/energy automation runs through shared transactions, runtime target discovery can resolve a position into typed transfer execution using live Minecraft block entity and Geyser-session sources, Bedrock block-use actions route into traced target discovery, traced runtime action IDs flow through mutation and sync delivery evidence, and normalized container-to-tank transfer mutates real fluid state with identity enforcement. Broader Java recipe discovery, fluid block/state translation, mod-specific machine semantics, translating Bedrock actions into authoritative mutations, and live Bedrock sync verification remain outside those generic contracts.
+- Runtime diagnostics now consume typed bridge-group queries for menu and block-entity candidate selection, fluid presentation has a first real bucket-item consumer, generic machine processing has an executable item-transfer-backed bridge, mixed-resource machine processing can execute through one atomic transaction substrate from compiled compatibility facts, inventory and sided automation access are executable through direct dispatch, request-oriented item/fluid/energy automation runs through shared transactions, runtime target discovery can resolve a position into typed transfer execution using live Minecraft block entity and Geyser-session sources, Bedrock block-use and menu actions route into authoritative traced Java mutation, and normalized container-to-tank transfer mutates real fluid state with identity enforcement. Broader machine-to-recipe association, fluid block/state translation, mod-specific machine semantics, non-menu fluid/energy/entity actions, and live Bedrock sync verification remain outside those generic contracts.
 - Block-entity runtime translation is now more useful for metadata-backed data bridges because compiled templates can carry live Java tag values through to Bedrock output, but the seam is still patch-driven and does not yet cover interaction or behavior.
 - Compatibility analysis now has explicit kind-keyed analyzer dispatch, but it still reconstructs facts too often and still depends on repeated asset discovery.
 - Non-block compatibility remains shallower than the block path.
-- Live Bedrock-client synchronization verification, Bedrock action-to-mutation execution, richer menu behavior, block-entity behavior, deeper entity behavior, custom networking, custom rendering analysis, and broad automatic machine recipe discovery remain incomplete.
+- Live Bedrock-client synchronization verification, non-menu Bedrock action-to-mutation execution, richer menu widgets, block-entity behavior, deeper entity behavior, custom networking, custom rendering analysis, and broad automatic machine recipe discovery remain incomplete.
 - The compiled runtime-plan architecture exists for the currently shipped compatibility slices, but it is not yet universal across all capability domains; transfer-heavy and deeper behavior paths still perform flexible runtime reasoning.
 
 ## Primary Architectural Correction
@@ -2055,12 +2075,11 @@ tasks, the real compatibility runtime classes, and the real handoff/report artif
   `GeyserSyncTransport` from Java-side mutation through trace propagation and a concrete
   `InventorySlotPacket` handoff. These tests still stop at the injected Geyser packet boundary; they are
   not a live end-to-end Bedrock client trace and must never be reported as one.
-- `test/src/main/java/org/geysermc/hydraulic/fabric/test/` currently has one simple block (`ModBlocks`),
-  nine tool/armor items (`ModItems`), one entity that opens a menu (`ModEntities`/`BarrelTestEntity`), one
-  simple container (`ModMenus`/`BarrelMenu`), and one fluid plus bucket (`ModFluids`). It has no directional
-  block, no data-bearing block entity, no item/fluid/energy transfer machine, no menu with synced
-  properties, no richer entity interaction, no custom recipe, and no dedicated synchronization-stress
-  fixture — see the fixture backlog below.
+- `test/src/main/java/org/geysermc/hydraulic/fabric/test/` now includes item-transfer, processing,
+  fluid, energy, mixed-resource, and menu machines in addition to the baseline blocks, items, fluid,
+  menu, and entity. The menu machine has synchronized progress and a persisted toggle. Rich entity
+  interaction, a datagen-driven custom recipe fixture, and a dedicated synchronization-stress fixture
+  remain the explicit fixture backlog.
 - `gradle.properties` sets `org.gradle.daemon=false`. Loom's `runServer` task blocks the invoking Gradle
   process for the lifetime of the dev server (`JavaExec` does not return until the server stops). A second
   `./gradlew` invocation started while `runServer` is still running can block on the Gradle project lock
@@ -2191,11 +2210,13 @@ report is `APPROXIMATED`/`93`, with `MACHINE_BEHAVIOR`, `MACHINE_INVENTORY`, `IT
 a direct regression test.
 
 `menu_machine` now owns a persistent two-slot `Container`, a real `AbstractContainerMenu`, safe shift-click
-boundaries, and a ticking synchronized progress `DataSlot`. Metadata binds the existing Furnace fallback
-menu adapter and a block-entity patch that copies live Java `progress` into Bedrock `Progress`. The live
-report correctly remains partial (`menu` and `block_entity` behavior are `UNSUPPORTED`) because fallback
-layout/data translation is implemented while a generic Hydraulic menu-behavior bridge is not. This is not
-promoted to complete support. The generated test pack is valid with zero fixture warnings or manual actions.
+boundaries, a ticking synchronized progress `DataSlot`, and a persisted enabled-state toggle. Metadata
+binds the existing Furnace fallback, copies live Java `progress` into Bedrock `Progress`, and compiles
+`menu.button.0=toggle`. The generic menu router validates translated packets on the server thread, delegates
+mutation to vanilla, records exact state deltas, and requests canonical full-state resync. The menu behavior
+result is `ADAPTED` only for the explicit action contract; undeclared semantics remain unsupported. Physical
+Bedrock invocation, rendering, and restart observation remain open. The generated test pack is valid with
+zero fixture warnings or manual actions.
 
 ### Exit criteria
 - The Fabric dev server can be built, started, and attached to for breakpoint debugging entirely from
@@ -2399,7 +2420,7 @@ Use the live Hydraulic repo and its runtime artifacts as the control document fo
 5. compile compatibility decisions into runtime plans and direct dispatch tables
 6. deepen the resource IR, model dependency graph, and texture dependency graph
 7. compile block-state and metadata-heavy paths into compact runtime structures
-8. widen generic bridges for menus, block entities, machines, fluids, and transfer systems; block-entity patch translation now also carries explicit Java-tag copies, and runtime bridge requirements now compile into typed categories, but richer behavior bridges are still missing
+8. widen generic bridges for block entities, machines, fluids, energy, and entity actions; menu click/button routing is implemented for compiled action contracts, while richer widgets and physical-client proof remain open
 9. publish and ingest versioned Bedrock addon corpus snapshots as offline evidence; keep GitHub as the primary inspectable source, keep CurseForge as discovery metadata unless linked source exists, and keep raw corpus access out of hot runtime paths
 10. add knowledge and classifier layers after generalized bridge seams exist
 11. add mod-specific adapters after the substrate is stable
@@ -2441,18 +2462,32 @@ The Bedrock addon corpus can begin earlier as an external schema and harvesting 
 - treat Geyser runtime and pack-delivery constraints as hard architectural inputs
 - keep README and this plan aligned with what was actually validated
 
-## Recommended Immediate Next Slice
+## Prioritized Next Milestones
 
-The best next implementation slice from the current repo state is:
+1. **P0.1 Fluid actions:** route Bedrock fill/drain intent through a compiled contract into a discovered
+  live tank, commit atomically on the Java thread, persist identity and amount, and synchronize the
+  authoritative result.
+2. **P0.2 Energy actions/state:** add bounded receive/extract actions and a concrete client-visible state
+  projection without pretending Bedrock has a native universal energy system.
+3. **P0.3 Entity actions:** complete use, attack, mount, and dismount routing through live Java entities.
+4. **P0.4 Persistence:** execute save, shutdown, restart, rebind, and state comparison for every promoted
+  mutable fixture and generic runtime contract.
+5. **P0.5 Automation lifecycle:** verify chunk unload/reload, block break/replacement, dimension changes,
+  disconnect, and restart with no stale binding, duplication, loss, or cross-session delivery.
+6. **P0.6 Pack remediation:** classify every remaining runtime failure as a generic generator defect,
+  adapter requirement, or explicit unsupported result and resolve all release-blocking defects.
+7. **P1 Physical Bedrock:** collect manual E1-E10 evidence for each promoted round trip.
+8. **P1 Real mods:** validate Create first, then expand the evidence-backed ecosystem matrix.
 
-1. bind `SemanticDiscoveryEngine.discoverRuntimeObject` to the live block-entity/menu lifecycle and compile discovered facts into `CompiledCompatibilityPlan` only after concrete runtime operations are verified
-2. feed `AutomaticRecipeDiscovery` and live recipe-manager extraction into machine-plan compilation, including opaque hardcoded recipe managers with explicit unsupported evidence when extraction is impossible
-3. bind `MachineSynchronizationCoordinator` to the active Fabric machine tick seam and prove inventory, progress, fluid, energy, and animation updates through a real Geyser session
-4. run a live Fabric/Geyser/Bedrock synchronization regression that proves transaction-generated updates are observed by a Bedrock client; transport handoff alone remains insufficient
-5. extend the generic action resolver to tank, energy, property, menu-button, mode, and entity actions only when compiled semantics provide concrete authoritative operations
-6. expand rich menu, block-entity, entity, networking, rendering, universal-index, and regression-corpus coverage only after the preceding lifecycle bindings are verified
+Each milestone must answer one architectural question: can the same compiled generic contract operate a
+newly discovered runtime object without checking for the fixture or mod identifier? If not, the generic
+seam remains the work item. Additional static metadata or report polish is not a substitute for a failing
+end-to-end contract.
 
-The indexed model-conversion slice, broader texture-read and invalidation slices, compatibility-engine invalidation, diagnostic precompilation, compiled block-state registration, structural texture validation, Java-tag block-entity patching, analyzer registry, typed menu fallback/runtime bridge categories, visual-only entity gates, entity prompt, fluid bucket presentation, item/fluid/energy transactions, sync planning/encoding/dispatch, Geyser inventory-slot and container-property transport handoff, machine dirty-state integration, mixed-resource transaction and processing execution, request-oriented automation, runtime target discovery, traceability, Bedrock block-use recognition, the first explicit authoritative block-use item mutation, and item/fluid/energy/mixed/menu fixtures are now shipped. The next smallest slice is live Bedrock-client synchronization validation, followed by additional explicit action semantics; the generic substrate is no longer blocked on caller-provided recipe or target objects.
+The indexed model-conversion, texture/invalidation, compatibility-cache, direct dispatch, recipe IR,
+live binding, menu transaction, transfer/transaction, machine processing, automation, traceability, and
+Geyser handoff slices are shipped at their recorded evidence levels. None of them promote physical-client
+or arbitrary-mod completion without the remaining gates above.
 
 Hard runtime rule: no machine may be marked `EXECUTABLE` merely because it can execute an item transaction. A machine is `EXECUTABLE` only when every resource required by its compiled processing contract has a verified runtime execution path, including atomic failure handling and state-change propagation.
 
@@ -2680,10 +2715,11 @@ runtime and physical-client evidence supports a compatibility classification.
 
 | Mod ecosystem | Verified artifact evidence | Verified runtime evidence | Physical Bedrock evidence | Current classification |
 | --- | --- | --- | --- | --- |
-| **Create** | Generated pack previously validated with long-path warnings | Generic item/fluid/energy/machine contracts exist; no complete Create object contract | None | `PARTIAL / UNVERIFIED` |
-| **Farmer's Delight** | Generated pack previously validated; specialized recipe serializer tests exist | No complete cooking-machine live-binding round trip | None | `PARTIAL / UNVERIFIED` |
-| **Traveler's Backpack** | Generated pack previously validated | Generic inventory/fluid substrate exists; backpack-specific execution not physically verified | None | `PARTIAL / UNVERIFIED` |
-| **Lootr** | Generated pack previously validated | Vanilla container paths are available; per-player behavior has no current Bedrock attestation | None | `PARTIAL / UNVERIFIED` |
+| **Hydraulic test fixtures** | Generated fixture pack previously validated | Item/fluid/energy/machine substrates and menu packet routing have focused tests; Fabric and Geyser reach readiness | None | `SERVER-VERIFIED SLICES / CLIENT UNVERIFIED` |
+| **Create** | Generated pack previously validated with long-path warnings | No complete Create object contract | None | `ARTIFACT VERIFIED / RUNTIME NOT ASSESSED` |
+| **Farmer's Delight** | Generated pack previously validated; specialized recipe serializer tests exist | No complete cooking-machine live-binding round trip | None | `ARTIFACT VERIFIED / RUNTIME NOT ASSESSED` |
+| **Traveler's Backpack** | Generated pack previously validated | No complete backpack-specific runtime contract | None | `ARTIFACT VERIFIED / RUNTIME NOT ASSESSED` |
+| **Lootr** | Generated pack previously validated | No complete per-player container behavior round trip | None | `ARTIFACT VERIFIED / RUNTIME NOT ASSESSED` |
 | **Citadel / Apollib** | Schema fallback and generated-pack startup were previously validated | No broad entity-behavior compatibility proof | None | `PRESENTATION-ONLY EVIDENCE` |
 | **Mekanism** | No current active-runtime artifact proving the listed machines | Generic mixed-resource substrate only | None | `NOT ASSESSED` |
 | **Thermal Series** | No current active-runtime artifact proving the listed machines | Generic mixed-resource substrate only | None | `NOT ASSESSED` |

@@ -17,7 +17,7 @@ Status vocabulary: `OPEN`, `IN_PROGRESS`, `SERVER_VERIFIED`, `TRANSPORT_VERIFIED
 | Normalized action pipeline | IN_PROGRESS | Production action routing is narrow | Typed action decoding, validation, Java-thread execution, transaction result, and sync trace for each supported action |
 | Fluid actions | OPEN | Fluid transfer substrate exists, Bedrock action contract does not | Fill/drain simulation and commit with persistence and sync evidence |
 | Energy actions | OPEN | Energy transfer substrate exists, Bedrock action contract does not | Receive/extract simulation and commit with persistence and sync evidence |
-| Menu actions | IN_PROGRESS | Server-thread packet routing, explicit button/toggle contracts, transaction evidence, and authoritative resync are implemented; physical Bedrock execution is unverified | Live Java menu action contracts and synchronized results observed from Bedrock |
+| Menu actions | SERVER_VERIFIED | Server-thread packet routing, explicit button/toggle contracts, transaction evidence, authoritative resync, tests, compilation, and live startup are verified; physical Bedrock execution is unverified | Live Java menu action contracts and synchronized results observed from Bedrock |
 | Entity actions | OPEN | Prompt mapping exists; authoritative use/attack/mount actions do not | Live entity resolution, mutation, and sync evidence |
 | Machine lifecycle and persistence | IN_PROGRESS | Generic processing exists; restart/chunk-unload proof is pending | Mid-cycle save/restart preserves all inputs, resources, recipe, progress, and state |
 | Failure and rollback | OPEN | Transaction unit tests exist; live lifecycle failure matrix is incomplete | No loss, duplication, or half-commit across all listed failures |
@@ -42,6 +42,34 @@ Status values: `PASS`, `PARTIAL`, `OPEN`, and `BLOCKED`. `PASS` applies only to 
 | Automation | PASS | PASS | PASS | PARTIAL | PARTIAL | OPEN | PARTIAL | OPEN | BLOCKED |
 
 No row is a support claim unless every required stage for that object is `PASS`.
+
+## Prioritized Completion Plan
+
+| Priority | System | Required closure |
+| --- | --- | --- |
+| P0.1 | Fluid actions | Bedrock fill/drain/transfer intent reaches a discovered live tank, commits atomically on the Java thread, persists, and synchronizes authoritative state |
+| P0.2 | Energy actions/state | Bounded receive/extract operations mutate Java storage and expose a concrete synchronized client state |
+| P0.3 | Entity actions | Use, attack, mount, and dismount resolve live entities and execute through authoritative Java handlers |
+| P0.4 | Persistence | Save, shutdown, restart, rebind, and compare state for every promoted mutable contract |
+| P0.5 | Automation lifecycle | Prove chunk unload/reload, break/replacement, dimension changes, disconnect, and restart without stale state, loss, or duplication |
+| P0.6 | Pack remediation | Classify and resolve every release-blocking pack result as a generic defect, adapter requirement, or explicit unsupported case |
+| P1 | Physical Bedrock | Record manual E1-E10 client evidence for every promoted gameplay round trip |
+| P1 | Real third-party mods | Validate Create first, then widen the evidence-backed mod matrix |
+
+Each P0 implementation must use the same compiled generic contract for the fixture and an arbitrary
+discovered runtime object. Identifier-specific fixture branching does not satisfy the exit condition.
+
+## Release Readiness Gates
+
+- Every critical capability has discovery, classification, compiled-contract, binding, Java mutation,
+	persistence, synchronization, transport, and physical-client evidence, or is explicitly unsupported.
+- Java 25 compilation and all active-module tests pass with no new warnings from touched subsystems.
+- Malformed and adversarial inputs fail closed without server-thread crashes, unauthorized mutation,
+	duplication, item/fluid/energy loss, stale sessions, or cross-player state delivery.
+- Generated-pack failures are classified and all release-blocking generator defects are resolved.
+- The real-mod matrix records object-level evidence; no ecosystem-level claim is inferred from a generic
+	substrate or successful pack conversion alone.
+- Final zero-trust review finds no placeholder path, inflated maturity, or transport-as-client claim.
 
 ## Milestone: Universal Live Binding
 

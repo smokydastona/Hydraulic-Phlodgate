@@ -16,6 +16,10 @@ The canonical source tree is the nested `Hydraulic-mod/` repository that contain
 
 Runtime validation output stays under the canonical tree's ignored `fabric/run/` directory, especially `fabric/run/config/hydraulic/reports/` and `fabric/run/config/hydraulic/cache/`. Run `scripts/validate-repository-topology.ps1` before a release or after changing worktree setup to verify these boundaries without modifying any checkout.
 
+Generated runtime logs, including compressed rotations such as `*.log.gz`, are local diagnostics and
+new rotations are ignored by Git. Evidence intended for version control must be distilled into the
+tracked validation matrices or an explicitly reviewed artifact rather than committing raw server logs.
+
 ## What is Hydraulic?
 
 [Hydraulic](https://github.com/GeyserMC/Hydraulic) is a companion mod for [Geyser](https://github.com/GeyserMC/Geyser) that allows Bedrock players to connect to modded Minecraft: Java Edition servers.
@@ -37,10 +41,10 @@ compatibility claims yet. The active implementation ledger is in
 contract status in [`.github/Runtime-Contract-Matrix.md`](.github/Runtime-Contract-Matrix.md) and
 validation evidence in [`.github/Validation-Matrix.md`](.github/Validation-Matrix.md).
 
-The current priority is runtime completion: clean-world startup, universal discovery boundaries,
-recipe normalization, typed action contracts for items/fluids/energy/menus/entities, machine
-persistence and rollback, automation, and physical Bedrock validation. Resource conversion or a
-transport handoff does not imply gameplay support or client observation.
+The current priority is closing gameplay round trips in this order: fluid actions, energy actions
+and state, entity actions, persistence, automation lifecycle, and pack remediation. Physical
+Bedrock evidence and real third-party mod validation follow those server-authoritative contracts.
+Resource conversion or a transport handoff does not imply gameplay support or client observation.
 
 Machine synchronization session pipelines are reconciled against Geyser's live connection snapshot
 on each machine tick, so disconnected sessions do not retain dirty-state or transport references.
@@ -134,9 +138,10 @@ arbitrary mod-specific recipes or ticking behavior.
 
 The live lifecycle boundary now also observes server-side block-entity loading, concrete menu
 creation, and Minecraft's bound block-entity ticker. Machine changes are coalesced and delivered
-only to active Geyser sessions whose Java player is in the same level and tracking range. Recipe
-JSON remains the authoritative normalized source; opaque recipe-manager entries are reported as
-observed but are not promoted to executable machine plans without a serializable recipe contract.
+only to active Geyser sessions whose Java player is in the same level and tracking range. Typed
+`RecipeIR` is the authoritative normalized form for resource JSON and supported codec-backed live
+`RecipeManager` entries; opaque runtime entries become `RECIPE_RUNTIME_UNKNOWN` and are not promoted
+to executable machine plans.
 
 Compatibility reports now carry an additive `implementationMaturity` field with the values
 `UNKNOWN`, `ARCHITECTURE_IMPLEMENTED`, `CAPABILITY_IMPLEMENTED`, `INTEGRATED`, `VERIFIED`, and
@@ -823,8 +828,39 @@ The current implementation report is:
 | Machine synchronization | Coordinator records progress/active deltas, coalesces, encodes, and delivers through the existing transport abstraction; focused tests pass |
 | Generic machine execution | Existing item/fluid/energy transaction and processing bridges remain fail-closed and full-suite verified |
 | Menu actions | Server-thread click/button validation, vanilla Java mutation, transaction evidence, and canonical menu resync are implemented; physical Bedrock execution remains unverified |
+| Fluid actions | Generic fill/drain transactions and live tank binding exist; no complete Bedrock-originated container action and client-observed state round trip is verified |
+| Energy actions/state | Generic receive/extract transactions and live storage binding exist; no complete client action/state presentation round trip is verified |
+| Entity actions | Metadata-backed prompts exist; authoritative use, attack, mount, and dismount round trips remain open |
+| Persistence/lifecycle | Selected fixture state is serialized and lifecycle hooks exist; shutdown/restart/rebind and chunk replacement matrices remain incomplete |
+| Pack remediation | Structured validation reports exist; remaining failures still require generic fixes, explicit adapters, or unsupported classification |
 | Real Bedrock observation | Not verified in this environment; transport handoff is not client observation |
 | Arbitrary third-party automatic binding | In progress: `LiveCapabilityBinder` owns verified runtime-object bindings and block-entity removal/reload hooks; adapter-unknown inventory execution passes, while real-mod and physical-client round trips remain open |
+
+The object-level compatibility report remains the machine-readable authority. The current ecosystem
+summary in [.github/fork-architecture-plan.md](.github/fork-architecture-plan.md) distinguishes generated
+artifact evidence, generic runtime substrate, and physical Bedrock evidence so a converted pack or fixture
+cannot be mistaken for verified support for Create or another third-party mod.
+
+## Prioritized Completion Order
+
+1. **P0.1 Fluid actions:** Bedrock fill, drain, and transfer requests must mutate a discovered live
+       Java tank and synchronize the resulting identity and amount.
+2. **P0.2 Energy actions/state:** authoritative receive/extract operations must produce bounded,
+       client-visible storage state without inventing a universal Bedrock energy mechanic.
+3. **P0.3 Entity actions:** use, attack, mount, and dismount must resolve a live entity and execute
+       through Java's authoritative handlers.
+4. **P0.4 Persistence:** save, shutdown, restart, rebind, and state recovery must be demonstrated for
+       every mutable fixture and promoted generic contract.
+5. **P0.5 Automation lifecycle:** verify chunk unload/reload, block break/replacement, dimension
+       changes, disconnects, and restart without stale bindings, loss, duplication, or cross-session sync.
+6. **P0.6 Pack remediation:** classify every remaining runtime pack failure as a generic generator
+       defect, an adapter requirement, or an explicit unsupported result.
+7. **P1 Physical Bedrock:** collect the manual E1-E10 action and observation evidence.
+8. **P1 Real third-party mods:** validate Create first, then widen the evidence-backed mod matrix.
+
+The acceptance question for each P0 slice is whether the same compiled generic contract operates a
+newly discovered runtime object without any fixture identifier check. Fixture-only success is test
+coverage, not architecture completion.
 
 The largest remaining problems are behavior-heavy and client-validation systems such as:
 
@@ -842,6 +878,15 @@ that every mod's semantics have been discovered or that a real Bedrock client ha
 result.
 
 Those systems require actual runtime bridges rather than additional reporting alone.
+
+## Release Readiness Summary
+
+A release candidate requires all critical capability stages to pass: discovery, classification,
+compiled contract, live binding, authoritative Java execution, persistence, synchronization,
+transport handoff, and physical Bedrock observation. It also requires the Java 25 build and tests,
+failure and rollback coverage, lifecycle leak checks, dependency/security review, classified pack
+validation output, and an evidence-backed real-mod matrix. The current repository does not satisfy
+those gates and must not be described as production-ready or universally compatible.
 
 ---
 

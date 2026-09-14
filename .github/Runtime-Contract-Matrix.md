@@ -13,9 +13,9 @@ This matrix records the strongest verified state, not the intended design.
 | Energy receive | PASS | PASS | PASS | PASS | SERVER | OPEN | OPEN | OPEN | PARTIAL |
 | Energy extract | PASS | PASS | PASS | PASS | SERVER | OPEN | OPEN | OPEN | PARTIAL |
 | Menu open | PASS | PASS | PASS | PARTIAL | PARTIAL | OPEN | TRANSPORT | OPEN | PARTIAL |
-| Menu button | OPEN | OPEN | OPEN | OPEN | OPEN | OPEN | OPEN | OPEN | OPEN |
+| Menu button | PASS | PASS | PASS | PARTIAL | SERVER | PARTIAL | PARTIAL | OPEN | PASS |
 | Menu property | PARTIAL | PARTIAL | PARTIAL | PARTIAL | OPEN | OPEN | PARTIAL | OPEN | PARTIAL |
-| Menu mode | OPEN | OPEN | OPEN | OPEN | OPEN | OPEN | OPEN | OPEN | OPEN |
+| Menu mode | PASS | PASS | PASS | PARTIAL | SERVER | PARTIAL | PARTIAL | OPEN | PASS |
 | Entity use | PARTIAL | PARTIAL | PARTIAL | OPEN | OPEN | OPEN | OPEN | OPEN | PARTIAL |
 | Entity attack | OPEN | OPEN | OPEN | OPEN | OPEN | OPEN | OPEN | OPEN | OPEN |
 | Entity mount/dismount | OPEN | OPEN | OPEN | OPEN | OPEN | OPEN | OPEN | OPEN | OPEN |
@@ -38,3 +38,8 @@ Real third-party block entities and physical Bedrock observation remain open.
 Recipe manager normalization is server-verified at the codec boundary. `PASS/UNKNOWN` means every
 processed entry either yields portable `RecipeIR` or explicit `RECIPE_RUNTIME_UNKNOWN`; it does not
 mean every recipe is executable or automatically associated with a machine.
+
+Menu button and mode contracts are `SERVER` executable for explicitly compiled actions. The
+menu-machine fixture persists its toggle field, but restart recovery and a physical Bedrock action
+remain unverified; therefore binding, persistence, synchronization, and Bedrock verification are
+not promoted to `PASS`.

@@ -92,6 +92,7 @@ local.properties
 
 # Log file
 *.log
+*.log.gz
 
 # BlueJ files
 *.ctxt
