@@ -263,6 +263,28 @@ AUTOMATION_ACCESS
 
 This is intended to give future runtime bridges a consistent place to plug into the system.
 
+## Automatic Semantic Discovery
+
+The discovery layer now has a metadata-independent runtime contract path. Given a live block entity,
+menu, tank, or energy object, `SemanticDiscoveryEngine.discoverRuntimeObject` inspects its public
+method shape without invoking arbitrary third-party code and records evidence for item transfer,
+fluid transfer, energy transfer, processing/ticking state, and menu contracts. The result is typed
+discovery evidence and facts that can feed the existing compatibility analysis and machine profile
+normalization.
+
+This is deliberately evidence-based rather than magical: method shape can identify an executable
+contract, but it cannot infer undocumented recipe semantics, packet meaning, or arbitrary mod state
+from bytecode alone. Unsupported or ambiguous behavior remains explicitly reportable.
+
+## Automatic Recipe Discovery
+
+`AutomaticRecipeDiscovery` scans local mod/data roots under `data/<namespace>/recipes`, derives stable
+recipe identifiers, delegates JSON interpretation to the existing datapack and specialized serializers,
+and returns a diagnostic report for compiled, malformed, unsupported, and I/O-failed recipes. The
+normalized result preserves item/fluid inputs and outputs through `UniversalRecipe`, while catalyst,
+byproduct, and condition evidence remains attached to the discovery record. No Hydraulic metadata or
+Create-specific adapter is required for a supported recipe JSON schema.
+
 ---
 
 # Current Runtime Bridges
@@ -370,9 +392,11 @@ delivery remains deliberately limited to an explicitly identified compatible Bed
 Phlodgate does not broadcast machine inventory packets to arbitrary sessions.
 
 The remaining gaps are still material: automatic semantic and recipe discovery for arbitrary
-mods, world-fluid translation, richer menu and block-entity behavior, generic ticking-machine
-session synchronization, and live Bedrock-client observation of delivered state. These are not
-silently papered over by the companion add-on.
+mods, world-fluid translation, richer menu and block-entity behavior, automatic binding of discovered
+runtime objects into every live mod block entity, and live Bedrock-client observation of delivered
+state. The machine synchronization coordinator now provides a tick-to-dirty-state-to-transport
+flush boundary for callers that bind it to a live machine tick; it does not claim that every third-
+party block entity is automatically wired to that coordinator.
 
 ---
 
@@ -536,6 +560,9 @@ The current implementation includes:
 * indexed item asset loading
 * compiled runtime lookup tables
 * startup corpus diff re-indexing for curated schema changes
+* bounded runtime-contract discovery evidence
+* automatic local recipe discovery and schema diagnostics
+* machine progress/active-state synchronization at the coordinator boundary
 
 The invalidation benchmark also includes a 500-mod synthetic topology with injected cycles. It
 verifies that cycle-breaking topological ordering preserves every node and that repeated transitive
@@ -675,6 +702,17 @@ Phlodgate is experimental.
 It should **not** currently be considered a universal compatibility solution for arbitrary modpacks.
 
 The project already has real compatibility-analysis, metadata, caching, pack-generation, validation, and runtime-bridge infrastructure, but there are still major areas to solve.
+
+The current implementation report is:
+
+| Area | Verified state |
+| --- | --- |
+| Runtime semantic discovery | Public-contract inference for inventory, fluid, energy, processing, ticking, and menu shapes; focused tests pass |
+| Recipe discovery | Local recipe-root scan with existing specialized serializers and malformed/unsupported diagnostics; focused tests pass |
+| Machine synchronization | Coordinator records progress/active deltas, coalesces, encodes, and delivers through the existing transport abstraction; focused tests pass |
+| Generic machine execution | Existing item/fluid/energy transaction and processing bridges remain fail-closed and full-suite verified |
+| Real Bedrock observation | Not verified in this environment; transport handoff is not client observation |
+| Arbitrary third-party automatic binding | Not complete; discovery facts still require a live integration owner to bind them into each mod's block/entity lifecycle |
 
 The largest remaining problems are behavior-heavy and client-validation systems such as:
 

@@ -35,6 +35,14 @@ The long-term scaling strategy remains:
 ### Date
 - 2026-09-13
 
+### Latest verified implementation slice
+- Runtime contract discovery now inspects public live-object method shapes without invoking arbitrary third-party methods and emits typed evidence for item, fluid, energy, machine-state, and menu contracts.
+- Automatic recipe discovery now scans local `data/<namespace>/recipes` roots, delegates supported schemas to the existing datapack/specialized serializers, and reports compiled, malformed, unsupported, and I/O-failed entries.
+- Machine profile normalization now accepts multiple indexed item/fluid recipes and fail-closed numeric facts instead of parsing only recipe zero or throwing on malformed values.
+- `MachineSynchronizationCoordinator` now provides a reusable machine-tick boundary that records progress/active deltas, coalesces them, encodes them, and delivers through the existing synchronization transport abstraction.
+- Focused discovery/recipe/profile/synchronization tests and the full `:shared:test :fabric:compileJava` validation passed after this slice.
+- A real Bedrock client was not available for this validation run. Transport handoff remains distinct from `CLIENT_OBSERVED`.
+
 ### Validated repo baseline
 - Live fork: `smokydastona/Hydraulic--Skeleton_Key`
 - Current workspace branch tracks Minecraft `26.2`
@@ -558,6 +566,10 @@ of support or reuse rights.
 - Conversion invalidation now also preserves explicit indexed model and equipment dependency edges and hashes only the concrete referenced model and texture file stamps they traverse, so unrelated asset churn in a dependent namespace no longer invalidates another mod's cached pack output.
 
 ### What is materially better than earlier assessments
+- Runtime semantic discovery is no longer limited to API-presence evidence: a bounded public-contract classifier now derives inventory, fluid, energy, processing/ticking, and menu facts from live runtime object types without invoking arbitrary methods.
+- Automatic local recipe discovery now scans mod/data recipe roots without Hydraulic metadata, reuses the existing generic and specialized serializers, preserves catalyst/byproduct/condition evidence, and reports malformed or unsupported schemas instead of silently ignoring them.
+- Machine profiles now normalize multiple indexed recipes, fluid inputs/outputs, energy values, and malformed numeric facts with fail-closed defaults.
+- A machine synchronization coordinator now connects authoritative machine ticks to dirty-state coalescing, sync encoding, and configured transport delivery for callers that bind real machine block entities to the coordinator.
 - The fork is no longer only a block metadata experiment.
 - Compatibility reporting is already a real regression surface.
 - Runtime bridge seams now exist in production code, even if they remain narrow.
@@ -597,6 +609,8 @@ of support or reuse rights.
   - Phase 10: `MultiLevelValidationHarness` (Multi-level validation runner, modpack corpus compliance reporting), CI matrix integration in `.github/workflows/build-matrix.yml` and `.github/workflows/pullrequest.yml`, multi-platform physical client observation attestation matrix tooling (`record-client-attestation.ps1`, `publish-attestation-matrix.ps1`), and BDS multi-platform protocol compatibility validation (`test-bds-compatibility.ps1`, `BdsProtocolCompatibilityTest`).
 
 ### What is still too narrow
+- Discovery facts are not yet universally wired from every arbitrary third-party block entity lifecycle into `CompiledCompatibilityPlan` construction. The new classifier is a reusable evidence source, not proof that an unfamiliar mod has been fully understood.
+- Recipe discovery still depends on schemas that expose enough JSON or runtime registry information for the existing serializers; arbitrary hardcoded recipe managers and opaque custom conditions remain explicit unsupported/ambiguous cases.
 - The corpus schema, local importer, loader, admissibility checks, matcher, report writer, and compatibility evidence seam are implemented. Startup seeds 15 reviewed Bedrock corpus records into `config/hydraulic/corpus/curated/builtin` (12 admissible) and two admissible Java capability references into `config/hydraulic/corpus/java/curated/builtin`; the bundled records remain offline evidence and do not become runtime bridge inputs. Live remote harvesting, CurseForge API ingestion, and human review of additional records remain intentionally external/offline inputs rather than startup behavior. Server-owned records belong outside the overwritten `builtin` directories.
 - Discovery is still duplicated across multiple subsystems.
 - Fingerprinting and cache invalidation now carry resource-kind-aware boundaries inside a mod, while cross-mod conversion invalidation remains dependency-aware rather than per-mod-only.
@@ -2240,12 +2254,12 @@ The Bedrock addon corpus can begin earlier as an external schema and harvesting 
 
 The best next implementation slice from the current repo state is:
 
-1. run a live Fabric/Geyser/Bedrock synchronization regression that proves transaction-generated inventory slot and container-property updates are observed by a Bedrock client, and expand transport mappings for additional non-inventory state only where a concrete Bedrock packet/state target exists
-2. extend the shipped explicit processing block-use contract to tank, energy, and property actions only when the compiled plan provides concrete semantics; item insertion and shift-click extraction are now implemented and validated
-3. extend rich menu and block-entity behavior on top of transaction-backed state changes and transport-aware synchronization results
-4. expand automatic Java recipe discovery into compiled mixed-resource machine process facts beyond metadata-provided recipe contracts
-5. keep narrowing cache invalidation and runtime lookup surfaces only where fresh runtime evidence shows remaining broad scans or coarse dependencies
-6. in parallel, lock the Bedrock addon corpus contract, source admissibility rules, storage roots, and report outputs without wiring raw corpus data into runtime behavior yet
+1. bind `SemanticDiscoveryEngine.discoverRuntimeObject` to the live block-entity/menu lifecycle and compile discovered facts into `CompiledCompatibilityPlan` only after concrete runtime operations are verified
+2. feed `AutomaticRecipeDiscovery` and live recipe-manager extraction into machine-plan compilation, including opaque hardcoded recipe managers with explicit unsupported evidence when extraction is impossible
+3. bind `MachineSynchronizationCoordinator` to the active Fabric machine tick seam and prove inventory, progress, fluid, energy, and animation updates through a real Geyser session
+4. run a live Fabric/Geyser/Bedrock synchronization regression that proves transaction-generated updates are observed by a Bedrock client; transport handoff alone remains insufficient
+5. extend the generic action resolver to tank, energy, property, menu-button, mode, and entity actions only when compiled semantics provide concrete authoritative operations
+6. expand rich menu, block-entity, entity, networking, rendering, universal-index, and regression-corpus coverage only after the preceding lifecycle bindings are verified
 
 The indexed model-conversion slice, broader texture-read and invalidation slices, compatibility-engine invalidation, diagnostic precompilation, compiled block-state registration, structural texture validation, Java-tag block-entity patching, analyzer registry, typed menu fallback/runtime bridge categories, visual-only entity gates, entity prompt, fluid bucket presentation, item/fluid/energy transactions, sync planning/encoding/dispatch, Geyser inventory-slot and container-property transport handoff, machine dirty-state integration, mixed-resource transaction and processing execution, request-oriented automation, runtime target discovery, traceability, Bedrock block-use recognition, the first explicit authoritative block-use item mutation, and item/fluid/energy/mixed/menu fixtures are now shipped. The next smallest slice is live Bedrock-client synchronization validation, followed by additional explicit action semantics; the generic substrate is no longer blocked on caller-provided recipe or target objects.
 

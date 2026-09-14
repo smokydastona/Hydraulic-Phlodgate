@@ -49,16 +49,31 @@ public record MachineProfile(
         boolean energy = Boolean.parseBoolean(facts.getOrDefault("can_receive_energy", "false")) || Boolean.parseBoolean(facts.getOrDefault("can_provide_energy", "false"));
         boolean automation = Boolean.parseBoolean(facts.getOrDefault("sided_insert", "false")) || Boolean.parseBoolean(facts.getOrDefault("sided_extract", "false"));
 
-        List<RecipeContract> recipeContracts = List.of();
-        if (facts.containsKey("machine.processing.recipe.0.input") && facts.containsKey("machine.processing.recipe.0.output")) {
-            recipeContracts = List.of(new RecipeContract(
-                List.of(new TransferBridgeFactory.ItemStackView(facts.get("machine.processing.recipe.0.input"), Integer.parseInt(facts.getOrDefault("machine.processing.recipe.0.input_count", "1")))),
-                List.of(),
-                Integer.parseInt(facts.getOrDefault("machine.processing.recipe.0.energy_input", "0")),
-                List.of(new TransferBridgeFactory.ItemStackView(facts.get("machine.processing.recipe.0.output"), Integer.parseInt(facts.getOrDefault("machine.processing.recipe.0.output_count", "1")))),
-                List.of(),
-                0,
-                Integer.parseInt(facts.getOrDefault("machine.processing.recipe.0.duration", "40"))
+        List<RecipeContract> recipeContracts = new java.util.ArrayList<>();
+        for (int index = 0; index < 64; index++) {
+            String prefix = "machine.processing.recipe." + index + ".";
+            String input = nonBlank(facts.get(prefix + "input"));
+            String output = nonBlank(facts.get(prefix + "output"));
+            if (input == null || output == null) {
+                continue;
+            }
+
+            int inputCount = positiveInt(facts.get(prefix + "input_count"), 1);
+            int outputCount = positiveInt(facts.get(prefix + "output_count"), 1);
+            int duration = positiveInt(facts.get(prefix + "duration"), 40);
+            int energyInput = nonNegativeInt(facts.get(prefix + "energy_input"), 0);
+            int energyOutput = nonNegativeInt(facts.get(prefix + "energy_output"), 0);
+
+            List<TransferBridgeFactory.FluidStackView> fluidInputs = fluidFacts(facts, prefix + "fluid_input");
+            List<TransferBridgeFactory.FluidStackView> fluidOutputs = fluidFacts(facts, prefix + "fluid_output");
+            recipeContracts.add(new RecipeContract(
+                List.of(new TransferBridgeFactory.ItemStackView(input, inputCount)),
+                fluidInputs,
+                energyInput,
+                List.of(new TransferBridgeFactory.ItemStackView(output, outputCount)),
+                fluidOutputs,
+                energyOutput,
+                duration
             ));
         }
 
@@ -73,5 +88,36 @@ public record MachineProfile(
             Map.copyOf(facts),
             List.copyOf(evidence)
         );
+    }
+
+    private static List<TransferBridgeFactory.FluidStackView> fluidFacts(Map<String, String> facts, String prefix) {
+        String fluid = nonBlank(facts.get(prefix));
+        if (fluid == null) {
+            return List.of();
+        }
+        int amount = positiveInt(facts.get(prefix + "_amount"), 1000);
+        return List.of(new TransferBridgeFactory.FluidStackView(fluid, amount));
+    }
+
+    private static String nonBlank(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
+    }
+
+    private static int positiveInt(String value, int fallback) {
+        try {
+            int parsed = Integer.parseInt(value == null ? "" : value);
+            return parsed > 0 ? parsed : fallback;
+        } catch (NumberFormatException ignored) {
+            return fallback;
+        }
+    }
+
+    private static int nonNegativeInt(String value, int fallback) {
+        try {
+            int parsed = Integer.parseInt(value == null ? "" : value);
+            return parsed >= 0 ? parsed : fallback;
+        } catch (NumberFormatException ignored) {
+            return fallback;
+        }
     }
 }
