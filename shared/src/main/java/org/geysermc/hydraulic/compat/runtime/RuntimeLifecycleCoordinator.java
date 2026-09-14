@@ -15,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.WeakHashMap;
 
 public final class RuntimeLifecycleCoordinator {
@@ -77,11 +79,13 @@ public final class RuntimeLifecycleCoordinator {
         }
 
         try {
+            List<GeyserSession> activeSessions = new ArrayList<>();
             for (var connection : GeyserApi.api().onlineConnections()) {
                 if (connection instanceof GeyserSession session) {
-                    autoFlush.registerSession(session);
+                    activeSessions.add(session);
                 }
             }
+            autoFlush.reconcileSessions(activeSessions);
         } catch (Throwable throwable) {
             LOGGER.debug("Geyser sessions were unavailable during machine synchronization", throwable);
         }

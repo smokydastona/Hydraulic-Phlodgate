@@ -26,6 +26,16 @@ Status vocabulary: `OPEN`, `IN_PROGRESS`, `SERVER_VERIFIED`, `TRANSPORT_VERIFIED
 | Real-mod validation | BLOCKED | Universal contracts and physical evidence are prerequisites | Adapter-free arbitrary-mod test plus evidence-backed matrix |
 | Final zero-trust audit | OPEN | Must run after implementation and validation workstreams | No unsupported completion claims and all classifications have evidence |
 
+## 2026-09-14 Live Session Lifecycle Evidence
+
+- `RuntimeLifecycleCoordinator` now reconciles the `SessionAutoFlushCoordinator` against
+	Geyser's active connection snapshot on each machine synchronization tick.
+- New sessions receive a pipeline, while disconnected sessions are removed with their
+	dirty-state and transport references. Position filtering still prevents delivery to
+	unrelated players.
+- The focused `SessionAutoFlushCoordinatorTest` suite passes. This is server-side lifecycle
+	evidence only; it does not promote transport handoff or physical Bedrock observation.
+
 ## Rules
 
 - Do not add supported-mod claims while a required universal contract is `OPEN`.

@@ -11,9 +11,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -41,6 +43,22 @@ public final class SessionAutoFlushCoordinator {
 
     public void unregisterSession(@NotNull GeyserSession session) {
         activeSessions.remove(session);
+    }
+
+    /**
+     * Reconciles pipelines with Geyser's current connection snapshot so disconnected
+     * sessions cannot retain dirty-state and transport references after a machine tick.
+     */
+    public void reconcileSessions(@NotNull Iterable<? extends GeyserSession> sessions) {
+        Objects.requireNonNull(sessions, "sessions");
+        Set<GeyserSession> currentSessions = new HashSet<>();
+        for (GeyserSession session : sessions) {
+            if (session != null) {
+                currentSessions.add(session);
+                registerSession(session);
+            }
+        }
+        activeSessions.keySet().removeIf(session -> !currentSessions.contains(session));
     }
 
     public int activeSessionCount() {

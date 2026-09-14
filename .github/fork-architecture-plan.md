@@ -68,6 +68,11 @@ E1-E10 evidence, real-mod validation, and a final zero-trust audit.
   compilation and a clean-world Fabric/Geyser startup plus clean shutdown passed without the
   duplicate-objective failure. Same-world restart remains blocked by a Windows Architectury
   dev-jar lock after shutdown and is not yet claimed as verified.
+- Session lifecycle binding: ticking machine synchronization now reconciles its session pipelines
+  against Geyser's live connection snapshot, creating pipelines for active sessions and retiring
+  disconnected ones. This prevents retained dirty-state and transport references while preserving
+  the existing same-level/range delivery filter. Focused coordinator tests pass; physical client
+  delivery remains unverified.
 - Live lifecycle binding and position-filtered synchronization: the compiled compatibility registry
   now installs a shared runtime lifecycle coordinator. A server-side `BlockEntity.setLevel` seam
   discovers unmapped block-entity contracts, `ServerPlayer.openMenu` records concrete menu-type

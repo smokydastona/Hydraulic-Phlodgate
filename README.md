@@ -42,6 +42,11 @@ recipe normalization, typed action contracts for items/fluids/energy/menus/entit
 persistence and rollback, automation, and physical Bedrock validation. Resource conversion or a
 transport handoff does not imply gameplay support or client observation.
 
+Machine synchronization session pipelines are reconciled against Geyser's live connection snapshot
+on each machine tick, so disconnected sessions do not retain dirty-state or transport references.
+This is server-side lifecycle handling, not evidence that a Bedrock client received or displayed an
+update.
+
 ---
 
 # What is Phlodgate?

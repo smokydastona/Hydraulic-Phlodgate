@@ -24,3 +24,6 @@ This matrix records the strongest verified state, not the intended design.
 | Automation route | PASS | PASS | PASS | PARTIAL | PARTIAL | OPEN | PARTIAL | OPEN | PARTIAL |
 
 `TRANSPORT` means a concrete Geyser packet handoff was tested. It never means that an official Bedrock client displayed or applied the result.
+
+Session pipeline lifecycle is `SERVER_VERIFIED`: active sessions are reconciled on machine ticks,
+and stale session pipelines are removed. This does not establish client delivery or observation.
