@@ -234,6 +234,37 @@ public final class UniversalResourceIndex {
     }
 
     /**
+     * Resolves a Java language resource path through the universal index.
+     */
+    @Nullable
+    public Identifier resolveLanguageKey(@NotNull Identifier language) {
+        String namespace = language.getNamespace();
+        String modId = resolveModForNamespace(namespace);
+        if (modId == null) {
+            return null;
+        }
+
+        ModResourceIndex index = this.modIndexes.get(modId);
+        if (index == null || index.resolveLanguagePath(language) == null) {
+            return null;
+        }
+
+        return language;
+    }
+
+    /**
+     * Gets all indexed language files across all mods.
+     */
+    @NotNull
+    public Map<Identifier, Path> allLanguages() {
+        Map<Identifier, Path> allLanguages = new java.util.LinkedHashMap<>();
+        for (ModResourceIndex index : this.modIndexes.values()) {
+            allLanguages.putAll(index.languagePaths());
+        }
+        return Map.copyOf(allLanguages);
+    }
+
+    /**
      * Gets dependency namespaces for a specific mod.
      */
     @NotNull

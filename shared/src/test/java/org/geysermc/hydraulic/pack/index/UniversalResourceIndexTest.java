@@ -24,8 +24,11 @@ class UniversalResourceIndexTest {
     void resolvesOwningModAndIndexedPaths() throws Exception {
         Path modRoot = this.tempDir.resolve("examplemod");
         Path assets = modRoot.resolve("assets/examplemod/blockstates/test_block.json");
+        Path language = modRoot.resolve("assets/examplemod/lang/en_us.json");
         Files.createDirectories(assets.getParent());
+        Files.createDirectories(language.getParent());
         Files.writeString(assets, "{}");
+        Files.writeString(language, "{}");
 
         ModInfo mod = new ModInfo("examplemod", "examplemod", "Example Mod", "1.0.0", null, java.util.List.of(modRoot));
         ModResourceIndex index = ModResourceIndex.create(mod, LoggerFactory.getLogger("UniversalResourceIndexTest"));
@@ -47,5 +50,8 @@ class UniversalResourceIndexTest {
         assertEquals("examplemod", universal.resolveModForBlock(block));
         assertNotNull(universal.resolveModForNamespace("examplemod"));
         assertNotNull(index.resolveBlockStatePath(block));
+        Identifier languageKey = Identifier.fromNamespaceAndPath("examplemod", "en_us");
+        assertEquals(languageKey, universal.resolveLanguageKey(languageKey));
+        assertEquals(language, universal.allLanguages().get(languageKey));
     }
 }

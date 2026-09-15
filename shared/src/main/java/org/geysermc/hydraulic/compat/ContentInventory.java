@@ -68,16 +68,16 @@ public final class ContentInventory {
         }
 
         public ModContentInventory {
-            roots = List.copyOf(roots);
-            registryCounts = Collections.unmodifiableMap(new LinkedHashMap<>(registryCounts));
+            roots = roots == null ? List.of() : List.copyOf(roots);
+            registryCounts = immutableIntegerMap(registryCounts);
             registryEntries = immutableCopy(registryEntries);
-            assetCounts = Collections.unmodifiableMap(new LinkedHashMap<>(assetCounts));
+            assetCounts = immutableIntegerMap(assetCounts);
             assetEntries = immutableCopy(assetEntries);
-            metadataCounts = Collections.unmodifiableMap(new LinkedHashMap<>(metadataCounts));
+            metadataCounts = immutableIntegerMap(metadataCounts);
             metadataEntries = immutableCopy(metadataEntries);
-            patchCounts = Collections.unmodifiableMap(new LinkedHashMap<>(patchCounts));
+            patchCounts = immutableIntegerMap(patchCounts);
             patchEntries = immutableCopy(patchEntries);
-            recipePaths = Collections.unmodifiableMap(new LinkedHashMap<>(recipePaths));
+            recipePaths = recipePaths == null ? Map.of() : Collections.unmodifiableMap(new LinkedHashMap<>(recipePaths));
         }
 
         @Nullable
@@ -124,10 +124,21 @@ public final class ContentInventory {
         }
 
         @NotNull
-        private static Map<String, List<String>> immutableCopy(@NotNull Map<String, List<String>> values) {
+        private static Map<String, Integer> immutableIntegerMap(@Nullable Map<String, Integer> values) {
+            if (values == null) {
+                return Map.of();
+            }
+            return Collections.unmodifiableMap(new LinkedHashMap<>(values));
+        }
+
+        @NotNull
+        private static Map<String, List<String>> immutableCopy(@Nullable Map<String, List<String>> values) {
+            if (values == null) {
+                return Map.of();
+            }
             Map<String, List<String>> copy = new LinkedHashMap<>();
             for (Map.Entry<String, List<String>> entry : values.entrySet()) {
-                copy.put(entry.getKey(), List.copyOf(entry.getValue()));
+                copy.put(entry.getKey(), entry.getValue() == null ? List.of() : List.copyOf(entry.getValue()));
             }
             return Collections.unmodifiableMap(copy);
         }

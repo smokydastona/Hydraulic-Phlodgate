@@ -265,6 +265,7 @@ public final class ArtifactCache {
                 Map.of(),
                 Map.of(),
                 Map.of(),
+                Map.of(),
                 java.util.Set.of(),
                 Map.of(),
                 Map.of(),

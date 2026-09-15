@@ -20,6 +20,7 @@ import org.geysermc.hydraulic.compat.CompatibilityRegistry;
 import org.geysermc.hydraulic.compat.MappingResolver;
 import org.geysermc.hydraulic.compat.ir.CompiledCompatibilityPlan;
 import org.geysermc.hydraulic.compat.runtime.FluidBucketTextureResolver;
+import org.geysermc.hydraulic.pack.BedrockLanguageSupport;
 import org.geysermc.hydraulic.pack.ModResourceIndex;
 import org.geysermc.hydraulic.pack.PackLogListener;
 import org.geysermc.hydraulic.pack.PackModule;
@@ -314,6 +315,11 @@ public class ItemPackModule extends TexturePackModule<ItemPackModule> {
         ModelStitcher.Provider modelProvider = context.modelProvider();
 
         context.logger().info("Items to convert: {} in mod {}", items.size(), context.mod().id());
+
+        for (Item item : items) {
+            Identifier itemLocation = BuiltInRegistries.ITEM.getKey(item);
+            BedrockLanguageSupport.includeDefaultTranslation(bedrockPack, item.getDescriptionId(), BedrockLanguageSupport.fallbackName(itemLocation));
+        }
 
         PackLogListener packLogListener = new PackLogListener(context.logger());
         for (Item item : items) {

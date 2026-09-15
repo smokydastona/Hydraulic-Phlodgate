@@ -33,6 +33,7 @@ public final class ModResourceIndex {
     private final Map<Identifier, Path> legacyItemModels;
     private final Map<Identifier, Path> models;
     private final Map<Key, Path> textures;
+    private final Map<Identifier, Path> languages;
     private final Set<String> dependencyNamespaces;
     private final Map<Identifier, Set<Key>> modelDependencies;
     private final Map<Identifier, Set<Key>> equipmentDependencies;
@@ -53,6 +54,7 @@ public final class ModResourceIndex {
         @NotNull Map<Identifier, Path> legacyItemModels,
         @NotNull Map<Identifier, Path> models,
         @NotNull Map<Key, Path> textures,
+        @NotNull Map<Identifier, Path> languages,
         @NotNull Set<String> dependencyNamespaces,
         @NotNull Map<Identifier, Set<Key>> modelDependencies,
         @NotNull Map<Identifier, Set<Key>> equipmentDependencies,
@@ -71,6 +73,7 @@ public final class ModResourceIndex {
         this.legacyItemModels = Map.copyOf(legacyItemModels);
         this.models = Map.copyOf(models);
         this.textures = Map.copyOf(textures);
+        this.languages = Map.copyOf(languages);
         this.dependencyNamespaces = Set.copyOf(dependencyNamespaces);
         this.modelDependencies = copyDependencyMap(modelDependencies);
         this.equipmentDependencies = copyDependencyMap(equipmentDependencies);
@@ -93,6 +96,7 @@ public final class ModResourceIndex {
         Map<Identifier, Path> legacyItemModels = new LinkedHashMap<>();
         Map<Identifier, Path> models = new LinkedHashMap<>();
         Map<Key, Path> textures = new LinkedHashMap<>();
+        Map<Identifier, Path> languages = new LinkedHashMap<>();
         Set<String> dependencyNamespaces = new LinkedHashSet<>();
         Map<Identifier, Set<Key>> modelDependencies = new LinkedHashMap<>();
         Map<Identifier, Set<Key>> equipmentDependencies = new LinkedHashMap<>();
@@ -132,7 +136,7 @@ public final class ModResourceIndex {
 
                         sawAssetFile = true;
                         fileStamps.add(fileStamp(path, assets, rootOrdinal, "assets"));
-                        indexAssetFile(path, assets, namespaces, blockStates, itemDefinitions, legacyItemModels, models, textures, dependencyNamespaces, modelDependencies, equipmentDependencies, assetEntries);
+                        indexAssetFile(path, assets, namespaces, blockStates, itemDefinitions, legacyItemModels, models, textures, languages, dependencyNamespaces, modelDependencies, equipmentDependencies, assetEntries);
                         FileMetadata metadata = fileMetadata(path, assets, rootOrdinal, "assets");
                         fingerprintHasher.putString(metadata.stablePath(), java.nio.charset.StandardCharsets.UTF_8);
                         fingerprintHasher.putLong(metadata.size());
@@ -191,6 +195,7 @@ public final class ModResourceIndex {
             legacyItemModels,
             models,
             textures,
+            languages,
             dependencyNamespaces,
             modelDependencies,
             equipmentDependencies,
@@ -214,6 +219,7 @@ public final class ModResourceIndex {
             toIdentifierPathMap(snapshot.legacyItemModels()),
             toIdentifierPathMap(snapshot.models()),
             toKeyPathMap(snapshot.textures()),
+            toIdentifierPathMap(snapshot.languages()),
             snapshot.dependencyNamespaces(),
             toIdentifierKeySetMap(snapshot.modelDependencies()),
             toIdentifierKeySetMap(snapshot.equipmentDependencies()),
@@ -266,6 +272,10 @@ public final class ModResourceIndex {
         return this.textures.size();
     }
 
+    public int languageCount() {
+        return this.languages.size();
+    }
+
     @NotNull
     public Set<String> dependencyNamespaces() {
         return this.dependencyNamespaces;
@@ -290,6 +300,7 @@ public final class ModResourceIndex {
             stringifyIdentifierPaths(this.legacyItemModels),
             stringifyIdentifierPaths(this.models),
             stringifyKeyPaths(this.textures),
+            stringifyIdentifierPaths(this.languages),
             this.dependencyNamespaces,
             stringifyDependencyMap(this.modelDependencies),
             stringifyDependencyMap(this.equipmentDependencies),
@@ -352,6 +363,16 @@ public final class ModResourceIndex {
         return this.textures;
     }
 
+    @Nullable
+    public Path resolveLanguagePath(@NotNull Identifier language) {
+        return this.languages.get(language);
+    }
+
+    @NotNull
+    public Map<Identifier, Path> languagePaths() {
+        return this.languages;
+    }
+
     @NotNull
     public List<ScanRoot> scanRoots() {
         return this.scanRoots;
@@ -390,6 +411,7 @@ public final class ModResourceIndex {
         @NotNull Map<Identifier, Path> legacyItemModels,
         @NotNull Map<Identifier, Path> models,
         @NotNull Map<Key, Path> textures,
+        @NotNull Map<Identifier, Path> languages,
         @NotNull Set<String> dependencyNamespaces,
         @NotNull Map<Identifier, Set<Key>> modelDependencies,
         @NotNull Map<Identifier, Set<Key>> equipmentDependencies,
@@ -448,6 +470,10 @@ public final class ModResourceIndex {
 
         if ("lang".equals(firstSegment) && file.getFileName().toString().endsWith(".json")) {
             addRelativeAsset(assetEntries, "lang", relative.subpath(2, relative.getNameCount()));
+            Identifier identifier = identifier(namespace, relative.subpath(2, relative.getNameCount()));
+            if (identifier != null) {
+                languages.putIfAbsent(identifier, file);
+            }
         }
 
         if ("equipment".equals(firstSegment) && file.getFileName().toString().endsWith(".json")) {
@@ -720,6 +746,7 @@ public final class ModResourceIndex {
         @NotNull Map<String, String> legacyItemModels,
         @NotNull Map<String, String> models,
         @NotNull Map<String, String> textures,
+        @NotNull Map<String, String> languages,
         @NotNull Set<String> dependencyNamespaces,
         @NotNull Map<String, Set<String>> modelDependencies,
         @NotNull Map<String, Set<String>> equipmentDependencies,
@@ -738,6 +765,7 @@ public final class ModResourceIndex {
             legacyItemModels = immutableStringMap(legacyItemModels);
             models = immutableStringMap(models);
             textures = immutableStringMap(textures);
+            languages = immutableStringMap(languages);
             dependencyNamespaces = dependencyNamespaces == null ? Set.of() : Set.copyOf(dependencyNamespaces);
             modelDependencies = modelDependencies == null ? Map.of() : copyAssetEntries(modelDependencies);
             equipmentDependencies = equipmentDependencies == null ? Map.of() : copyAssetEntries(equipmentDependencies);

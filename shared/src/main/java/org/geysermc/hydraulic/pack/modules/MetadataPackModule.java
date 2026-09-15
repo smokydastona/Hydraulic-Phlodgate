@@ -4,6 +4,8 @@ import net.kyori.adventure.text.Component;
 import org.apache.commons.lang3.StringUtils;
 import org.geysermc.hydraulic.Constants;
 import org.geysermc.hydraulic.cache.ConversionKey;
+import org.geysermc.hydraulic.pack.BedrockLanguageSupport;
+import org.geysermc.hydraulic.pack.ModResourceIndex;
 import org.geysermc.hydraulic.platform.mod.ModInfo;
 import org.geysermc.pack.bedrock.resource.BedrockResourcePack;
 import org.geysermc.pack.bedrock.resource.Manifest;
@@ -11,7 +13,10 @@ import org.geysermc.pack.bedrock.resource.manifest.Header;
 import org.geysermc.pack.bedrock.resource.manifest.Modules;
 import org.geysermc.pack.converter.pipeline.*;
 import org.geysermc.pack.converter.type.base.PackManifestConverter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.metadata.pack.FormatVersion;
 import team.unnamed.creative.metadata.pack.PackFormat;
@@ -25,12 +30,16 @@ import java.util.List;
 import java.util.UUID;
 
 public class MetadataPackModule implements AssetExtractor<ModInfo>, AssetConverter<ModInfo, Manifest>, AssetCombiner<Manifest> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MetadataPackModule.class);
+
     private final ModInfo modInfo;
     private final ConversionKey conversionKey;
+    private final @Nullable ModResourceIndex resourceIndex;
 
-    public MetadataPackModule(ModInfo modInfo, ConversionKey conversionKey) {
+    public MetadataPackModule(@NotNull ModInfo modInfo, @NotNull ConversionKey conversionKey, @Nullable ModResourceIndex resourceIndex) {
         this.modInfo = modInfo;
         this.conversionKey = conversionKey;
+        this.resourceIndex = resourceIndex;
     }
 
     @Override
@@ -62,6 +71,10 @@ public class MetadataPackModule implements AssetExtractor<ModInfo>, AssetConvert
     @Override
     public void include(BedrockResourcePack pack, List<Manifest> manifests, CombineContext context) {
         pack.manifest(manifests.getFirst());
+
+        if (this.resourceIndex != null) {
+            BedrockLanguageSupport.includeIndexedLanguages(pack, this.resourceIndex, LOGGER);
+        }
 
         // Copy the icon if it exists or copy the fallback icon
         try {

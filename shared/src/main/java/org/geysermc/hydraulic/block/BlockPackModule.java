@@ -41,6 +41,7 @@ import org.geysermc.hydraulic.compat.ir.CompiledCompatibilityPlan;
 import org.geysermc.hydraulic.item.CreativeMappings;
 import org.geysermc.hydraulic.metadata.BlockMapping;
 import org.geysermc.hydraulic.metadata.BlockStateRule;
+import org.geysermc.hydraulic.pack.BedrockLanguageSupport;
 import org.geysermc.hydraulic.pack.ModResourceIndex;
 import org.geysermc.hydraulic.pack.PackLogListener;
 import org.geysermc.hydraulic.pack.PackModule;
@@ -167,6 +168,11 @@ public class BlockPackModule extends TexturePackModule<BlockPackModule> {
 
         if (resourceIndex == null) {
             return;
+        }
+
+        for (Block block : context.registryValues(BuiltInRegistries.BLOCK)) {
+            Identifier blockLocation = BuiltInRegistries.BLOCK.getKey(block);
+            BedrockLanguageSupport.includeDefaultTranslation(bedrockPack, block.getDescriptionId(), BedrockLanguageSupport.fallbackName(blockLocation));
         }
 
         Set<Key> selectedTextures = context.hydraulic().getPackManager().selectedTextures(context.mod().id());

@@ -46,6 +46,21 @@ and state, entity actions, persistence, automation lifecycle, and pack remediati
 Bedrock evidence and real third-party mod validation follow those server-authoritative contracts.
 Resource conversion or a transport handoff does not imply gameplay support or client observation.
 
+Generated Bedrock resource packs now carry language output from the authoritative mod index. Hydraulic
+indexes Java `assets/<namespace>/lang/*.json` files as first-class resources, preserves them across
+index-cache rehydration, converts Java language codes such as `en_us` to Bedrock names such as `en_US`,
+and writes `texts/*.lang` entries into generated `.mcpack` archives. Custom block and item registration
+also emits fallback English display names for `%translation.key` references when the Java mod does not
+provide a string. Malformed or non-object language files are skipped with a warning so one bad mod cannot
+abort pack generation.
+
+The latest local Java 25 validation passed focused language/index/cache regression tests and
+`:shared:compileJava :fabric:compileJava`. A Fabric runtime smoke converted 143 packs, reached Minecraft
+server `Done`, compiled 2,281 datapack recipes, and produced `texts/en_US.lang` in 84 of 86 generated
+storage packs. Geyser did not reach UDP `19132` in that final smoke because the environment could not
+reach Mojang/Minecraft discovery and public-key endpoints; an earlier same-session run did reach Geyser
+UDP `19132` before this language-export change. No physical Bedrock-client observation is claimed.
+
 The first fluid action contract is now available for metadata-declared exact bucket exchanges. It
 requires explicit input/output item IDs, fluid ID, tank, amount, and optional container-property ID;
 Hydraulic simulates the full move, commits only an exact result, compensates a failed item exchange,
