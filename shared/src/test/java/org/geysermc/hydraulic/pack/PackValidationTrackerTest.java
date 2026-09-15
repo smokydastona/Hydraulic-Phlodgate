@@ -13,6 +13,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PackValidationTrackerTest {
     @TempDir
@@ -37,6 +38,8 @@ class PackValidationTrackerTest {
         assertNotNull(snapshot.perMod().get("examplemod"));
         assertEquals(1, snapshot.perMod().get("examplemod").errorCount());
         assertEquals(2, snapshot.perMod().get("examplemod").manualActionCount());
+        assertEquals(PackValidationReport.FailureClassification.GENERIC_GENERATOR_DEFECT,
+            snapshot.perMod().get("examplemod").errors().getFirst().classification());
 
         PackValidationReport written;
         try (Reader reader = Files.newBufferedReader(reportPath)) {
@@ -46,5 +49,7 @@ class PackValidationTrackerTest {
         assertNotNull(written);
         assertEquals(false, written.perMod().get("examplemod").valid());
         assertEquals("pack.json.invalid", written.perMod().get("examplemod").errors().get(0).code());
+        assertEquals(PackValidationReport.FailureClassification.GENERIC_GENERATOR_DEFECT,
+            written.perMod().get("examplemod").errors().get(0).classification());
     }
 }

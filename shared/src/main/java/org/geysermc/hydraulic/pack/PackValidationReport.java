@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public record PackValidationReport(
@@ -57,7 +58,44 @@ public record PackValidationReport(
     public record ValidationMessage(
         @NotNull String code,
         @NotNull String message,
-        @Nullable String entry
+        @Nullable String entry,
+        @NotNull FailureClassification classification
     ) {
+        public ValidationMessage(@NotNull String code, @NotNull String message, @Nullable String entry) {
+            this(code, message, entry, FailureClassification.classify(code, message, entry));
+        }
+    }
+
+    public enum FailureClassification {
+        GENERIC_GENERATOR_DEFECT,
+        INVALID_MANIFEST,
+        INVALID_PATH,
+        MISSING_ASSET,
+        UNSUPPORTED_CONTENT,
+        UNKNOWN;
+
+        @NotNull
+        public static FailureClassification classify(@NotNull String code, @NotNull String message, @Nullable String entry) {
+            String normalizedCode = code.toLowerCase(Locale.ROOT);
+            String normalizedMessage = message == null ? "" : message.toLowerCase(Locale.ROOT);
+            if (normalizedCode.contains("manifest") || normalizedMessage.contains("manifest")) {
+                return INVALID_MANIFEST;
+            }
+            if (normalizedCode.contains("path.long") || normalizedCode.contains("path") || normalizedMessage.contains("path")) {
+                return INVALID_PATH;
+            }
+            if (normalizedCode.contains("icon.missing") || normalizedCode.contains("content.empty")
+                || normalizedCode.contains("missing") || normalizedMessage.contains("missing")) {
+                return MISSING_ASSET;
+            }
+            if (normalizedCode.contains("json.invalid") || normalizedCode.contains("archive.unreadable")
+                || normalizedCode.contains("pack.output.missing") || normalizedCode.contains("pack.json.invalid")) {
+                return GENERIC_GENERATOR_DEFECT;
+            }
+            if (normalizedCode.contains("unsupported") || normalizedMessage.contains("unsupported")) {
+                return UNSUPPORTED_CONTENT;
+            }
+            return UNKNOWN;
+        }
     }
 }

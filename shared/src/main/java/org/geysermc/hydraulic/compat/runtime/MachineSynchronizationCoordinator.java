@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Owns the server-tick boundary for a stateful machine bridge.
@@ -48,6 +49,21 @@ public final class MachineSynchronizationCoordinator {
             new SyncDispatcher(dirtyStateTracker, new SyncPlanner(), new SyncEncoder(), changes -> List.of()),
             autoFlushCoordinator
         );
+    }
+
+    @NotNull
+    public Map<Identifier, MachineStateSnapshot> snapshotState() {
+        synchronized (lastStates) {
+            return Map.copyOf(lastStates);
+        }
+    }
+
+    public void restoreState(@NotNull Map<Identifier, MachineStateSnapshot> stateSnapshot) {
+        Objects.requireNonNull(stateSnapshot, "stateSnapshot");
+        synchronized (lastStates) {
+            lastStates.clear();
+            stateSnapshot.forEach((identifier, snapshot) -> lastStates.put(identifier, snapshot));
+        }
     }
 
     @NotNull
@@ -102,7 +118,7 @@ public final class MachineSynchronizationCoordinator {
         return null;
     }
 
-    private record MachineStateSnapshot(int progress, boolean active) {
+    public record MachineStateSnapshot(int progress, boolean active) {
     }
 
     public record TickResult(
