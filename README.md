@@ -423,6 +423,16 @@ Current work includes:
 
 Metadata-backed custom entities can be registered through Geyser when the compatibility result allows the entity to be represented safely.
 
+Hydraulic also recognizes the portable presentation profile shape used by Markus Bordihn's
+[BOs Easy Model Entities](https://github.com/MarkusBordihn/BOs-Easy-Model-Entities) project. During
+pack post-processing, indexed `data/*/easy_model_entities/profiles` and
+`assets/*/easy_model_entities/render_profiles` JSON files are bounded and validated for required
+fields and referenced `.bbmodel`/texture assets. Results are written per mod under
+`config/hydraulic/reports/entity-presentation/<mod>.json` and are presentation evidence only.
+Hydraulic does not copy the upstream project's excluded models, textures, sounds, or animations,
+does not add its 1.20.1 renderer as a dependency, and does not infer entity behavior or
+`CLIENT_OBSERVED` evidence from a valid profile.
+
 ### Menu Fallback
 
 A metadata-defined Bedrock `ContainerType` can be used when a Java menu cannot be translated through the normal Geyser path.

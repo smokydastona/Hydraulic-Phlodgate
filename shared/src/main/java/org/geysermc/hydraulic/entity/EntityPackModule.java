@@ -1,7 +1,8 @@
 package org.geysermc.hydraulic.entity;
 
 import com.google.auto.service.AutoService;
-import net.minecraft.resources.Identifier;
+import com.google.gson.GsonBuilder;
+import org.geysermc.hydraulic.Constants;
 import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntitiesEvent;
 import org.geysermc.hydraulic.compat.CompatibilityRegistry;
@@ -18,8 +19,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-@SuppressWarnings({"rawtypes", "this-escape"})
+@SuppressWarnings("this-escape")
 @AutoService(PackModule.class)
 public final class EntityPackModule extends PackModule<EntityPackModule> {
     public EntityPackModule() {
@@ -76,6 +80,21 @@ public final class EntityPackModule extends PackModule<EntityPackModule> {
         int autoBoundSounds = 0;
         int autoBoundParticles = 0;
 
+        if (resourceIndex != null) {
+            EntityPresentationProfileScanner.Report profileReport = EntityPresentationProfileScanner.scan(
+                context.mod(), resourceIndex, context.logger()
+            );
+            writeProfileReport(context.mod().id(), profileReport, context.logger());
+            if (!profileReport.profiles().isEmpty()) {
+                context.logger().info("Indexed {} Easy Model Entities presentation profiles for {} ({} valid)", profileReport.profiles().size(), context.mod().id(), profileReport.validCount());
+                for (EntityPresentationProfileScanner.Profile profile : profileReport.profiles()) {
+                    for (EntityPresentationProfileScanner.Issue issue : profile.issues()) {
+                        context.logger().warn("Entity presentation profile {}: {} - {}", profile.path(), issue.code(), issue.message());
+                    }
+                }
+            }
+        }
+
         for (CompiledCompatibilityPlan plan : entityPlans) {
             String entityId = plan.resolvedIdentifier() != null ? plan.resolvedIdentifier() : plan.javaIdentifier();
             String entityName = entityId.contains(":") ? entityId.substring(entityId.indexOf(':') + 1) : entityId;
@@ -98,6 +117,20 @@ public final class EntityPackModule extends PackModule<EntityPackModule> {
         }
 
         context.logger().info("Generated {} sound event bindings and {} particle controller attachments for mod {}", autoBoundSounds, autoBoundParticles, context.mod().id());
+    }
+
+    private void writeProfileReport(@NotNull String modId, @NotNull EntityPresentationProfileScanner.Report report, @NotNull org.slf4j.Logger logger) {
+        Path reportPath = contextDataFolder().resolve("reports/entity-presentation").resolve(modId + ".json");
+        try {
+            Files.createDirectories(reportPath.getParent());
+            Files.writeString(reportPath, new GsonBuilder().setPrettyPrinting().create().toJson(report), StandardCharsets.UTF_8);
+        } catch (java.io.IOException exception) {
+            logger.warn("Failed to write entity presentation report for {}", modId, exception);
+        }
+    }
+
+    private Path contextDataFolder() {
+        return org.geysermc.hydraulic.HydraulicImpl.instance().dataFolder(Constants.MOD_ID);
     }
 
     @Override
