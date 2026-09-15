@@ -58,6 +58,37 @@ claims.
 - 2026-09-14
 
 ### Latest verified implementation slice
+- Local Bedrock client connection triage and Geyser fallback hardening: the Windows Bedrock client
+  repeatedly reached the Fabric/Geyser server on UDP `19132`; with Geyser `auth-type: offline` and
+  Java `online-mode=false`, `SmokyDaStona` connected through Geyser, logged into the Java server, and
+  joined the game server-side. The client still did not reach a clean client-observed gameplay state;
+  Geyser emitted downstream decode errors while translating the large modded state stream. The first
+  root cause was a Hydraulic custom-block registration abort for unbreakable blocks: Java negative
+  destroy times were passed to Geyser as `destructibleByMining`, which Geyser rejects. `BlockPackModule`
+  now omits that component for negative destroy times and clamps Java block-state hardness to `0` for
+  override metadata. The previous `BlockPackModule/waystones` `Destructible by mining must be
+  non-negative` error disappeared on restart. A stale normal dev world containing removed/renamed mod
+  blocks was backed up, and a fresh flat/no-structure/peaceful creative world was used to isolate
+  connection behavior from corrupted saved chunks. Two guarded fallback mixins now prevent specific
+  Geyser mapping-boundary crashes observed during physical-client testing: `BlockMappingsMixin` maps
+  unmapped Java block-state IDs to Bedrock air and logs each Java ID once, and `GeyserItemStackMixin`
+  maps Java item IDs outside Geyser's `JAVA_ITEMS` table to `Items.AIR` and logs each ID once. Focused
+  Java 25 compilation of `:shared:compileJava :fabric:classes` passed after the changes. This is
+  graceful-degradation hardening and diagnostic evidence only: it intentionally hides unsupported
+  block/item visuals as air and does not prove E2-E10 client observation, generated custom-content
+  correctness, modded entity metadata translation, or production release readiness.
+- Bedrock client data-folder research: `D:/Downloads/Hydraulic-mod/Minecraft Bedrock` was inventoried
+  as a local Minecraft for Windows data/cache root. Most content is user/cache/marketplace data and is
+  not admissible Hydraulic source material. The only directly relevant installed add-on was
+  `Users/Shared/games/com.mojang/{behavior_packs,resource_packs}/PhlodgateA`. Its manifests identify
+  the pack as `All Rights Reserved`, so no code or assets were copied into Hydraulic. Useful evidence
+  was mapped back to the maintained sibling `Plodgate_Add-on` source tree instead: the behavior pack
+  polls the canonical `phlodgate_bridge` scoreboard objective, detects non-vanilla namespaces from item
+  and entity IDs, registers local recipe evidence in companion mode, inspects Bedrock-exposed block
+  inventory components and numeric dynamic properties, and presents diagnostics through Bedrock forms;
+  the resource pack repositions the vanilla action-bar HUD through `ui/hud_screen.json`. These are
+  companion/client-local and validation patterns, not proof that Geyser can install or execute a Bedrock
+  behavior pack during an ordinary Java server session.
 - Generic block-entity state synchronization foundation: `BlockEntityStateSynchronizer` snapshots
   authoritative `BlockEntity.saveWithoutMetadata(level.registryAccess())` output for every live
   discovered block entity, retains only an ephemeral previous tag, and emits a `block_entity.state`
@@ -2791,6 +2822,67 @@ OVERALL STATUS: [FULL_SUPPORT | PARTIAL_SUPPORT | VISUAL_ONLY | UNSUPPORTED]
 ---
 
 ## Mod Compatibility & Implementation Report
+
+### Local Bedrock Play-Test Report (2026-09-14)
+
+#### Implementation Summary
+- Implemented negative-destroy-time handling in custom block registration so unbreakable Java blocks no
+  longer abort Geyser custom block population.
+- Implemented an unmapped Java block-state fallback at the Geyser `BlockMappings` boundary. Each missing
+  Java block-state ID is logged once and translated to Bedrock air instead of throwing during chunk
+  translation.
+- Implemented an unmapped Java item fallback at the Geyser `GeyserItemStack.asItem()` boundary. Each Java
+  item ID outside Geyser's vanilla/custom item table is logged once and translated to Bedrock air instead
+  of aborting inventory content translation.
+- Applied a local validation profile for the Bedrock client run: creative, forced gamemode, offline Java
+  auth, Geyser offline auth, disabled Geyser custom content/resource-pack forcing, and a fresh flat
+  peaceful no-structure world. The earlier normal dev worlds were preserved under timestamped backup
+  directories in the ignored `fabric/run/` tree.
+
+#### Verification Performed
+- Refreshed Gradle snapshot dependencies and rebuilt Fabric classes under Java 25.
+- Ran focused compile validation after each production-code change: `:shared:compileJava :fabric:classes`
+  passed after the final block and item fallback changes.
+- Ran repeated live `:fabric:runServer` sessions. Geyser reached UDP `19132`, the official Windows Bedrock
+  client connected as `SmokyDaStona`, Geyser established a Java downstream session, and Minecraft logged
+  the player joining the Java server.
+- Observed that the original Geyser chunk translator `NullPointerException` for missing block mappings was
+  replaced by the explicit Hydraulic fallback log. Observed that the original `ClientboundContainerSetContentPacket`
+  `IndexOutOfBoundsException` from `GeyserItemStack.asItem()` was replaced by the explicit Hydraulic item
+  fallback log.
+
+#### Residual Failures And Security/Quality Review
+- The Bedrock client still did not produce clean `CLIENT_OBSERVED` gameplay evidence. After the fallback
+  hardening, Geyser continued to log downstream metadata decode errors such as `Index ... out of bounds for
+  length 158`, which is consistent with unsupported modded entity/data metadata entering Geyser's current
+  protocol translators.
+- The new fallbacks are deliberately fail-soft and lossy. They prevent server-side crashes and preserve a
+  test connection path, but they also render unsupported Java content as air. Reports and release claims
+  must treat these as diagnostics and degradation, never as support for the affected content.
+- The attached Minecraft Bedrock data folder includes installed marketplace/cache content and an installed
+  PhlodgateA pack whose manifest license is `All Rights Reserved`. It was used only as local evidence and
+  was not copied into Hydraulic. Maintained, testable source remains the sibling `Plodgate_Add-on` project.
+- The active Geyser version in validation was `2.11.2-SNAPSHOT` on Minecraft `26.2`; every compatibility
+  result is scoped to that version pair.
+
+#### Prioritized Next Steps
+1. Add a targeted Geyser entity metadata guard or translator diagnostic that identifies the exact Java
+   entity/metadata type causing the remaining `length 158` decode errors, then decide whether to omit,
+   downgrade, or map that metadata explicitly.
+2. Add report output for every block/item fallback ID so compatibility artifacts record which Java content
+   was hidden as air during client validation.
+3. Re-enable custom content in a controlled small fixture pack after the metadata decoder issue is isolated;
+   do not use the 247-mod corpus as the first clean client-observation gate.
+4. Run the sibling `Plodgate_Add-on` test/typecheck/package workflow and use it only as a manually installed
+   companion validation surface; do not claim Geyser behavior-pack execution.
+5. Repeat E1-E3 on the flat fixture world, then expand to E4-E8 only after downstream metadata errors are
+   gone for at least one controlled fixture run.
+
+#### Release-Readiness Criteria Summary
+- `Implementation complete` is not claimed. The current change set improves failure isolation and diagnostic
+  survivability, but release readiness still requires clean Bedrock client observation, no recurring Geyser
+  downstream decode errors, explicit reporting for all lossy fallbacks, persistence/restart validation, and
+  the E1-E10 manual attestation ladder for promoted features.
 
 This table records evidence, not projected compatibility. `NOT ASSESSED` means no current object-level
 runtime and physical-client evidence supports a compatibility classification.

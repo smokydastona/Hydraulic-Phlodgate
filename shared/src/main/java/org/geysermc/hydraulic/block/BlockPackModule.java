@@ -1,8 +1,6 @@
 package org.geysermc.hydraulic.block;
 
 import com.google.auto.service.AutoService;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import net.kyori.adventure.key.Key;
 import net.minecraft.commands.arguments.blocks.BlockStateParser;
 import net.minecraft.core.BlockPos;
@@ -36,13 +34,10 @@ import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBoundingBox;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBlocksEvent;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.util.MathUtils;
-import org.geysermc.hydraulic.Constants;
 import org.geysermc.hydraulic.HydraulicImpl;
 import org.geysermc.hydraulic.compat.CompatibilityRegistry;
 import org.geysermc.hydraulic.compat.MappingResolver;
 import org.geysermc.hydraulic.compat.ir.CompiledCompatibilityPlan;
-import org.geysermc.hydraulic.compat.model.CompatibilityObject;
-import org.geysermc.hydraulic.compat.runtime.CompatibilityDecisions;
 import org.geysermc.hydraulic.item.CreativeMappings;
 import org.geysermc.hydraulic.metadata.BlockMapping;
 import org.geysermc.hydraulic.metadata.BlockStateRule;
@@ -71,10 +66,6 @@ import team.unnamed.creative.model.ModelTexture;
 import team.unnamed.creative.model.ModelTextures;
 import team.unnamed.creative.serialize.minecraft.blockstate.BlockStateSerializer;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -88,7 +79,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 
-@SuppressWarnings("rawtypes")
 @AutoService(PackModule.class)
 public class BlockPackModule extends TexturePackModule<BlockPackModule> {
     private static final String STATE_CONDITION = "query.block_property('%s') == %s";
@@ -495,12 +485,16 @@ public class BlockPackModule extends TexturePackModule<BlockPackModule> {
                 VoxelShape collisionShape = defaultState.getCollisionShape(new SingletonBlockGetter(defaultState), BlockPos.ZERO);
 
                 CustomBlockComponents.Builder componentsBuilder = baseComponentBuilder
-                        .displayName("%" + block.getDescriptionId())
-                        .friction(Math.min(1 - block.getFriction(), 0.9f))
-                        .destructibleByMining(block.defaultDestroyTime()) // TODO: Check
-                        // .unitCube(true) // TODO: Geometry conversion
-                        .selectionBox(createBoxComponent(shape))
-                        .collisionBox(createBoxComponent(collisionShape));
+                    .displayName("%" + block.getDescriptionId())
+                    .friction(Math.min(1 - block.getFriction(), 0.9f));
+                float destroyTime = block.defaultDestroyTime();
+                if (destroyTime >= 0) {
+                    componentsBuilder.destructibleByMining(destroyTime); // TODO: Check
+                }
+                componentsBuilder
+                    // .unitCube(true) // TODO: Geometry conversion
+                    .selectionBox(createBoxComponent(shape))
+                    .collisionBox(createBoxComponent(collisionShape));
 
                 builder.components(componentsBuilder.build());
 
@@ -543,7 +537,7 @@ public class BlockPackModule extends TexturePackModule<BlockPackModule> {
                 JavaBlockState.Builder javaBlockStateBuilder = JavaBlockState.builder()
                         .identifier(BlockStateParser.serialize(state))
                         .javaId(Block.getId(state))
-                        .blockHardness(block.defaultDestroyTime()) // TODO: Check
+                    .blockHardness(Math.max(block.defaultDestroyTime(), 0)) // TODO: Check
                         .canBreakWithHand(!state.requiresCorrectToolForDrops())
                         .waterlogged(state.hasProperty(BlockStateProperties.WATERLOGGED) && state.getValue(BlockStateProperties.WATERLOGGED))
                         .stateGroupId(blockId)

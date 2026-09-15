@@ -65,6 +65,15 @@ on each machine tick, so disconnected sessions do not retain dirty-state or tran
 This is server-side lifecycle handling, not evidence that a Bedrock client received or displayed an
 update.
 
+The current local Bedrock play-test profile can be configured for connection triage with a fresh
+creative flat world, Geyser `auth-type: offline`, Java `online-mode=false`, and Geyser custom-content
+delivery disabled. This profile proved that the Windows Bedrock client reached Geyser and Java login,
+but did not prove client-observed gameplay: Geyser still emitted downstream metadata decode errors while
+streaming the modded server state. Hydraulic now degrades unmapped Java block states and item IDs to
+Bedrock air at the Geyser mapping boundary instead of allowing those cases to abort chunk or inventory
+translation. That fallback is diagnostic and lossy; it keeps the connection path alive for testing and
+surfaces unmapped IDs, but it is not a compatibility claim for the hidden content.
+
 Live capability binding now owns ephemeral links between runtime block entities and verified compiled
 plans. The binder records object identity, runtime type, discovered capabilities, selected adapters,
 verified bridge kinds, contract version, and confidence; Minecraft `setRemoved`/`clearRemoved` lifecycle
