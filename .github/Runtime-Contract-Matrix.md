@@ -8,8 +8,8 @@ This matrix records the strongest verified state, not the intended design.
 | Item insert | PASS | PASS | PASS | PASS | PASS | PARTIAL | TRANSPORT | OPEN | PASS |
 | Item extract | PASS | PASS | PASS | PASS | PASS | PARTIAL | TRANSPORT | OPEN | PASS |
 | Item move | PARTIAL | PARTIAL | OPEN | OPEN | OPEN | OPEN | OPEN | OPEN | OPEN |
-| Fluid fill | PASS | PASS | PASS | PASS | SERVER | OPEN | OPEN | OPEN | PARTIAL |
-| Fluid drain | PASS | PASS | PASS | PASS | SERVER | OPEN | OPEN | OPEN | PARTIAL |
+| Fluid fill | PASS | PASS | PASS | PASS | SERVER | OPEN | TRANSPORT | PARTIAL | PASS |
+| Fluid drain | PASS | PASS | PASS | PASS | SERVER | OPEN | TRANSPORT | PARTIAL | PASS |
 | Energy receive | PASS | PASS | PASS | PASS | SERVER | OPEN | OPEN | OPEN | PARTIAL |
 | Energy extract | PASS | PASS | PASS | PASS | SERVER | OPEN | OPEN | OPEN | PARTIAL |
 | Menu open | PASS | PASS | PASS | PARTIAL | PARTIAL | OPEN | TRANSPORT | OPEN | PARTIAL |
@@ -43,3 +43,9 @@ Menu button and mode contracts are `SERVER` executable for explicitly compiled a
 menu-machine fixture persists its toggle field, but restart recovery and a physical Bedrock action
 remain unverified; therefore binding, persistence, synchronization, and Bedrock verification are
 not promoted to `PASS`.
+
+Fluid fill and drain have a strict metadata-compiled bucket exchange contract. They simulate the full
+amount before mutation, require explicit input/output item and fluid identities, reject partial or
+wrong-fluid actions, compensate the tank if the item exchange fails, and emit an optional numeric
+container-property update through the existing Geyser transport. `TRANSPORT` reflects the tested
+packet path, not physical client observation or persistence.

@@ -24,6 +24,17 @@ Each completed client test must record timestamp, Java/Minecraft/Bedrock/Geyser/
 	round trip is still required before promotion beyond server evidence.
 - Pack-validation findings still require per-pack root-cause classification before release claims.
 
+## Fluid Action Evidence
+
+- `FluidBlockUseActionPlanTest`, `FluidContainerBridgeTest`, and
+	`BedrockRuntimeActionRouterTest` cover strict contract parsing, identity checks, exact transfer,
+	partial-transfer rejection, trace-bearing property projection, and rollback when the held-item
+	exchange fails.
+- Java 25 focused shared tests and `:fabric:compileJava` passed. The action path uses the existing
+	server-authoritative block-use route and Geyser `ContainerSetDataPacket` handoff.
+- Not proven: physical Bedrock client receipt or rendering, block-entity persistence across restart,
+	and arbitrary third-party fluid-container item semantics.
+
 ## Live-Binding Evidence
 
 - Adapter-unknown runtime inventory: discovery, classification, executable contract verification,

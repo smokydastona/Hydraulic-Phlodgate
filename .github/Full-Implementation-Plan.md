@@ -15,7 +15,7 @@ Status vocabulary: `OPEN`, `IN_PROGRESS`, `SERVER_VERIFIED`, `TRANSPORT_VERIFIED
 | Universal resource index | OPEN | Config, corpus, recipe, packaging, and cache discovery paths still need classification and consolidation | Every discovery scan is indexed or explicitly runtime-owned |
 | Recipe-manager normalization | IN_PROGRESS | Resource and codec-backed runtime entries produce `RecipeIR`; unknown/custom semantics produce `RECIPE_RUNTIME_UNKNOWN`; automatic machine-to-recipe association remains open | Every observed entry has typed evidence and each machine binds only compatible executable RecipeIR records |
 | Normalized action pipeline | IN_PROGRESS | Production action routing is narrow | Typed action decoding, validation, Java-thread execution, transaction result, and sync trace for each supported action |
-| Fluid actions | OPEN | Fluid transfer substrate exists, Bedrock action contract does not | Fill/drain simulation and commit with persistence and sync evidence |
+| Fluid actions | IN_PROGRESS | Metadata-declared exact bucket exchange reaches an executable live tank and emits a numeric container-property update; persistence and physical Bedrock evidence remain open | Fill/drain simulation and commit with persistence and sync evidence |
 | Energy actions | OPEN | Energy transfer substrate exists, Bedrock action contract does not | Receive/extract simulation and commit with persistence and sync evidence |
 | Menu actions | SERVER_VERIFIED | Server-thread packet routing, explicit button/toggle contracts, transaction evidence, authoritative resync, tests, compilation, and live startup are verified; physical Bedrock execution is unverified | Live Java menu action contracts and synchronized results observed from Bedrock |
 | Entity actions | OPEN | Prompt mapping exists; authoritative use/attack/mount actions do not | Live entity resolution, mutation, and sync evidence |
@@ -34,7 +34,7 @@ Status values: `PASS`, `PARTIAL`, `OPEN`, and `BLOCKED`. `PASS` applies only to 
 | Capability | Discovery | Classification | Runtime contract | Live binding | Java execution | State persistence | Java to Bedrock sync | Bedrock to Java action | Physical Bedrock validation |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Item inventory/transfer | PASS | PASS | PASS | PASS | PASS | PARTIAL | PARTIAL | PARTIAL | BLOCKED |
-| Fluid transfer | PASS | PASS | PASS | PASS | PASS | OPEN | OPEN | OPEN | BLOCKED |
+| Fluid transfer | PASS | PASS | PASS | PASS | PASS | OPEN | TRANSPORT | PARTIAL | BLOCKED |
 | Energy transfer | PASS | PASS | PASS | PASS | PASS | OPEN | OPEN | OPEN | BLOCKED |
 | Machine processing | PASS | PASS | PASS | PARTIAL | PASS | PARTIAL | PARTIAL | PARTIAL | BLOCKED |
 | Menu/container | PASS | PASS | PASS | PARTIAL | PARTIAL | PARTIAL | PARTIAL | PARTIAL | BLOCKED |
@@ -58,6 +58,20 @@ No row is a support claim unless every required stage for that object is `PASS`.
 
 Each P0 implementation must use the same compiled generic contract for the fixture and an arbitrary
 discovered runtime object. Identifier-specific fixture branching does not satisfy the exit condition.
+
+## 2026-09-14 Fluid Action Evidence
+
+- `interaction.fluid.*` metadata now compiles into a strict `FluidBlockUseActionPlan` for
+	`DRAIN_HELD_CONTAINER` and `FILL_HELD_CONTAINER` actions. The contract requires explicit input and
+	output item identifiers, fluid identity, tank, and exact amount; malformed identifiers, negative
+	values, and same-item exchanges are rejected.
+- `BedrockRuntimeActionRouter` resolves the live tank through `RuntimeTargetDiscovery`, simulates the
+	full transfer, commits only an exact result, exchanges the held Java item only after the tank commit,
+	and compensates the tank mutation if that exchange fails. The transaction records traceable tank state
+	and, when declared, `container.property.<id>` state for existing `ContainerSetDataPacket` delivery.
+- The bundled fluid-machine fixture declares a water-bucket drain contract and property `0` projection.
+	Java 25 focused router, plan, and bridge tests plus `:fabric:compileJava` passed. This is transport-path
+	evidence only; live client observation and restart persistence remain open.
 
 ## Release Readiness Gates
 

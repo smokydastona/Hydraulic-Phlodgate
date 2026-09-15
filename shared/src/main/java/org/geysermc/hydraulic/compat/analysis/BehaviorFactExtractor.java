@@ -84,6 +84,14 @@ public final class BehaviorFactExtractor {
         putIfPresent(facts, "interaction.block_use.extract_item", patch.operation("interaction.block_use.extract_item"));
         putIfPresent(facts, "interaction.block_use.extract_count", patch.operation("interaction.block_use.extract_count"));
         putIfPresent(facts, "interaction.block_use.extract_side", patch.operation("interaction.block_use.extract_side"));
+        putIfPresent(facts, "interaction.fluid.action", patch.operation("interaction.fluid.action"));
+        putIfPresent(facts, "interaction.fluid.input_item", patch.operation("interaction.fluid.input_item"));
+        putIfPresent(facts, "interaction.fluid.output_item", patch.operation("interaction.fluid.output_item"));
+        putIfPresent(facts, "interaction.fluid.id", patch.operation("interaction.fluid.id"));
+        putIfPresent(facts, "interaction.fluid.tank", patch.operation("interaction.fluid.tank"));
+        putIfPresent(facts, "interaction.fluid.amount", patch.operation("interaction.fluid.amount"));
+        putIfPresent(facts, "interaction.fluid.side", patch.operation("interaction.fluid.side"));
+        putIfPresent(facts, "interaction.fluid.property", patch.operation("interaction.fluid.property"));
         for (Map.Entry<String, String> operation : patch.operations().entrySet()) {
             if (operation.getKey().startsWith("machine.processing.recipe.")) {
                 putIfPresent(facts, operation.getKey(), operation.getValue());

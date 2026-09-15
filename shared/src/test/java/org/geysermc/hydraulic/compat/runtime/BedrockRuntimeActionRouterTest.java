@@ -238,6 +238,82 @@ class BedrockRuntimeActionRouterTest {
         assertEquals(TransferDirection.INSERT, automation.lastRequest.direction());
     }
 
+    @Test
+    void executesExactFluidDrainAndRecordsTankAndPropertyState() {
+        RuntimeTraceId traceId = new RuntimeTraceId("bedrock-fluid-drain");
+        MutableFluidTank tank = new MutableFluidTank("minecraft:water", 0, 1_000);
+        RuntimeTargetDiscovery discovery = fluidDiscovery(tank);
+        BedrockRuntimeActionRouter.RuntimeActionResult routed = new BedrockRuntimeActionRouter.RuntimeActionResult(traceId, BedrockRuntimeActionRouter.Status.TARGET_RESOLVED, new RuntimeTargetDiscovery.Position(LEVEL, 4, 70, 9), MACHINE, null);
+        MutableFluidContainer held = new MutableFluidContainer("minecraft:water_bucket");
+        DirtyStateTracker dirty = new DirtyStateTracker();
+
+        BedrockRuntimeActionRouter.RuntimeActionResult result = BedrockRuntimeActionRouter.executeFluidAction(
+            routed,
+            discovery,
+            new FluidBlockUseActionPlan(
+                FluidBlockUseActionPlan.Action.DRAIN_HELD_CONTAINER,
+                "minecraft:water_bucket", "minecraft:bucket", "minecraft:water", 0, 1_000, "up", 2
+            ),
+            held,
+            dirty
+        );
+
+        assertEquals(BedrockRuntimeActionRouter.Status.MUTATED, result.status());
+        assertEquals("minecraft:bucket", held.itemId);
+        assertEquals(1_000, tank.amount);
+        StateChangeSet changes = dirty.drain();
+        assertEquals(2, changes.changes().size());
+        assertEquals(traceId, changes.traceId());
+        assertEquals("container.property.2", changes.changes().get(1).field());
+        assertEquals(1_000, changes.changes().get(1).after());
+    }
+
+    @Test
+    void rejectsPartialFluidDrainWithoutExchangingHeldItem() {
+        MutableFluidTank tank = new MutableFluidTank("minecraft:water", 500, 1_000);
+        RuntimeTargetDiscovery discovery = fluidDiscovery(tank);
+        BedrockRuntimeActionRouter.RuntimeActionResult routed = new BedrockRuntimeActionRouter.RuntimeActionResult(new RuntimeTraceId("bedrock-fluid-partial"), BedrockRuntimeActionRouter.Status.TARGET_RESOLVED, new RuntimeTargetDiscovery.Position(LEVEL, 4, 70, 9), MACHINE, null);
+        MutableFluidContainer held = new MutableFluidContainer("minecraft:water_bucket");
+
+        BedrockRuntimeActionRouter.RuntimeActionResult result = BedrockRuntimeActionRouter.executeFluidAction(
+            routed,
+            discovery,
+            new FluidBlockUseActionPlan(
+                FluidBlockUseActionPlan.Action.DRAIN_HELD_CONTAINER,
+                "minecraft:water_bucket", "minecraft:bucket", "minecraft:water", 0, 1_000, null, null
+            ),
+            held,
+            null
+        );
+
+        assertEquals(BedrockRuntimeActionRouter.Status.MUTATION_REJECTED, result.status());
+        assertEquals("minecraft:water_bucket", held.itemId);
+        assertEquals(500, tank.amount);
+    }
+
+    @Test
+    void restoresTankWhenHeldItemExchangeFailsAfterFluidCommit() {
+        MutableFluidTank tank = new MutableFluidTank("minecraft:water", 0, 1_000);
+        RuntimeTargetDiscovery discovery = fluidDiscovery(tank);
+        BedrockRuntimeActionRouter.RuntimeActionResult routed = new BedrockRuntimeActionRouter.RuntimeActionResult(new RuntimeTraceId("bedrock-fluid-rollback"), BedrockRuntimeActionRouter.Status.TARGET_RESOLVED, new RuntimeTargetDiscovery.Position(LEVEL, 4, 70, 9), MACHINE, null);
+        MutableFluidContainer held = new MutableFluidContainer("minecraft:water_bucket", false);
+
+        BedrockRuntimeActionRouter.RuntimeActionResult result = BedrockRuntimeActionRouter.executeFluidAction(
+            routed,
+            discovery,
+            new FluidBlockUseActionPlan(
+                FluidBlockUseActionPlan.Action.DRAIN_HELD_CONTAINER,
+                "minecraft:water_bucket", "minecraft:bucket", "minecraft:water", 0, 1_000, null, null
+            ),
+            held,
+            null
+        );
+
+        assertEquals(BedrockRuntimeActionRouter.Status.MUTATION_REJECTED, result.status());
+        assertEquals("minecraft:water_bucket", held.itemId);
+        assertEquals(0, tank.amount);
+    }
+
     private static InventoryTransactionPacket blockUsePacket() {
         InventoryTransactionPacket packet = new InventoryTransactionPacket();
         packet.setTransactionType(InventoryTransactionType.ITEM_USE);
@@ -255,6 +331,15 @@ class BedrockRuntimeActionRouterTest {
 
     private static RuntimeTargetDiscovery discovery(RuntimeTargetDiscovery.Target target, MachineBridgeFactory.ResourceAutomationAccess automation) {
         return new RuntimeTargetDiscovery(ignored -> automation, position -> target);
+    }
+
+    private static RuntimeTargetDiscovery fluidDiscovery(MutableFluidTank tank) {
+        RuntimeTargetDiscovery.Target target = new RuntimeTargetDiscovery.Target(MACHINE, null, tank, null);
+        return new RuntimeTargetDiscovery(
+            ignored -> new NoopAutomationAccess(),
+            (ignored, tankIndex, capacity) -> new FluidContainerBridge(tank, tankIndex, capacity),
+            position -> target
+        );
     }
 
     private static final class MutableHeldItem implements BedrockRuntimeActionRouter.HeldItemAccess {
@@ -394,6 +479,94 @@ class BedrockRuntimeActionRouterTest {
         @Override
         public TransferResult transferEnergy(EnergyTransferRequest request) {
             return TransferResult.rejected("not used by action routing test");
+        }
+    }
+
+    private static final class MutableFluidContainer implements BedrockRuntimeActionRouter.FluidContainerAccess {
+        private String itemId;
+        private final boolean replaceable;
+
+        private MutableFluidContainer(String itemId) {
+            this(itemId, true);
+        }
+
+        private MutableFluidContainer(String itemId, boolean replaceable) {
+            this.itemId = itemId;
+            this.replaceable = replaceable;
+        }
+
+        @Override
+        public String heldItemId() {
+            return this.itemId;
+        }
+
+        @Override
+        public boolean canReplace(String outputItemId) {
+            return true;
+        }
+
+        @Override
+        public boolean replaceHeldItem(String inputItemId, String outputItemId) {
+            if (!this.replaceable || !this.itemId.equals(inputItemId)) {
+                return false;
+            }
+            this.itemId = outputItemId;
+            return true;
+        }
+    }
+
+    private static final class MutableFluidTank implements TransferBridgeFactory.FluidTransferBridge {
+        private final String fluidId;
+        private int amount;
+        private final int capacity;
+
+        private MutableFluidTank(String fluidId, int amount, int capacity) {
+            this.fluidId = fluidId;
+            this.amount = amount;
+            this.capacity = capacity;
+        }
+
+        @Override
+        public boolean executable() {
+            return true;
+        }
+
+        @Override
+        public boolean canInsertFluid(Identifier blockIdentifier) {
+            return true;
+        }
+
+        @Override
+        public boolean canExtractFluid(Identifier blockIdentifier) {
+            return true;
+        }
+
+        @Override
+        public String tankType(Identifier blockIdentifier) {
+            return "test";
+        }
+
+        @Override
+        public TransferBridgeFactory.FluidStackView tankAt(Identifier blockIdentifier, int tank) {
+            return new TransferBridgeFactory.FluidStackView(this.fluidId, this.amount);
+        }
+
+        @Override
+        public int insertFluid(Identifier blockIdentifier, TransferBridgeFactory.FluidStackView fluid, int tank, String side, boolean simulate) {
+            int moved = this.fluidId.equals(fluid.fluidId()) ? Math.min(fluid.amount(), this.capacity - this.amount) : 0;
+            if (!simulate) {
+                this.amount += moved;
+            }
+            return moved;
+        }
+
+        @Override
+        public int extractFluid(Identifier blockIdentifier, TransferBridgeFactory.FluidStackView fluid, int tank, String side, boolean simulate) {
+            int moved = this.fluidId.equals(fluid.fluidId()) ? Math.min(fluid.amount(), this.amount) : 0;
+            if (!simulate) {
+                this.amount -= moved;
+            }
+            return moved;
         }
     }
 }

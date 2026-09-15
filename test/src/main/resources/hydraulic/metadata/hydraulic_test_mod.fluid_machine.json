@@ -9,6 +9,18 @@
             "can_insert": true,
             "can_extract": true,
             "tank_type": "single"
+          },
+          "interaction": {
+            "fluid": {
+              "action": "drain_held_container",
+              "input_item": "minecraft:water_bucket",
+              "output_item": "minecraft:bucket",
+              "id": "minecraft:water",
+              "tank": 0,
+              "amount": 1000,
+              "side": "up",
+              "property": 0
+            }
           }
         }
       }

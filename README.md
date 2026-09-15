@@ -46,6 +46,12 @@ and state, entity actions, persistence, automation lifecycle, and pack remediati
 Bedrock evidence and real third-party mod validation follow those server-authoritative contracts.
 Resource conversion or a transport handoff does not imply gameplay support or client observation.
 
+The first fluid action contract is now available for metadata-declared exact bucket exchanges. It
+requires explicit input/output item IDs, fluid ID, tank, amount, and optional container-property ID;
+Hydraulic simulates the full move, commits only an exact result, compensates a failed item exchange,
+and hands the declared numeric tank level to Geyser through `ContainerSetDataPacket`. This is tested
+server/transport-path behavior, not physical Bedrock-client or restart-persistence verification.
+
 Machine synchronization session pipelines are reconciled against Geyser's live connection snapshot
 on each machine tick, so disconnected sessions do not retain dirty-state or transport references.
 This is server-side lifecycle handling, not evidence that a Bedrock client received or displayed an

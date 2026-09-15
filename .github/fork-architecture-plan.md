@@ -58,6 +58,13 @@ claims.
 - 2026-09-14
 
 ### Latest verified implementation slice
+- Metadata-declared fluid action handoff: `FluidBlockUseActionPlan` compiles explicit fill/drain
+  bucket-exchange contracts from `interaction.fluid.*` facts. `BedrockRuntimeActionRouter` resolves
+  the live tank through compiled dispatch, simulates the exact amount before mutation, exchanges the
+  Java held item only after commit, rolls the tank back if that exchange fails, and emits a traceable
+  numeric `container.property` update when configured. The bundled fluid-machine fixture declares a
+  water-bucket drain contract. Focused Java 25 tests and Fabric compilation pass. Physical client
+  observation and restart persistence remain open and are not promoted by this evidence.
 - Zero-trust audit baseline: `.github/Audit-Report.md` records the active-repository scope,
   evidence levels, capability matrix, false-completion risks, scores, and remediation phases.
   It explicitly classifies the current product as partially executable/server-verified for selected

@@ -4,6 +4,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -53,13 +54,12 @@ public final class BedrockRuntimeActionRouter {
         }
 
         var plan = compatibilityRegistry.dispatchTable().block(routed.blockIdentifier());
-        BlockUseActionPlan action = plan == null ? null : BlockUseActionPlan.from(plan.inventoryFacts());
-        if (action == null) {
+        if (plan == null) {
             return routed;
         }
 
         SessionSync sync = sessionSync(session);
-        RuntimeActionResult mutated = executeItemAction(routed, discovery, action, new PlayerHeldItemAccess(player), sync.dirtyStateTracker());
+        RuntimeActionResult mutated = executeCompiledAction(routed, discovery, plan.inventoryFacts(), new PlayerHeldItemAccess(player), sync.dirtyStateTracker());
         if (mutated.status() == Status.MUTATED) {
             flushAndLog(sync);
         }
@@ -95,14 +95,13 @@ public final class BedrockRuntimeActionRouter {
         }
         RuntimeActionResult routed = new RuntimeActionResult(traceId, Status.TARGET_RESOLVED, position, resolution.blockIdentifier(), null);
         var plan = compatibilityRegistry.dispatchTable().block(resolution.blockIdentifier());
-        BlockUseActionPlan action = plan == null ? null : BlockUseActionPlan.from(plan.inventoryFacts());
-        if (action == null) {
+        if (plan == null) {
             return routed;
         }
 
         GeyserSession bedrockSession = bedrockSessionFor(player);
         SessionSync sync = bedrockSession != null ? sessionSync(bedrockSession) : null;
-        RuntimeActionResult mutated = executeItemAction(routed, discovery, action, new PlayerHeldItemAccess(player), sync != null ? sync.dirtyStateTracker() : null);
+        RuntimeActionResult mutated = executeCompiledAction(routed, discovery, plan.inventoryFacts(), new PlayerHeldItemAccess(player), sync != null ? sync.dirtyStateTracker() : null);
         if (mutated.status() == Status.MUTATED && sync != null) {
             flushAndLog(sync);
         }
@@ -216,6 +215,92 @@ public final class BedrockRuntimeActionRouter {
         return new RuntimeActionResult(routed.traceId(), Status.MUTATED, routed.position(), routed.blockIdentifier(), null);
     }
 
+    @NotNull
+    static RuntimeActionResult executeFluidAction(
+        @NotNull RuntimeActionResult routed,
+        @NotNull RuntimeTargetDiscovery discovery,
+        @NotNull FluidBlockUseActionPlan action,
+        @NotNull FluidContainerAccess containerAccess,
+        @Nullable DirtyStateTracker dirtyStateTracker
+    ) {
+        if (routed.status() != Status.TARGET_RESOLVED || routed.position() == null || routed.blockIdentifier() == null) {
+            return routed;
+        }
+        if (!action.inputItemId().equals(containerAccess.heldItemId()) || !containerAccess.canReplace(action.outputItemId())) {
+            return new RuntimeActionResult(routed.traceId(), Status.MUTATION_REJECTED, routed.position(), routed.blockIdentifier(), "Held item does not satisfy the compiled fluid action");
+        }
+
+        FluidContainerBridge bridge = discovery.fluidContainer(routed.position(), action.tank(), action.amount());
+        if (bridge == null) {
+            return new RuntimeActionResult(routed.traceId(), Status.CAPABILITY_UNAVAILABLE, routed.position(), routed.blockIdentifier(), "No executable fluid container bridge for target");
+        }
+
+        FluidContainerBridge.ContainerState container = new FluidContainerBridge.ContainerState(action.amount());
+        if (action.action() == FluidBlockUseActionPlan.Action.DRAIN_HELD_CONTAINER) {
+            container.fill(action.fluidId(), action.amount());
+        }
+        int simulated = action.action() == FluidBlockUseActionPlan.Action.DRAIN_HELD_CONTAINER
+            ? bridge.transferToTank(routed.blockIdentifier(), container, action.side(), true)
+            : bridge.transferFromTank(routed.blockIdentifier(), container, action.fluidId(), action.side(), true);
+        if (simulated != action.amount()) {
+            return new RuntimeActionResult(routed.traceId(), Status.MUTATION_REJECTED, routed.position(), routed.blockIdentifier(), "Fluid action cannot complete exactly");
+        }
+
+        TransferBridgeFactory.FluidStackView before = bridge.tankState(routed.blockIdentifier());
+        int moved = action.action() == FluidBlockUseActionPlan.Action.DRAIN_HELD_CONTAINER
+            ? bridge.transferToTank(routed.blockIdentifier(), container, action.side(), false)
+            : bridge.transferFromTank(routed.blockIdentifier(), container, action.fluidId(), action.side(), false);
+        if (moved != action.amount()) {
+            return new RuntimeActionResult(routed.traceId(), Status.MUTATION_REJECTED, routed.position(), routed.blockIdentifier(), "Fluid action changed after simulation and was not exchanged");
+        }
+        if (!containerAccess.replaceHeldItem(action.inputItemId(), action.outputItemId())) {
+            rollbackFluidAction(routed, bridge, action, container);
+            return new RuntimeActionResult(routed.traceId(), Status.MUTATION_REJECTED, routed.position(), routed.blockIdentifier(), "Fluid action output item is unavailable");
+        }
+        if (dirtyStateTracker != null) {
+            TransferBridgeFactory.FluidStackView after = bridge.tankState(routed.blockIdentifier());
+            java.util.List<StateChangeSet.FieldChange> changes = new java.util.ArrayList<>();
+            changes.add(new StateChangeSet.FieldChange(routed.blockIdentifier(), "fluid.tank." + action.tank(), before, after));
+            if (action.propertyId() != null) {
+                changes.add(new StateChangeSet.FieldChange(
+                    routed.blockIdentifier(), "container.property." + action.propertyId(),
+                    before == null ? 0 : before.amount(), after == null ? 0 : after.amount()
+                ));
+            }
+            dirtyStateTracker.record(new StateChangeSet(changes).withTrace(routed.traceId()));
+        }
+        return new RuntimeActionResult(routed.traceId(), Status.MUTATED, routed.position(), routed.blockIdentifier(), null);
+    }
+
+    private static void rollbackFluidAction(
+        @NotNull RuntimeActionResult routed,
+        @NotNull FluidContainerBridge bridge,
+        @NotNull FluidBlockUseActionPlan action,
+        @NotNull FluidContainerBridge.ContainerState container
+    ) {
+        if (action.action() == FluidBlockUseActionPlan.Action.DRAIN_HELD_CONTAINER) {
+            bridge.transferFromTank(routed.blockIdentifier(), container, action.fluidId(), action.side(), false);
+        } else {
+            bridge.transferToTank(routed.blockIdentifier(), container, action.side(), false);
+        }
+    }
+
+    @NotNull
+    private static RuntimeActionResult executeCompiledAction(
+        @NotNull RuntimeActionResult routed,
+        @NotNull RuntimeTargetDiscovery discovery,
+        @NotNull Map<String, String> facts,
+        @NotNull PlayerHeldItemAccess heldItemAccess,
+        @Nullable DirtyStateTracker dirtyStateTracker
+    ) {
+        FluidBlockUseActionPlan fluidAction = FluidBlockUseActionPlan.from(facts);
+        if (fluidAction != null) {
+            return executeFluidAction(routed, discovery, fluidAction, heldItemAccess, dirtyStateTracker);
+        }
+        BlockUseActionPlan itemAction = BlockUseActionPlan.from(facts);
+        return itemAction == null ? routed : executeItemAction(routed, discovery, itemAction, heldItemAccess, dirtyStateTracker);
+    }
+
     /**
      * Shift-click extraction counterpart to the primary insert action. The transferred count is
      * always delivered back to the player (inventory add, or a world drop if the inventory is
@@ -300,7 +385,15 @@ public final class BedrockRuntimeActionRouter {
         }
     }
 
-    private record PlayerHeldItemAccess(@NotNull ServerPlayer player) implements HeldItemAccess {
+    interface FluidContainerAccess {
+        @Nullable String heldItemId();
+
+        boolean canReplace(@NotNull String outputItemId);
+
+        boolean replaceHeldItem(@NotNull String inputItemId, @NotNull String outputItemId);
+    }
+
+    private record PlayerHeldItemAccess(@NotNull ServerPlayer player) implements HeldItemAccess, FluidContainerAccess {
         @Override
         public TransferBridgeFactory.ItemStackView heldItem() {
             ItemStack stack = this.player.getMainHandItem();
@@ -346,6 +439,47 @@ public final class BedrockRuntimeActionRouter {
             ItemStack stack = new ItemStack(resolved, item.count());
             if (!this.player.getInventory().add(stack)) {
                 this.player.drop(stack, false);
+            }
+            this.player.containerMenu.broadcastChanges();
+            return true;
+        }
+
+        @Override
+        public @Nullable String heldItemId() {
+            TransferBridgeFactory.ItemStackView item = heldItem();
+            return item == null ? null : item.itemId();
+        }
+
+        @Override
+        public boolean canReplace(@NotNull String outputItemId) {
+            try {
+                Identifier identifier = Identifier.parse(outputItemId);
+                Item item = BuiltInRegistries.ITEM.getValue(identifier);
+                return BuiltInRegistries.ITEM.getKey(item).equals(identifier);
+            } catch (RuntimeException ignored) {
+                return false;
+            }
+        }
+
+        @Override
+        public boolean replaceHeldItem(@NotNull String inputItemId, @NotNull String outputItemId) {
+            if (!inputItemId.equals(heldItemId()) || !canReplace(outputItemId)) {
+                return false;
+            }
+            ItemStack held = this.player.getMainHandItem();
+            if (this.player.hasInfiniteMaterials()) {
+                this.player.containerMenu.broadcastChanges();
+                return true;
+            }
+            Item output = BuiltInRegistries.ITEM.getValue(Identifier.parse(outputItemId));
+            if (held.getCount() == 1) {
+                this.player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(output));
+            } else {
+                held.shrink(1);
+                ItemStack replacement = new ItemStack(output);
+                if (!this.player.getInventory().add(replacement)) {
+                    this.player.drop(replacement, false);
+                }
             }
             this.player.containerMenu.broadcastChanges();
             return true;

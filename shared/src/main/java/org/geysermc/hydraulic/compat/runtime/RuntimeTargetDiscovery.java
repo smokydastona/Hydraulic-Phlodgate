@@ -6,23 +6,40 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class RuntimeTargetDiscovery {
+    @Nullable
+    private final RuntimeDispatchTable dispatchTable;
     private final AutomationResolver automationResolver;
+    @Nullable
+    private final FluidContainerResolver fluidContainerResolver;
     private final TargetSource targetSource;
 
     public RuntimeTargetDiscovery(@NotNull RuntimeDispatchTable dispatchTable, @NotNull TargetSource targetSource) {
-        this(
+        this.dispatchTable = dispatchTable;
+        this.automationResolver =
             (target) -> dispatchTable.resourceAutomationAccess(
                 target.blockIdentifier(),
                 target.runtimeInventory(),
                 target.runtimeTank(),
                 target.runtimeStorage()
-            ),
-            targetSource
-        );
+            );
+        this.fluidContainerResolver = (target, tank, capacity) -> target.runtimeTank() == null
+            ? null
+            : dispatchTable.fluidContainer(target.blockIdentifier(), target.runtimeTank(), tank, capacity);
+        this.targetSource = targetSource;
     }
 
     RuntimeTargetDiscovery(@NotNull AutomationResolver automationResolver, @NotNull TargetSource targetSource) {
+        this(automationResolver, null, targetSource);
+    }
+
+    RuntimeTargetDiscovery(
+        @NotNull AutomationResolver automationResolver,
+        @Nullable FluidContainerResolver fluidContainerResolver,
+        @NotNull TargetSource targetSource
+    ) {
+        this.dispatchTable = null;
         this.automationResolver = automationResolver;
+        this.fluidContainerResolver = fluidContainerResolver;
         this.targetSource = targetSource;
     }
 
@@ -121,6 +138,19 @@ public final class RuntimeTargetDiscovery {
         return result;
     }
 
+    @Nullable
+    public FluidContainerBridge fluidContainer(
+        @NotNull Position position,
+        int tank,
+        int containerCapacity
+    ) {
+        Target target = this.targetSource.targetAt(position);
+        if (target == null) {
+            return null;
+        }
+        return this.fluidContainerResolver == null ? null : this.fluidContainerResolver.resolve(target, tank, containerCapacity);
+    }
+
     @NotNull
     public TransferResult transferEnergy(
         @NotNull Position position,
@@ -165,6 +195,10 @@ public final class RuntimeTargetDiscovery {
 
     interface AutomationResolver {
         @Nullable MachineBridgeFactory.ResourceAutomationAccess resolve(@NotNull Target target);
+    }
+
+    interface FluidContainerResolver {
+        @Nullable FluidContainerBridge resolve(@NotNull Target target, int tank, int containerCapacity);
     }
 
     public record Position(@NotNull String level, int x, int y, int z) {

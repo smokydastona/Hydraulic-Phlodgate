@@ -26,6 +26,11 @@ public final class FluidContainerBridge {
         return this.containerCapacity;
     }
 
+    @Nullable
+    public TransferBridgeFactory.FluidStackView tankState(@NotNull Identifier blockIdentifier) {
+        return this.tank.tankAt(blockIdentifier, this.tankIndex);
+    }
+
     public int transferToTank(
         @NotNull Identifier blockIdentifier,
         @NotNull ContainerState container,
