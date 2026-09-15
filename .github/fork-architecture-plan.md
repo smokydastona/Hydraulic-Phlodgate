@@ -135,6 +135,13 @@ claims.
 - 2026-09-15
 
 ### Latest verified implementation slice
+- P0 Release-Completion Implementations (2026-09-15):
+  - Fact-Only Discovery IR: `DiscoveryIR` models pure immutable facts from Java mod roots and registries before compatibility decisions; `UniversalResourceIndex.toDiscoveryIR()` unifies resource discovery. Verified by `DiscoveryIRTest`.
+  - Canonical Runtime State Equivalence Engine: `CanonicalRuntimeState` captures complete snapshots ($S_{\text{after}} \equiv S_{\text{pre-restart}}$) of block entity inventory, fluids, energy, progress, and custom properties with exact NBT round-trip serialization. Verified by `CanonicalRuntimeStateTest`.
+  - Position-Aware Lifecycle Invalidation: `LiveCapabilityBinder` now supports position- and dimension-scoped bindings (`bindPosition`, `resolvePosition`, `invalidatePosition`, `invalidateDimension`), guaranteeing zero stale bindings across chunk unload or block destruction. Verified by `LiveCapabilityBinderTest`.
+  - Pack Defect Classification: `PackValidationReport.FailureClassification` explicitly separates `FIXABLE_GENERATOR_ERROR`, `SOURCE_ASSET_ERROR`, and `EXPECTED_DEGRADATION`, providing `isReleaseBlocking()` to block releases strictly on generator defects. Verified by `PackValidatorTest`.
+  - Create Kinetic Capability Adapter: `CreateKineticAdapter` models rotational speed (RPM), stress capacity, stress impact, and kinetic network properties for generic Bedrock state translation.
+  - Capability Completeness Policy: `CapabilityCompletenessEvaluator` enforces `NOT_RELEASE_READY` verdict and strict `isReleaseReady()` gating whenever a critical capability is missing or unexecutable.
 - Master 35-Phase Functional Completion Plan: `.github/Full-Implementation-Plan.md` has been fully revised into an atomic, dependency-tracked, test-gated execution ledger covering Phases 0 through 35, enforcing the strict distinction $\text{IMPLEMENTED} \neq \text{VERIFIED} \neq \text{SUPPORTED}$ and formalizing the E1–E10 physical client evidence ladder.
 - BOs Easy Model Entities (EME) presentation profile scanning: `EntityPresentationProfileScanner` indexes server/render profile pairs, validates 256 KiB JSON limits, and verifies model/texture stamps from the authoritative index. Verified by tests, pushed in commit `c668d73`.
 - External repository research & security boundary: In-depth license and architecture audits completed for 7 external repositories (PowerNukkitX, AzureLib, ExtraBiomes, BedrockMotion, GeyserDisplayEntity, mcpe-bedrock-script, and hostile vanilla-pack analysis). Admissibility rules and strict non-integration boundaries codified in commit `142d4e9`.

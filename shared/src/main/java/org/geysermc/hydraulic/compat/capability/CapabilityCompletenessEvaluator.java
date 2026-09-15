@@ -1,13 +1,10 @@
 package org.geysermc.hydraulic.compat.capability;
 
-import org.geysermc.hydraulic.compat.CompatibilityStatus;
 import org.geysermc.hydraulic.compat.ir.CompiledCompatibilityPlan;
-import org.geysermc.hydraulic.compat.model.CompatibilityFinding;
 import org.geysermc.hydraulic.compat.model.CompatibilityObject;
 import org.geysermc.hydraulic.compat.model.SupportLevel;
 import org.geysermc.hydraulic.compat.runtime.RuntimeBridgeKind;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,7 +32,8 @@ public final class CapabilityCompletenessEvaluator {
         FULL_SUPPORT,
         PARTIAL_SUPPORT,
         VISUAL_ONLY,
-        UNSUPPORTED
+        UNSUPPORTED,
+        NOT_RELEASE_READY
     }
 
     public enum MatrixStatus {
@@ -81,6 +79,14 @@ public final class CapabilityCompletenessEvaluator {
 
         public boolean isUsableInGameplay() {
             return verdict == OverallVerdict.FULL_SUPPORT || verdict == OverallVerdict.PARTIAL_SUPPORT;
+        }
+
+        /**
+         * Enforces the P0.8 Capability Completeness Policy:
+         * An object is only release ready if it has full verified support and zero critical failures.
+         */
+        public boolean isReleaseReady() {
+            return verdict == OverallVerdict.FULL_SUPPORT && !hasCriticalFailure && criticalIssues.isEmpty();
         }
     }
 

@@ -9,8 +9,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -28,6 +30,7 @@ public final class LiveCapabilityBinder {
     private final DynamicMachineLifecycleManager lifecycleManager;
     private final ReferenceQueue<Object> referenceQueue = new ReferenceQueue<>();
     private final Map<IdentityWeakReference, LiveBinding> bindings = new HashMap<>();
+    private final Map<String, IdentityWeakReference> positionToBindingRef = new HashMap<>();
 
     public LiveCapabilityBinder(@NotNull DynamicMachineLifecycleManager lifecycleManager) {
         this.lifecycleManager = Objects.requireNonNull(lifecycleManager, "lifecycleManager");
@@ -70,6 +73,68 @@ public final class LiveCapabilityBinder {
             );
             bindings.put(new IdentityWeakReference(runtimeObject, referenceQueue), binding);
             return binding;
+        }
+    }
+
+    @NotNull
+    public LiveBinding bindPosition(
+        @NotNull Identifier identifier,
+        @NotNull String worldKey,
+        @NotNull String positionKey,
+        @NotNull Object runtimeObject,
+        @NotNull Map<String, String> initialFacts
+    ) {
+        LiveBinding binding = bind(identifier, runtimeObject, initialFacts);
+        synchronized (bindings) {
+            String key = worldKey + "@" + positionKey;
+            positionToBindingRef.put(key, new IdentityWeakReference(runtimeObject));
+        }
+        return binding;
+    }
+
+    @Nullable
+    public LiveBinding resolvePosition(@NotNull String worldKey, @NotNull String positionKey) {
+        synchronized (bindings) {
+            purgeCollectedBindings();
+            String key = worldKey + "@" + positionKey;
+            IdentityWeakReference ref = positionToBindingRef.get(key);
+            if (ref == null) return null;
+            Object referent = ref.get();
+            if (referent == null) {
+                positionToBindingRef.remove(key);
+                return null;
+            }
+            return bindings.get(ref);
+        }
+    }
+
+    public void invalidatePosition(@NotNull String worldKey, @NotNull String positionKey) {
+        synchronized (bindings) {
+            String key = worldKey + "@" + positionKey;
+            IdentityWeakReference ref = positionToBindingRef.remove(key);
+            if (ref != null) {
+                Object referent = ref.get();
+                if (referent != null) {
+                    bindings.remove(ref);
+                }
+            }
+        }
+    }
+
+    public void invalidateDimension(@NotNull String worldKey) {
+        synchronized (bindings) {
+            String prefix = worldKey + "@";
+            List<String> toRemove = new ArrayList<>();
+            for (Map.Entry<String, IdentityWeakReference> entry : positionToBindingRef.entrySet()) {
+                if (entry.getKey().startsWith(prefix)) {
+                    toRemove.add(entry.getKey());
+                    IdentityWeakReference ref = entry.getValue();
+                    if (ref != null) {
+                        bindings.remove(ref);
+                    }
+                }
+            }
+            toRemove.forEach(positionToBindingRef::remove);
         }
     }
 

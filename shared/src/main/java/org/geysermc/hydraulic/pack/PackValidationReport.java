@@ -67,13 +67,27 @@ public record PackValidationReport(
     }
 
     public enum FailureClassification {
+        FIXABLE_GENERATOR_ERROR,
         GENERIC_GENERATOR_DEFECT,
         INVALID_MANIFEST,
         INVALID_PATH,
         MISSING_ASSET,
+        SOURCE_ASSET_ERROR,
+        EXPECTED_DEGRADATION,
         NO_CONVERTIBLE_OUTPUT,
         UNSUPPORTED_CONTENT,
+        BEDROCK_LIMITATION,
+        GEYSER_LIMITATION,
+        ADAPTER_REQUIRED,
         UNKNOWN;
+
+        /**
+         * Returns true if this defect was caused by Hydraulic pack generation itself
+         * and must block release readiness until fixed.
+         */
+        public boolean isReleaseBlocking() {
+            return this == FIXABLE_GENERATOR_ERROR || this == GENERIC_GENERATOR_DEFECT || this == INVALID_MANIFEST;
+        }
 
         @NotNull
         public static FailureClassification classify(@NotNull String code, @NotNull String message, @Nullable String entry) {
@@ -81,6 +95,9 @@ public record PackValidationReport(
             String normalizedMessage = message == null ? "" : message.toLowerCase(Locale.ROOT);
             if (normalizedCode.contains("manifest") || normalizedMessage.contains("manifest")) {
                 return INVALID_MANIFEST;
+            }
+            if (normalizedCode.contains("generator") || normalizedCode.contains("fixable")) {
+                return FIXABLE_GENERATOR_ERROR;
             }
             if (normalizedCode.contains("json.invalid") || normalizedCode.contains("archive.unreadable")
                 || normalizedCode.contains("pack.json.invalid")) {
@@ -92,9 +109,24 @@ public record PackValidationReport(
             if (normalizedCode.contains("path.long") || normalizedCode.contains("path") || normalizedMessage.contains("path")) {
                 return INVALID_PATH;
             }
+            if (normalizedCode.contains("source") || normalizedMessage.contains("source asset")) {
+                return SOURCE_ASSET_ERROR;
+            }
             if (normalizedCode.contains("icon.missing") || normalizedCode.contains("content.empty")
                 || normalizedCode.contains("missing") || normalizedMessage.contains("missing")) {
                 return MISSING_ASSET;
+            }
+            if (normalizedCode.contains("degradation") || normalizedMessage.contains("degradation")) {
+                return EXPECTED_DEGRADATION;
+            }
+            if (normalizedCode.contains("bedrock") || normalizedMessage.contains("bedrock limitation")) {
+                return BEDROCK_LIMITATION;
+            }
+            if (normalizedCode.contains("geyser") || normalizedMessage.contains("geyser limitation")) {
+                return GEYSER_LIMITATION;
+            }
+            if (normalizedCode.contains("adapter") || normalizedMessage.contains("adapter required")) {
+                return ADAPTER_REQUIRED;
             }
             if (normalizedCode.contains("unsupported") || normalizedMessage.contains("unsupported")) {
                 return UNSUPPORTED_CONTENT;

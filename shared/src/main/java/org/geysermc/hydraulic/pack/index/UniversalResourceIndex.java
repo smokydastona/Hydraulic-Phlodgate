@@ -268,4 +268,45 @@ public final class UniversalResourceIndex {
         }
         return index.equipmentDependencies();
     }
+
+    /**
+     * Generates a DiscoveryIR representation for a discovered resource.
+     * Implements P0.1 Universal Resource Index consolidation.
+     */
+    @NotNull
+    public org.geysermc.hydraulic.compat.ir.DiscoveryIR toDiscoveryIR(
+        @NotNull Identifier identifier,
+        @NotNull org.geysermc.hydraulic.compat.ir.DiscoveryIR.ResourceKind kind
+    ) {
+        String namespace = identifier.getNamespace();
+        String modId = resolveModForNamespace(namespace);
+        if (modId == null) {
+            modId = namespace;
+        }
+
+        ModResourceIndex modIndex = this.modIndexes.get(modId);
+        String relativePath = identifier.getPath();
+        long size = 0L;
+        long lastModified = 0L;
+        String fingerprint = "";
+
+        if (modIndex != null) {
+            fingerprint = modIndex.fingerprint().digest();
+            size = modIndex.fingerprint().totalSizeBytes();
+            lastModified = modIndex.fingerprint().latestModifiedEpochMillis();
+        }
+
+        return new org.geysermc.hydraulic.compat.ir.DiscoveryIR(
+            identifier,
+            kind,
+            modId,
+            modId,
+            relativePath,
+            size,
+            lastModified,
+            fingerprint,
+            Set.of(),
+            Map.of()
+        );
+    }
 }
