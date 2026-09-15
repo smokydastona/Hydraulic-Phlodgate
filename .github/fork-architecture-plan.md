@@ -158,6 +158,14 @@ claims.
 - Broadcaster's tokens, session dumps, screenshots, external-IP discovery, friend management, and social presence are outside Hydraulic's trust boundary. Hydraulic must not import those credential or network surfaces into pack generation, corpus ingestion, reports, or runtime bridges.
 - The detailed source disposition, license notes, and security review are recorded in `.github/external-research-report.md`. No source code, asset, binary, or npm package from these projects was copied into this repository.
 
+### External compatibility evidence synthesis (2026-09-14)
+- `Furzide/MCBE-Tweaks` is a Bedrock client tuning and optimization guide, not a Java/Geyser compatibility engine. Its value here is limited to Bedrock client expectations, graphics/performance tuning, and version-compatibility awareness; it does not provide valid server-side mod behavior or a supported runtime integration contract for Hydraulic.
+- `JaylyDev/ScriptAPI` is the clearest reference for Bedrock Script API conventions, pack-side events, and experimental capability patterns. It is a useful offline corpus for Bedrock capability classification and event naming, but it remains non-authoritative for Java server compatibility claims and must never be treated as a Hydraulic dependency or proof of Geyser-side execution.
+- `LiteLDev/LeviOptimize` is a Bedrock Dedicated Server optimization layer for TPS and chunk/physics performance. It is relevant to optimization patterns and operational constraints, but it is not a compatibility translator and it does not solve cross-version Java mod interoperability.
+- `bedrock-dot-dev` is the canonical Bedrock addon and registry reference for the pack schema, tag semantics, and documentation surface that Hydraulic must align with. It is the strongest public source for pack-generation correctness, vanilla registry facts, and Bedrock-side conventions.
+- `Bedrock-OSS/regolith` is the best public reference for deterministic addon compilation flows: project-folder source of truth, filter pipelines, generated outputs, and reproducible packaging. This directly informs Hydraulic's builder architecture while reinforcing that generated pack output is a delivery artifact, not a proof of Java-mod gameplay support.
+- Core rule: use these repositories as evidence, schema references, and build-pattern inspiration only. Hydraulic keeps its runtime behavior server-authoritative, with local corpus evidence, metadata decisions, and compiled runtime plans as the accepted integration surfaces; no external Bedrock repo becomes a production dependency or a shortcut past verification.
+
 ### Verified environment gate (2026-09-14)
 - Active validation shell uses `D:/jdks/jdk-25.0.2` with redirected Gradle, temp, and cache directories.
 - `:shared:test` and `:fabric:compileJava` pass under Java 25.
