@@ -1,16 +1,13 @@
 package org.geysermc.hydraulic.compat.fluid;
 
-import net.minecraft.resources.Identifier;
 import org.geysermc.hydraulic.compat.runtime.TransferBridgeFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Universal Fluid Runtime Engine (Phase 4).
@@ -19,23 +16,60 @@ import java.util.Objects;
  */
 public final class UniversalFluidRuntime {
 
+    public enum FluidSide {
+        UP,
+        DOWN,
+        NORTH,
+        SOUTH,
+        EAST,
+        WEST,
+        INTERNAL;
+
+        @NotNull
+        public static FluidSide fromString(@Nullable String name) {
+            if (name == null || name.isBlank()) return INTERNAL;
+            try {
+                return FluidSide.valueOf(name.toUpperCase(java.util.Locale.ROOT));
+            } catch (IllegalArgumentException ignored) {
+                return INTERNAL;
+            }
+        }
+    }
+
     public record UniversalFluidTank(
         int tankIndex,
         int capacity,
         @NotNull TransferBridgeFactory.FluidStackView fluid,
         boolean allowInsertion,
         boolean allowExtraction,
-        @NotNull List<String> fluidWhitelist
+        @NotNull List<String> fluidWhitelist,
+        @NotNull java.util.Set<FluidSide> accessibleSides
     ) {
         public UniversalFluidTank {
             capacity = Math.max(1, capacity);
             fluidWhitelist = List.copyOf(fluidWhitelist);
+            accessibleSides = java.util.Set.copyOf(accessibleSides);
+        }
+
+        public UniversalFluidTank(
+            int tankIndex,
+            int capacity,
+            @NotNull TransferBridgeFactory.FluidStackView fluid,
+            boolean allowInsertion,
+            boolean allowExtraction,
+            @NotNull List<String> fluidWhitelist
+        ) {
+            this(tankIndex, capacity, fluid, allowInsertion, allowExtraction, fluidWhitelist, java.util.Set.of(FluidSide.values()));
         }
 
         public boolean canAccept(@NotNull String fluidId) {
             if (!allowInsertion) return false;
             if (!fluidWhitelist.isEmpty() && !fluidWhitelist.contains(fluidId)) return false;
             return isEmpty() || fluid.fluidId().equals(fluidId);
+        }
+
+        public boolean allowsSide(@NotNull FluidSide side) {
+            return accessibleSides.contains(side) || accessibleSides.contains(FluidSide.INTERNAL);
         }
 
         public int remainingCapacity() {
@@ -63,6 +97,10 @@ public final class UniversalFluidRuntime {
         private final List<UniversalFluidTank> tanks = new ArrayList<>();
 
         public void addTank(int capacity, boolean canInsert, boolean canExtract, List<String> whitelist) {
+            addTank(capacity, canInsert, canExtract, whitelist, java.util.Set.of(FluidSide.values()));
+        }
+
+        public void addTank(int capacity, boolean canInsert, boolean canExtract, List<String> whitelist, java.util.Set<FluidSide> sides) {
             int index = tanks.size();
             tanks.add(new UniversalFluidTank(
                 index,
@@ -70,7 +108,8 @@ public final class UniversalFluidRuntime {
                 new TransferBridgeFactory.FluidStackView("minecraft:empty", 0),
                 canInsert,
                 canExtract,
-                whitelist
+                whitelist,
+                sides
             ));
         }
 
@@ -85,9 +124,16 @@ public final class UniversalFluidRuntime {
         }
 
         public FluidTransferTransactionResult fill(int tankIndex, @NotNull TransferBridgeFactory.FluidStackView stack, boolean simulate) {
+            return fill(tankIndex, stack, FluidSide.INTERNAL, simulate);
+        }
+
+        public FluidTransferTransactionResult fill(int tankIndex, @NotNull TransferBridgeFactory.FluidStackView stack, @NotNull FluidSide side, boolean simulate) {
             UniversalFluidTank tank = getTank(tankIndex);
             if (tank == null) {
                 return new FluidTransferTransactionResult(stack.amount(), 0, stack.fluidId(), false, "Invalid tank index");
+            }
+            if (!tank.allowsSide(side)) {
+                return new FluidTransferTransactionResult(stack.amount(), 0, stack.fluidId(), false, "Fluid insertion forbidden on side: " + side);
             }
             if (!tank.canAccept(stack.fluidId())) {
                 return new FluidTransferTransactionResult(stack.amount(), 0, stack.fluidId(), false, "Fluid rejected by tank whitelist or mismatch");
@@ -107,7 +153,8 @@ public final class UniversalFluidRuntime {
                     new TransferBridgeFactory.FluidStackView(stack.fluidId(), newAmount),
                     tank.allowInsertion(),
                     tank.allowExtraction(),
-                    tank.fluidWhitelist()
+                    tank.fluidWhitelist(),
+                    tank.accessibleSides()
                 ));
             }
 
@@ -115,9 +162,16 @@ public final class UniversalFluidRuntime {
         }
 
         public FluidTransferTransactionResult drain(int tankIndex, int maxDrain, boolean simulate) {
+            return drain(tankIndex, maxDrain, FluidSide.INTERNAL, simulate);
+        }
+
+        public FluidTransferTransactionResult drain(int tankIndex, int maxDrain, @NotNull FluidSide side, boolean simulate) {
             UniversalFluidTank tank = getTank(tankIndex);
             if (tank == null) {
                 return new FluidTransferTransactionResult(maxDrain, 0, "minecraft:empty", false, "Invalid tank index");
+            }
+            if (!tank.allowsSide(side)) {
+                return new FluidTransferTransactionResult(maxDrain, 0, tank.fluid().fluidId(), false, "Fluid extraction forbidden on side: " + side);
             }
             if (!tank.allowExtraction() || tank.isEmpty()) {
                 return new FluidTransferTransactionResult(maxDrain, 0, tank.fluid().fluidId(), false, "Tank is empty or extraction forbidden");
@@ -135,7 +189,8 @@ public final class UniversalFluidRuntime {
                     new TransferBridgeFactory.FluidStackView(remainingId, Math.max(0, newAmount)),
                     tank.allowInsertion(),
                     tank.allowExtraction(),
-                    tank.fluidWhitelist()
+                    tank.fluidWhitelist(),
+                    tank.accessibleSides()
                 ));
             }
 

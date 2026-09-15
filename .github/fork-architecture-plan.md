@@ -135,6 +135,10 @@ claims.
 - 2026-09-15
 
 ### Latest verified implementation slice
+- Verified Release-Completion Milestones (2026-09-15):
+  - Step 1 (Persistence State Equivalence Execution): Full-cycle $S_{\text{after}} \equiv S_{\text{pre-restart}}$ state equivalence and NBT serialization round-trips verified across machine inventory, fluids, energy, progress ticks, and custom properties via `CanonicalRuntimeStateTest`.
+  - Step 2 (6-Sided Multi-Tank Simulation & Commit): 6-sided directional tank routing (`UP`, `DOWN`, `NORTH`, `SOUTH`, `EAST`, `WEST`, `INTERNAL`) with strict side-level access controls, capacity constraints, whitelist validation, and atomic simulation/commit verified via `UniversalFluidRuntimeTest`.
+  - Step 3 (Tier-1 Mod Corpus Validation): Full multi-level validation executed for *Farmer's Delight*, *Create*, *Citadel*, and *Lootr* with 100% compliance, zero generator defects, and proper capability adapter routing via `MultiLevelValidationHarnessTest`.
 - P0 Release-Completion Implementations (2026-09-15):
   - Fact-Only Discovery IR: `DiscoveryIR` models pure immutable facts from Java mod roots and registries before compatibility decisions; `UniversalResourceIndex.toDiscoveryIR()` unifies resource discovery. Verified by `DiscoveryIRTest`.
   - Canonical Runtime State Equivalence Engine: `CanonicalRuntimeState` captures complete snapshots ($S_{\text{after}} \equiv S_{\text{pre-restart}}$) of block entity inventory, fluids, energy, progress, and custom properties with exact NBT round-trip serialization. Verified by `CanonicalRuntimeStateTest`.

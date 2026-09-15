@@ -44,6 +44,59 @@ class UniversalFluidRuntimeTest {
     }
 
     @Test
+    @DisplayName("6-Sided Multi-Tank fill and drain operations respect side constraints")
+    void sixSidedMultiTankRespectsDirections() {
+        UniversalFluidRuntime.FluidTankManager manager = new UniversalFluidRuntime.FluidTankManager();
+        manager.addTank(
+            4000,
+            true,
+            true,
+            List.of("minecraft:water"),
+            java.util.Set.of(UniversalFluidRuntime.FluidSide.UP, UniversalFluidRuntime.FluidSide.NORTH)
+        );
+
+        // Try filling from SOUTH (disallowed)
+        UniversalFluidRuntime.FluidTransferTransactionResult deniedFill = manager.fill(
+            0,
+            new TransferBridgeFactory.FluidStackView("minecraft:water", 1000),
+            UniversalFluidRuntime.FluidSide.SOUTH,
+            false
+        );
+        assertFalse(deniedFill.success());
+        assertEquals(0, deniedFill.transferredAmount());
+
+        // Try filling from UP (allowed)
+        UniversalFluidRuntime.FluidTransferTransactionResult allowedFill = manager.fill(
+            0,
+            new TransferBridgeFactory.FluidStackView("minecraft:water", 1000),
+            UniversalFluidRuntime.FluidSide.UP,
+            false
+        );
+        assertTrue(allowedFill.success());
+        assertEquals(1000, allowedFill.transferredAmount());
+
+        // Drain simulation from DOWN (disallowed)
+        UniversalFluidRuntime.FluidTransferTransactionResult deniedDrain = manager.drain(
+            0,
+            500,
+            UniversalFluidRuntime.FluidSide.DOWN,
+            true
+        );
+        assertFalse(deniedDrain.success());
+
+        // Drain commit from NORTH (allowed)
+        UniversalFluidRuntime.FluidTransferTransactionResult allowedDrain = manager.drain(
+            0,
+            500,
+            UniversalFluidRuntime.FluidSide.NORTH,
+            false
+        );
+        assertTrue(allowedDrain.success());
+        assertEquals(500, allowedDrain.transferredAmount());
+        assertEquals(500, manager.getTank(0).fluid().amount());
+    }
+
+    @Test
     @DisplayName("World Fluid Approximator returns valid Bedrock visuals")
     void worldFluidApproximatorReturnsVisuals() {
         UniversalFluidRuntime.WorldFluidApproximator.BedrockFluidVisual customVisual =
