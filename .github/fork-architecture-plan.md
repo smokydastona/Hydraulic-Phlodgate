@@ -135,6 +135,8 @@ claims.
 - 2026-09-15
 
 ### Latest verified implementation slice
+- Clean-World Restart Machine Persistence Validation (2026-09-15):
+  - Machine Persistence Validation Harness: `MachinePersistenceValidationHarness` executes full-cycle cold restart and reload simulations, enforcing $S_{\text{after}} \equiv S_{\text{pre-shutdown}}$ across all 6 active machine fixtures (`item_transfer_machine`, `processing_machine`, `fluid_machine`, `energy_machine`, `mixed_resource_machine`, `menu_machine`) with zero diff in inventory slots, multi-tanks, energy buffers, recipes, progress ticks, and custom properties. Verified by `MachinePersistenceValidationHarnessTest`.
 - Verified Release-Completion Milestones (2026-09-15):
   - Step 1 (Universal Resource Index Ingestion Hookup): All discovery paths route to `UniversalResourceIndex` $\rightarrow$ `DiscoveryIR`, providing immutable fact representations without redundant filesystem scans. Verified by `DiscoveryIRTest`.
   - Step 2 (Multi-Node Automation Routing Topology & Disruption Invalidation): `UniversalAutomationEngine.NetworkRouter` routes multi-slot transactional transfers with priority sorting and sided filtering, and invalidates broken/unloaded nodes and dimension routes dynamically. Verified by `UniversalAutomationEngineTest`.
