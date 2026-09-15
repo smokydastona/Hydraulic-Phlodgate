@@ -1091,7 +1091,7 @@ Phlodgate builds on that foundation and focuses specifically on expanding automa
 2. Navigate to the Hydraulic root directory and run `git submodule update --init --recursive`. This command downloads all the needed submodules for Hydraulic and is a crucial step in this process.
 3. If your default JVM/JDK is not Java 25, please set your IDE to use a valid Java 25 JVM. Otherwise, you will run into an error while building Hydraulic. 
 4. The project should import into your IDE after the loom setup is complete. For more detailed information, see the [Fabric setup](https://docs.fabricmc.net/develop/getting-started/setting-up).
-5. Use `./gradlew build` to compile jars and refresh the generated test assets used by this fork's Fabric test module.
+5. Use `./gradlew build` to compile jars and refresh the generated test assets used by this fork's Fabric test module. On Windows, stop stale Gradle/Fabric `runServer` processes before retrying a `shared/build/libs/*-dev.jar` manifest failure; the dev jar is rewritten by Loom and cannot be safely modified while an older runtime still holds it open.
 6. Use `./gradlew :fabric:runServer` to run a server with Hydraulic installed. This runtime path reuses the last generated test assets instead of rerunning datagen on every launch. Make sure you have Geyser in your `mods` folder along with Hydraulic.
 7. If you want to refresh only the generated test assets without a full build, run `./gradlew :test:prepareGeneratedResources`.
 8. If you want to test metadata overrides in the Fabric dev environment, place your JSON files in `fabric/run/config/hydraulic/metadata` before starting the server.
