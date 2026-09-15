@@ -42,6 +42,8 @@ This fork is now in a verified, partially executed but not release-ready state. 
 - Menu transaction tracing and scoreboard/session lifecycle binding improvements.
 - Pack validation and malformed metadata sanitization across generated resource outputs.
 - Runtime evidence model maturity tracking (`UNKNOWN`, `ARCHITECTURE_IMPLEMENTED`, `CAPABILITY_IMPLEMENTED`, `INTEGRATED`, `VERIFIED`, `CLIENT_VERIFIED`).
+- Companion vector metadata extension for richer target objects (`kind`, `category`, `priority`, `label`, `range`, enabled/visible filtering) and compatibility-safe parsing.
+- Map-like HUD preview refinement with compact pseudo-pixel terrain card output and a dedicated panel path so the HUD no longer reads like a plain text debug radar.
 
 ### Verified confidence
 - Java build and server startup verification are present in this environment for selected flows.
@@ -64,6 +66,8 @@ This fork is now in a verified, partially executed but not release-ready state. 
 - Block entity state delta synchronization.
 - Scoreboard lifecycle and session rebind safety.
 - Pack validation and malformed metadata sanitization.
+- Companion vector metadata ingestion and filtering for objective-driven entity and waypoint overlays.
+- HUD panel rendering improvement for map-like preview output under Bedrock Script API constraints.
 
 ### Unverified or intentionally unsupported slices
 - Arbitrary modded client-side rendering of Java assets in Bedrock.
@@ -119,9 +123,15 @@ claims.
 ## Ground Truth Snapshot
 
 ### Date
-- 2026-09-14
+- 2026-09-15
 
 ### Latest verified implementation slice
+- Master 35-Phase Functional Completion Plan: `.github/Full-Implementation-Plan.md` has been fully revised into an atomic, dependency-tracked, test-gated execution ledger covering Phases 0 through 35, enforcing the strict distinction $\text{IMPLEMENTED} \neq \text{VERIFIED} \neq \text{SUPPORTED}$ and formalizing the E1–E10 physical client evidence ladder.
+- BOs Easy Model Entities (EME) presentation profile scanning: `EntityPresentationProfileScanner` indexes server/render profile pairs, validates 256 KiB JSON limits, and verifies model/texture stamps from the authoritative index. Verified by tests, pushed in commit `c668d73`.
+- External repository research & security boundary: In-depth license and architecture audits completed for 7 external repositories (PowerNukkitX, AzureLib, ExtraBiomes, BedrockMotion, GeyserDisplayEntity, mcpe-bedrock-script, and hostile vanilla-pack analysis). Admissibility rules and strict non-integration boundaries codified in commit `142d4e9`.
+- Server-authoritative entity action routing: `EntityInteractionActionPlan` and `BedrockEntityActionRouter` route Bedrock `USE`, `ATTACK`, `MOUNT`, and `DISMOUNT` actions to Java server-thread mutations (`interact`, `attack`, `startRiding`, `stopRiding`) with hand and held-item validation. Pushed in commit `2ec3139`.
+- Entity AI and custom network evidence contracts: `EntityBehaviorContract` and `EntityNetworkContract` classify bounded AI goals and network channel facts as fail-closed, non-executable evidence. Pushed in commit `a7a7778`.
+- Windows Loom dev-jar lock resolution: Root-caused stale Java/Gradle/Fabric worker processes holding `shared-1.0.0-SNAPSHOT-dev.jar`. Resolved process locks, verified clean `:shared:jar`, `:shared:test`, `:shared:compileJava`, and `:fabric:compileJava`. Documented recovery procedures in README and architecture notes in commit `358d798`.
 - Local Bedrock client connection triage and Geyser fallback hardening: the Windows Bedrock client
   repeatedly reached the Fabric/Geyser server on UDP `19132`; with Geyser `auth-type: offline` and
   Java `online-mode=false`, `SmokyDaStona` connected through Geyser, logged into the Java server, and
