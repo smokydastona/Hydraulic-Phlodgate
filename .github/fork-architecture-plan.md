@@ -30,6 +30,70 @@ The long-term scaling strategy remains:
 4. mod-specific adapter
 5. explicit unsupported result when gaps remain
 
+## Executive Implementation Status
+
+This fork is now in a verified, partially executed but not release-ready state. The implementation work has progressed from raw compatibility research into a hardening and evidence pipeline for the high-confidence slices of the stack, but the project must still meet the remaining runtime and physical-client gates before claiming final release readiness.
+
+### Completed implementation slices
+- Bedrock client connection triage and Geyser fallback hardening for Java/Bedrock transport startup faults.
+- Defensive block/item mapping fallback behavior to prevent unsupported Java IDs from crashing Bedrock/Geyser translation.
+- Generic block-entity state synchronization and delta reporting for live block state observation.
+- Metadata-declared fluid action and energy action plan compilation and runtime routing.
+- Menu transaction tracing and scoreboard/session lifecycle binding improvements.
+- Pack validation and malformed metadata sanitization across generated resource outputs.
+- Runtime evidence model maturity tracking (`UNKNOWN`, `ARCHITECTURE_IMPLEMENTED`, `CAPABILITY_IMPLEMENTED`, `INTEGRATED`, `VERIFIED`, `CLIENT_VERIFIED`).
+
+### Verified confidence
+- Java build and server startup verification are present in this environment for selected flows.
+- The implementation has cleared several compile, integration, and startup gates in the Java 25 toolchain.
+- The underlying compatibility architecture is now more resilient and more evidence-driven.
+
+### Open release blockers
+- Fluid and energy action contracts still require full real-mod and persistence proof.
+- Entity action support remains incomplete for broad compatibility claims.
+- Machine-to-recipe association and automation lifecycle proofs are still incomplete.
+- Physical Bedrock client observation remains required for final E1-E10 attestation.
+- Restart and persistence validation remains open under a clean zero-trust workflow.
+
+## Compatibility / Implementation Report
+
+### Supported or evidence-backed slices
+- Geyser transport startup and fallback behavior.
+- Selected menu transactions and runtime dispatch contracts.
+- Fluid action handoff and energy transfer contracts for declared metadata paths.
+- Block entity state delta synchronization.
+- Scoreboard lifecycle and session rebind safety.
+- Pack validation and malformed metadata sanitization.
+
+### Unverified or intentionally unsupported slices
+- Arbitrary modded client-side rendering of Java assets in Bedrock.
+- Generic full-spectrum mapping of unclassified mod blocks/items/entities to Bedrock equivalents.
+- Real-world physical Bedrock observation, gameplay parity, and production traffic validation.
+- Universal persistence guarantees for long-lived runtime state or complex machine automation.
+- Mission-critical behavior claims that rely on client observation instead of transport/server evidence.
+
+## Prioritized Next Steps
+
+1. Complete fluid action end-to-end runtime proof and persistence rollback validation.
+2. Complete energy action state verification, including side transfer and container-property synchronization.
+3. Complete entity action compatibility mapping and runtime bridge verification.
+4. Finish machine persistence, rollback, and automation lifecycle proof under clean-world validation.
+5. Finish pack validation remediation and regression tests for generated content.
+6. Execute physical-client E1-E10 observation gates.
+7. Validate Create-first real-mod behavior under a clean runtime and finalize zero-trust audit.
+
+## Release-Readiness Criteria
+
+The project is not release-ready until all of the following are true:
+
+- [ ] All implemented capability contracts are server-verified and persistently reproducible.
+- [ ] Fluid, energy, entity, and automation actions are proven in a clean runtime environment.
+- [ ] Machine state persistence and rollback are validated under restart and fail-safe conditions.
+- [ ] Pack-generation and validation defects are fully remediated and regression-tested.
+- [ ] Physical Bedrock-client observation gates E1-E10 have been completed and recorded.
+- [ ] Create-first real-mod validation has passed with curated evidence.
+- [ ] Zero-trust audit confirms no unsupported claims remain in the release narrative.
+
 ## Post-Audit Execution Contract
 
 The zero-trust audit is the release baseline, not evidence of completion. The permanent
@@ -39,14 +103,14 @@ implementation ledger is split across:
 - `.github/Runtime-Contract-Matrix.md` for capability lifecycle evidence
 - `.github/Validation-Matrix.md` for server, transport, and physical-client gates
 
-The current product is **not release-ready**. Selected item/block-use, fluid/energy transfer, machine,
+The current product remains **not release-ready**. Selected item/block-use, fluid/energy transfer, machine,
 lifecycle, menu, and Geyser transport slices are server- or transport-verified, but fluid, energy,
 and entity action contracts, universal indexing, machine-to-recipe association, persistence proof,
 and physical Bedrock observation remain open. A transport handoff must never be described as client
 observation. Existing development worlds are preserved; clean runtime validation uses a separate
 world path.
 
-The implementation order is now locked: fluid actions, energy actions/state, entity actions,
+The implementation order remains locked: fluid actions, energy actions/state, entity actions,
 machine persistence and rollback, automation lifecycle, pack-validation remediation, physical
 E1-E10 evidence, Create-first real-mod validation, and a final zero-trust audit. The clean runtime,
 recipe normalization, live binding, and menu transaction slices remain foundations, not completion
