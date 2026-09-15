@@ -1,7 +1,7 @@
 # External Research And Integration Report
 
-Date: 2026-09-13
-Scope: source review for Hydraulic-Phlodgate, including `Broadcaster-master.zip`
+Date: 2026-09-15
+Scope: source review for Hydraulic-Phlodgate, including `Broadcaster-master.zip` and the seven additional repositories supplied for Bedrock/entity research
 
 ## Executive Result
 
@@ -14,6 +14,30 @@ The supplied repositories and archive do not form a drop-in implementation libra
 - an Xbox Live presence broadcaster: `Broadcaster-master.zip` / MCXboxBroadcast
 
 No third-party source code, generated asset, executable, or dependency was copied into Hydraulic. The safe integration surface is offline research metadata and validation guidance. Hydraulic runtime behavior remains Java-server authoritative and continues to consume only typed compiled plans.
+
+## Additional Repository Disposition (2026-09-15)
+
+| Source | Verified useful surface | License / risk | Hydraulic disposition |
+| --- | --- | --- | --- |
+| [PowerNukkitX](https://github.com/PowerNukkitX/PowerNukkitX) | Java Bedrock-server architecture, custom item/block/entity registration, vanilla-like AI, containers, commands, and world generation | LGPL-3.0; an alternative Bedrock server, not a Java/Geyser bridge | Reference only for Bedrock-native capability vocabulary and server-side lifecycle ideas. Do not link, shade, or replace Geyser/Fabric with it. |
+| [AzureLib](https://github.com/AzureDoom/AzureLib) | Bedrock-model-oriented Java animation concepts for item, block, and entity presentation; keyframe/easing/event concepts | MIT repository metadata, but the repository advertises additional licenses and contains artistic/model material requiring separate review | Use only as offline presentation research. Do not copy renderer code, models, textures, or secondary-licensed material. |
+| [ExtraBiomes](https://github.com/finleyaubin/ExtraBiomes) | Paired Java/Bedrock content organization, biome/structure/entity/block pack breadth, and cross-edition content parity cases | MIT repository license; artistic assets and third-party credits still require provenance review | Use as a regression-corpus candidate and schema/reference case. Do not import its assets or claim Java-to-Bedrock parity without object-level evidence. |
+| [minecraft-bedrock-edition-vanilla-pack](https://github.com/hexagonlionfirewall/minecraft-bedrock-edition-vanilla-pack) | No trustworthy Hydraulic implementation surface identified | Security red flags: password-protected executable download, instructions to disable Windows Defender, encrypted binaries/configuration, and credential-like files | Explicitly rejected. Do not download, execute, vendor, inspect as an asset source, or place its URLs/binaries in reports or runtime configuration. |
+| [mcpe-bedrock-script](https://github.com/valeria-vasquez-87/mcpe-bedrock-script) | README-level examples of Script API entity, block, item, UI, event, and scheduling vocabulary | No source tree or published license evidence was found; README redirects to an external download | Documentation-only, low-confidence reference. No code, script, package, or external download is admissible. |
+| [BedrockMotion](https://github.com/EaseCation/BedrockMotion) | Platform-independent Bedrock animation pipeline: bone targets, keyframe interpolation, animation controllers, render controllers, MoLang, and pack parsing | GPL-3.0 | Strong architecture reference for a future isolated animation subsystem, but prohibited as embedded/shaded runtime code under the current distribution model. No dependency added. |
+| [GeyserDisplayEntity](https://github.com/GeyserExtensionists/GeyserDisplayEntity) | Geyser extension seam for display entities and item-display mappings; useful for identifying Bedrock transform/spawn synchronization concerns | AGPL-3.0; README credits code from a Geyser display-entity branch | Reference-only. Do not copy, link, shade, or derive a Hydraulic runtime bridge from its code. Any display-entity implementation must use independently authored code and current Geyser APIs. |
+
+### Security disposition
+
+The vanilla-pack repository is not treated as a normal open-source content source. Its README
+explicitly instructs users to disable Windows Defender and execute a password-protected installer,
+while the repository listing includes encrypted binaries and credential-like files. Hydraulic does
+not need any of those files for pack conversion or validation, so no local download or execution is
+justified.
+
+The GPL-3.0 and AGPL-3.0 projects remain useful for architectural understanding only. A license
+does not make source compatible with Hydraulic's current distribution model, and no copied snippets,
+generated derivatives, shaded jars, or assets from them are admissible.
 
 ## Broadcaster Archive Audit
 
@@ -91,6 +115,12 @@ The implemented change for this research pass is intentionally limited to reposi
 For `Broadcaster-master.zip`, the implementation decision is explicitly **reference-only / inadmissible for runtime reuse**. The archive was extracted only into an ignored temporary audit directory outside the source tree; no archive content was copied into Hydraulic. The only useful architectural observation is that Geyser lifecycle hooks can observe Bedrock listener state, but Hydraulic already has its own Geyser lifecycle and reporting surfaces, and the Broadcaster behavior is not a compatibility capability.
 
 The next executable integration gate is optional operator/CI validation of generated Bedrock projects with the installed Creator Tools CLI. It must remain outside Hydraulic startup and must report its own tool version, input path, result, and failure reason. The existing pack validation report remains authoritative when that external tool is unavailable.
+
+For the seven additional repositories, the implementation decision is **offline research and
+explicit non-integration**. No new dependency, runtime bridge, asset, script, executable, network
+client, Bedrock behavior-pack path, or Geyser extension code was added. The existing typed corpus
+and indexed presentation-profile path remain the only production integration surfaces because they
+preserve provenance and fail closed without expanding Hydraulic's runtime trust boundary.
 
 ## Verification Sources
 

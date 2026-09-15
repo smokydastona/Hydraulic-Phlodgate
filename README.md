@@ -180,7 +180,12 @@ The important distinction is that **Phlodgate is trying to add the compatibility
 
 ## External Research Boundary
 
-The external Fabric and Bedrock repositories used during architecture research are not bundled as runtime dependencies. The awesome lists are discovery catalogs; Mojang Creator Tools is an optional external validator; ScriptAPI is an offline evidence source; bridge. is authoring software; BedrockBridge targets Bedrock Dedicated Server rather than a Java/Geyser session; and MCXboxBroadcast/Broadcaster is an Xbox Live presence broadcaster rather than a compatibility engine. Their source, assets, licenses, versions, and runtime assumptions are tracked in [.github/external-research-report.md](.github/external-research-report.md).
+The external Fabric and Bedrock repositories used during architecture research are not bundled as runtime dependencies. The awesome lists are discovery catalogs; Mojang Creator Tools is an optional external validator; ScriptAPI is an offline evidence source; bridge. is authoring software; BedrockBridge targets Bedrock Dedicated Server rather than a Java/Geyser session; and MCXboxBroadcast/Broadcaster is an Xbox Live presence broadcaster rather than a compatibility engine. PowerNukkitX, AzureLib, ExtraBiomes, BedrockMotion, GeyserDisplayEntity, and the supplied Script API/vanilla-pack repositories are also tracked as reference or rejected sources in [.github/external-research-report.md](.github/external-research-report.md).
+
+In particular, GPL/AGPL animation and display projects are not copied or shaded, and the supplied
+vanilla-pack repository is rejected because it promotes disabling Windows Defender and executing a
+password-protected installer with encrypted/credential-like files. Hydraulic never downloads or
+executes those materials.
 
 Hydraulic does not copy third-party code or assets from those projects. Runtime behavior remains Java-server authoritative, with local corpus snapshots and compiled compatibility plans as the only supported integration surfaces. A downloaded or executed Bedrock behavior pack is never treated as proof of Geyser-session execution.
 
