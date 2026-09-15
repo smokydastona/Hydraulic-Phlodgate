@@ -16,6 +16,8 @@ import org.geysermc.hydraulic.compat.model.SupportResult;
 import org.geysermc.hydraulic.metadata.IdentifierMapping;
 import org.geysermc.hydraulic.metadata.MetadataIndex;
 import org.geysermc.hydraulic.compat.runtime.EntityInteractionActionPlan;
+import org.geysermc.hydraulic.compat.runtime.EntityBehaviorContract;
+import org.geysermc.hydraulic.compat.runtime.EntityNetworkContract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,8 +52,16 @@ public final class EntityAnalyzer implements CompatibilityAnalyzer {
             putIfPresent(entityActionFacts, "interaction.entity.action", patch.operation("interaction.entity.action"));
             putIfPresent(entityActionFacts, "interaction.entity.hand", patch.operation("interaction.entity.hand"));
             putIfPresent(entityActionFacts, "interaction.entity.item", patch.operation("interaction.entity.item"));
+            putIfPresent(entityActionFacts, "entity.ai.behavior", patch.operation("entity.ai.behavior"));
+            putIfPresent(entityActionFacts, "entity.ai.target", patch.operation("entity.ai.target"));
+            putIfPresent(entityActionFacts, "entity.ai.range", patch.operation("entity.ai.range"));
+            putIfPresent(entityActionFacts, "entity.network.required", patch.operation("entity.network.required"));
+            putIfPresent(entityActionFacts, "entity.network.direction", patch.operation("entity.network.direction"));
+            putIfPresent(entityActionFacts, "entity.network.channel", patch.operation("entity.network.channel"));
         }
         EntityInteractionActionPlan entityActionPlan = EntityInteractionActionPlan.fromFacts(entityActionFacts);
+        EntityBehaviorContract behaviorContract = EntityBehaviorContract.fromFacts(entityActionFacts);
+        EntityNetworkContract networkContract = EntityNetworkContract.fromFacts(entityActionFacts);
 
         Capability registered = AnalyzerSupport.capability(CapabilityDomain.CONTENT, "registered", "Entity exists in the Java registry.");
         Capability presentation = AnalyzerSupport.capability(CapabilityDomain.PRESENTATION, "presentation_mapping", "Entity has explicit presentation mapping data.");
@@ -103,11 +113,42 @@ public final class EntityAnalyzer implements CompatibilityAnalyzer {
             inventoryFacts.put("interaction_prompt", interactionPrompt);
         }
         inventoryFacts.putAll(entityActionFacts);
+        if (behaviorContract != null) {
+            inventoryFacts.put("entity.ai.classified", behaviorContract.behavior().name().toLowerCase(java.util.Locale.ROOT));
+            inventoryFacts.put("entity.ai.executable", Boolean.toString(behaviorContract.executable()));
+        }
+        if (networkContract != null) {
+            inventoryFacts.put("custom_networking", "true");
+            inventoryFacts.put("entity.network.executable", Boolean.toString(networkContract.executable()));
+        }
         inventoryFacts.put("behavior_required", Boolean.toString(behaviorRequired));
         if (behaviorTag == null || behaviorTag.isBlank()) {
             behaviorTag = "visual_only_runtime";
         }
         inventoryFacts.put("behavior_tag", behaviorTag);
+
+        if (behaviorContract != null) {
+            findings = appendFinding(findings, new CompatibilityFinding(
+                "entity.ai.classified_not_executable",
+                CompatibilityFinding.Severity.WARNING,
+                "behavior",
+                "Entity AI behavior classified for " + descriptor.javaIdentifier(),
+                "The declared " + behaviorContract.behavior().name().toLowerCase(java.util.Locale.ROOT) + " behavior is recognized as evidence but has no generic executable bridge.",
+                "Keep this entity behavior VISUAL_ONLY or provide an independently validated server-side adapter.",
+                null
+            ));
+        }
+        if (networkContract != null) {
+            findings = appendFinding(findings, new CompatibilityFinding(
+                "entity.custom_networking.unsupported",
+                CompatibilityFinding.Severity.ERROR,
+                "network",
+                "Custom entity networking is required for " + descriptor.javaIdentifier(),
+                "The entity declares channel " + networkContract.channel() + " (" + networkContract.direction().name().toLowerCase(java.util.Locale.ROOT) + "), but Hydraulic has no generic protocol bridge for arbitrary custom packets.",
+                "Provide a typed packet contract and server-thread handler before advertising entity behavior.",
+                null
+            ));
+        }
 
         return AnalyzerSupport.object(
             descriptor.javaIdentifier(),
@@ -126,5 +167,12 @@ public final class EntityAnalyzer implements CompatibilityAnalyzer {
         if (value != null && !value.isBlank()) {
             facts.put(key, value);
         }
+    }
+
+    @NotNull
+    private static List<CompatibilityFinding> appendFinding(@NotNull List<CompatibilityFinding> findings, @NotNull CompatibilityFinding finding) {
+        List<CompatibilityFinding> updated = new ArrayList<>(findings);
+        updated.add(finding);
+        return List.copyOf(updated);
     }
 }

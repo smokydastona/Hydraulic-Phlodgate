@@ -436,6 +436,12 @@ item on the Minecraft server thread before executing the corresponding Java enti
 missing, malformed, unsupported, or uncompiled action falls through to normal Geyser behavior.
 This does not translate arbitrary AI, custom entity networking, or prove physical Bedrock observation.
 
+Entity analysis also classifies the bounded AI vocabulary `wander`, `follow`, `attack`, `flee`,
+`guard`, `look_at`, `pickup`, `work`, and `breed`, plus explicit custom-network channel and
+direction facts. These records are fail-closed evidence: unknown AI or custom packets receive
+structured unsupported findings and a network bridge requirement; Hydraulic does not execute
+arbitrary Java AI bytecode or invent a packet schema.
+
 Hydraulic also recognizes the portable presentation profile shape used by Markus Bordihn's
 [BOs Easy Model Entities](https://github.com/MarkusBordihn/BOs-Easy-Model-Entities) project. During
 pack post-processing, indexed `data/*/easy_model_entities/profiles` and
