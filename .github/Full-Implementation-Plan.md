@@ -24,7 +24,7 @@ Status vocabulary: `OPEN`, `IN_PROGRESS`, `SERVER_VERIFIED`, `TRANSPORT_VERIFIED
 | Universal automation | IN_PROGRESS | Request-oriented transfer exists; network lifecycle proof is pending | Source-to-machine-to-output route persists and synchronizes |
 | Pack validation classification | IN_PROGRESS | Typed `FailureClassification` is emitted for validator findings and malformed JSON precedence is regression-tested; full third-party corpus remediation remains open | Every finding is classified as generated-invalid, unsupported, or validator defect |
 | Physical Bedrock validation | BLOCKED | No accessible official Bedrock client/device evidence in this environment | E1-E10 artifacts recorded by a human-operated client |
-| Real-mod validation | BLOCKED | Universal contracts and physical evidence are prerequisites | Adapter-free arbitrary-mod test plus evidence-backed matrix |
+| Real-mod validation | IN_PROGRESS | A 231-mod Java 25 corpus run now provides startup, recipe, and pack-artifact evidence; object behavior, persistence, and physical Bedrock evidence remain open | Adapter-free arbitrary-mod test plus evidence-backed matrix |
 | Final zero-trust audit | OPEN | Must run after implementation and validation workstreams | No unsupported completion claims and all classifications have evidence |
 
 ## Capability Round-Trip Matrix
@@ -91,6 +91,19 @@ discovered runtime object. Identifier-specific fixture branching does not satisf
 	`GENERIC_GENERATOR_DEFECT`, even when its archive path contains the word `path`.
 - `PackValidatorTest` asserts this behavior. Pack validation still records a failed pack and
 	continues the pipeline; classification does not claim that every third-party asset is repaired.
+
+## 2026-09-14 Third-Party Corpus Evidence
+
+- A Java 25 `:fabric:runServer` run against the attached corpus loaded 231 Fabric mods and reached
+	Minecraft/Geyser readiness on UDP `19132` before clean shutdown.
+- Hydraulic compiled 3,128 datapack recipes, normalized 3,126 runtime recipe entries, and marked
+	5,808 entries `RECIPE_RUNTIME_UNKNOWN` under the existing fail-closed serializer policy.
+- The persisted pack report contained 125 records: 69 valid and 56 invalid. The invalid set
+	included 50 missing-output records, which the corrected classifier maps to
+	`NO_CONVERTIBLE_OUTPUT`, and 15 missing selected-texture records; 316 long-path warnings were
+	recorded across generated packs.
+- This promotes real-mod startup and artifact evidence to `IN_PROGRESS`; it does not promote any
+	Create, Mekanism, Thermal, AE2, or other ecosystem object to runtime or client compatibility.
 
 ## Release Readiness Gates
 

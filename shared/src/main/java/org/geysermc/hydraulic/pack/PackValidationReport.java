@@ -71,6 +71,7 @@ public record PackValidationReport(
         INVALID_MANIFEST,
         INVALID_PATH,
         MISSING_ASSET,
+        NO_CONVERTIBLE_OUTPUT,
         UNSUPPORTED_CONTENT,
         UNKNOWN;
 
@@ -82,8 +83,11 @@ public record PackValidationReport(
                 return INVALID_MANIFEST;
             }
             if (normalizedCode.contains("json.invalid") || normalizedCode.contains("archive.unreadable")
-                || normalizedCode.contains("pack.output.missing") || normalizedCode.contains("pack.json.invalid")) {
+                || normalizedCode.contains("pack.json.invalid")) {
                 return GENERIC_GENERATOR_DEFECT;
+            }
+            if (normalizedCode.contains("pack.output.missing")) {
+                return NO_CONVERTIBLE_OUTPUT;
             }
             if (normalizedCode.contains("path.long") || normalizedCode.contains("path") || normalizedMessage.contains("path")) {
                 return INVALID_PATH;

@@ -68,8 +68,19 @@ claims.
 - Pack failure classification: explicit generator defect codes are now classified before broad
   path heuristics, so malformed generated JSON is reported as `GENERIC_GENERATOR_DEFECT` even when
   its archive entry contains a path-like name. Focused validator and tracker tests cover the
-  classification regression. This prevents a validator finding from being mistaken for a content
+  classification regression. Missing generated output is classified separately as
+  `NO_CONVERTIBLE_OUTPUT`, which prevents resource-less Fabric modules from being mislabeled as
+  generator defects. This prevents a validator finding from being mistaken for a content
   incompatibility, but does not by itself remediate every third-party pack defect.
+- Third-party corpus runtime evidence: a Java 25 `:fabric:runServer` validation loaded 231 Fabric
+  mods, reached Minecraft/Geyser readiness on UDP `19132`, compiled 3,128 datapack recipes,
+  normalized 3,126 runtime entries, and classified 5,808 as `RECIPE_RUNTIME_UNKNOWN`. The persisted
+  pack report contained 125 records: 69 valid, 56 invalid, 50 missing-output records, 15 missing
+  selected textures, and 316 long-path warnings. The corrected classifier maps those missing-output
+  records to `NO_CONVERTIBLE_OUTPUT`; focused tests verify that mapping. Per-mod conversion continued
+  through malformed metadata such as Gilded Armor's invalid pack format range. This is real-mod
+  artifact/startup evidence only; object behavior, persistence, and physical Bedrock observation
+  remain open.
 - Metadata-declared fluid action handoff: `FluidBlockUseActionPlan` compiles explicit fill/drain
   bucket-exchange contracts from `interaction.fluid.*` facts. `BedrockRuntimeActionRouter` resolves
   the live tank through compiled dispatch, simulates the exact amount before mutation, exchanges the

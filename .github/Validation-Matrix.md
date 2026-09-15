@@ -8,7 +8,7 @@
 | E2 | Java/Fabric integration | SERVER-VERIFIED for selected fixtures |
 | E3 | Packet and runtime handoff | TRANSPORT-VERIFIED for inventory/property packet slices |
 | E4 | Official Bedrock client connection and pack observation | BLOCKED: no client evidence |
-| E5 | Real-mod regression corpus | PARTIAL: conversion evidence only; behavior claims remain open |
+| E5 | Real-mod regression corpus | IN PROGRESS: 231-mod startup and pack/recipe artifacts verified; behavior claims remain open |
 | E6 | Persistence/reconnect/restart on a physical client | BLOCKED |
 | E7 | Final zero-trust release audit | OPEN |
 
@@ -54,6 +54,18 @@ Each completed client test must record timestamp, Java/Minecraft/Bedrock/Geyser/
 	`GENERIC_GENERATOR_DEFECT`, not `INVALID_PATH` because of the archive entry name.
 - Validator errors remain pack-local and do not abort conversion of other mods. The current evidence
 	does not establish that all third-party pack inputs have been remediated.
+
+## Third-Party Corpus Run
+
+- Java 25 `:fabric:runServer` loaded 231 Fabric mods and reached Minecraft/Geyser readiness on UDP
+	`19132`, followed by clean world shutdown.
+- Recipe ingestion inspected 8,934 manager entries, normalized 3,126, and classified 5,808 as
+	`RECIPE_RUNTIME_UNKNOWN`; 3,128 datapack recipes were compiled.
+- The observed pack report recorded 125 packs: 69 valid, 56 invalid, 50 missing-output records,
+	15 missing selected textures, and 316 long-path warnings. Focused post-change tests classify the
+	missing-output records as `NO_CONVERTIBLE_OUTPUT`.
+- This is Level 2/startup and artifact evidence. No third-party object has a completed authoritative
+	behavior round trip, persistence proof, or physical Bedrock observation.
 
 ## Live-Binding Evidence
 

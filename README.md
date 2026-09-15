@@ -533,6 +533,13 @@ codes take precedence over broad path heuristics, so invalid JSON is reported as
 even when its archive entry name looks path-related. Classification improves triage; it does not
 turn third-party conversion-only evidence into a runtime compatibility claim.
 
+The attached third-party corpus has also been exercised in a Java 25 Fabric/Geyser startup: 231
+mods loaded, Geyser reached UDP `19132`, and Hydraulic produced 125 pack-validation records. The
+run recorded 69 valid packs, 50 missing-output records, 15 missing-texture errors, and 316 long-path
+warnings; focused post-change tests classify missing output as `NO_CONVERTIBLE_OUTPUT`. This proves
+startup and artifact coverage only; it is not proof that Create,
+Mekanism, AE2, or another mod's gameplay works from Bedrock.
+
 ---
 
 # Bedrock Companion Packages

@@ -45,6 +45,8 @@ class PackValidatorTest {
         assertFalse(validation.valid());
         assertEquals(1, validation.errorCount());
         assertEquals("pack.output.missing", validation.errors().get(0).code());
+        assertEquals(PackValidationReport.FailureClassification.NO_CONVERTIBLE_OUTPUT,
+            validation.errors().get(0).classification());
         assertEquals(1, validation.manualActionCount());
     }
 
