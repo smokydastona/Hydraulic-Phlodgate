@@ -76,27 +76,36 @@ This fork is now in a verified, partially executed but not release-ready state. 
 - Universal persistence guarantees for long-lived runtime state or complex machine automation.
 - Mission-critical behavior claims that rely on client observation instead of transport/server evidence.
 
-## Prioritized Next Steps
+## Prioritized Next Steps (Release-Completion Program)
 
-1. Complete fluid action end-to-end runtime proof and persistence rollback validation.
-2. Complete energy action state verification, including side transfer and container-property synchronization.
-3. Complete entity action compatibility mapping and runtime bridge verification.
-4. Finish machine persistence, rollback, and automation lifecycle proof under clean-world validation.
-5. Finish pack validation remediation and regression tests for generated content.
-6. Execute physical-client E1-E10 observation gates.
-7. Validate Create-first real-mod behavior under a clean runtime and finalize zero-trust audit.
+The project has transitioned from architecture definition to the final execution and verification program:
 
-## Release-Readiness Criteria
+```text
+Architecture (Done) ──► Runtime Contracts ──► Lifecycle & Persistence ──► Transactional Correctness ──► Physical Bedrock (E1-E10)
+```
 
-The project is not release-ready until all of the following are true:
+### P0 — Non-Negotiable Server & Gameplay Contracts
+1. **P0.1: Universal Resource Index Consolidation**: Eliminate redundant filesystem scans; enforce `UniversalResourceIndex` $\rightarrow$ `DiscoveryIR` $\rightarrow$ `CompatibilityIR` $\rightarrow$ `CompiledCompatibilityPlan`.
+2. **P0.2: Block-Entity Lifecycle & Persistence**: Invalidate stale bindings on chunk unload/reload, block destruction, and dimension change; prove machine state preservation across cold restarts.
+3. **P0.3: Fluid & Energy 6-Sided Round Trips**: Validate 6-directional simulated and committed transfers; guarantee zero state corruption on partial transfer failures.
+4. **P0.4: Automation & Financial-Grade Rollback**: Multi-resource transactions (`MultiResourceTransaction`) must guarantee 100% two-phase rollback without item/fluid/energy loss or duplication.
+5. **P0.5: Pack Remediation & Defect Classification**: Classify pack generation issues into `FIXABLE_GENERATOR_ERROR`, `SOURCE_ASSET_ERROR`, or `EXPECTED_DEGRADATION`; release-block only on generator defects.
+6. **P0.6: Tier-1 Real Mods (Create First)**: Use *Create* to prove generic capability abstractions (kinetics, stress, transfer) via `CreateAdapter` rather than hardcoding machines.
+7. **P0.7: Canonical State-Equivalence Testing**: Verify $S_{\text{after}} \equiv S_{\text{pre-restart}}$ via `CanonicalRuntimeState` snapshots across restarts and chunk cycles.
+8. **P0.8: Capability Completeness Policy**: Enforce that any critical capability marked `OPEN` (e.g. Persistence) forces `NOT_RELEASE_READY` regardless of high visual scores.
 
-- [ ] All implemented capability contracts are server-verified and persistently reproducible.
-- [ ] Fluid, energy, entity, and automation actions are proven in a clean runtime environment.
-- [ ] Machine state persistence and rollback are validated under restart and fail-safe conditions.
-- [ ] Pack-generation and validation defects are fully remediated and regression-tested.
-- [ ] Physical Bedrock-client observation gates E1-E10 have been completed and recorded.
-- [ ] Create-first real-mod validation has passed with curated evidence.
-- [ ] Zero-trust audit confirms no unsupported claims remain in the release narrative.
+### P1 — Physical Bedrock Validation Campaign
+- Complete and record the E1–E10 physical client evidence ladder on official Bedrock clients (Windows, iOS, Android, Switch).
+
+## Release-Readiness Gates
+
+The project is **NOT COMPLETE** and cannot be released until all release gates pass:
+
+- [ ] **Gate A (Architecture)**: Universal discovery consolidated, typed IR complete, static pre-compiled plans, $O(1)$ dispatch table.
+- [ ] **Gate B (Server Runtime)**: Sided fluid/energy, transactional rollback, full block-entity lifecycle, cold restart persistence verified.
+- [ ] **Gate C (Pack Generation)**: Pack validation defect classification clean, malformed metadata sanitization verified, zero release-blocking generator errors.
+- [ ] **Gate D (Companion Add-on)**: Generic UI/HUD presentation, versioned companion protocol handshake, zero server authority logic in client pack.
+- [ ] **Gate E (Physical Bedrock)**: Recorded and human-attested evidence for all ten physical verification stages (E1–E10).
 
 ## Post-Audit Execution Contract
 
