@@ -48,6 +48,17 @@ Each completed client test must record timestamp, Java/Minecraft/Bedrock/Geyser/
 - Not proven: a live third-party energy block, restart persistence, official Bedrock observation,
 	or a physical client rendering of the projected property.
 
+## Block-Entity State Evidence
+
+- `BlockEntityStateSynchronizer` uses Minecraft's authoritative serialized custom state and retains
+	only an ephemeral previous snapshot. A changed snapshot produces a `block_entity.state` delta and
+	enters the existing session auto-flush boundary.
+- `RuntimeLifecycleCoordinator` clears snapshots on install and block-entity unbind, so runtime
+	objects and their state are not persisted in Hydraulic's binding map.
+- `BlockEntityStateSynchronizerTest` and Java 25 shared compilation pass. Not proven: arbitrary
+	block-entity mutation, restart/rebind comparison, concrete Geyser encoding for generic state, or
+	physical Bedrock observation.
+
 ## Pack Classification Evidence
 
 - `PackValidatorTest` verifies malformed generated JSON is classified as

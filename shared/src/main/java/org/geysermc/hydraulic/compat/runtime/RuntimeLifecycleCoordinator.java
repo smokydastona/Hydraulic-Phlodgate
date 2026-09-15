@@ -26,6 +26,7 @@ public final class RuntimeLifecycleCoordinator {
     private static volatile CompatibilityRegistry compatibilityRegistry;
     private static volatile SessionAutoFlushCoordinator sessionAutoFlushCoordinator;
     private static final Map<BlockEntity, MachineSynchronizationCoordinator> machineSynchronizers = new WeakHashMap<>();
+    private static final Map<BlockEntity, BlockEntityStateSynchronizer> stateSynchronizers = new WeakHashMap<>();
 
     private RuntimeLifecycleCoordinator() {
     }
@@ -41,6 +42,9 @@ public final class RuntimeLifecycleCoordinator {
         sessionAutoFlushCoordinator = new SessionAutoFlushCoordinator();
         synchronized (machineSynchronizers) {
             machineSynchronizers.clear();
+        }
+        synchronized (stateSynchronizers) {
+            stateSynchronizers.clear();
         }
     }
 
@@ -73,6 +77,12 @@ public final class RuntimeLifecycleCoordinator {
         }
         synchronized (machineSynchronizers) {
             machineSynchronizers.remove(blockEntity);
+        }
+        synchronized (stateSynchronizers) {
+            BlockEntityStateSynchronizer synchronizer = stateSynchronizers.remove(blockEntity);
+            if (synchronizer != null) {
+                synchronizer.reset();
+            }
         }
     }
 
@@ -129,6 +139,11 @@ public final class RuntimeLifecycleCoordinator {
         if (!binding.identifier().equals(identifier)) {
             binding = binder.refresh(identifier, blockEntity, Map.of("category", "block_entity"));
         }
+        BlockEntityStateSynchronizer stateSynchronizer;
+        synchronized (stateSynchronizers) {
+            stateSynchronizer = stateSynchronizers.computeIfAbsent(blockEntity, ignored -> new BlockEntityStateSynchronizer());
+        }
+        stateSynchronizer.observe(blockEntity, binding.identifier(), level, autoFlush);
         TransferBridgeFactory.ItemTransferBridge inventory = registry.dispatchTable().itemTransfer(binding.identifier(), blockEntity);
         MachineProcessingBridge machine = registry.dispatchTable().machineProcessing(binding.identifier(), inventory);
         if (machine == null) {

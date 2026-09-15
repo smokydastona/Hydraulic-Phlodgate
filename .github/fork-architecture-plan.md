@@ -58,6 +58,15 @@ claims.
 - 2026-09-14
 
 ### Latest verified implementation slice
+- Generic block-entity state synchronization foundation: `BlockEntityStateSynchronizer` snapshots
+  authoritative `BlockEntity.saveWithoutMetadata(level.registryAccess())` output for every live
+  discovered block entity, retains only an ephemeral previous tag, and emits a `block_entity.state`
+  delta through `SessionAutoFlushCoordinator` when serialized state changes. Lifecycle install,
+  unbind, replacement, and garbage collection clear the runtime snapshot; no live block entity is
+  stored as persistent state. Focused Java 25 tests and shared compilation pass. This establishes
+  safe state observation and delta production, not arbitrary reflective mutation or physical client
+  observation; generic block-entity packet encoding remains explicitly unsupported where no concrete
+  Geyser mapping exists.
 - Metadata-declared energy block-use actions: `EnergyBlockUseActionPlan` compiles bounded
   `interaction.energy.action`, `interaction.energy.amount`, optional side, and optional property
   facts for exact `RECEIVE` or `EXTRACT` operations. `BedrockRuntimeActionRouter` executes the

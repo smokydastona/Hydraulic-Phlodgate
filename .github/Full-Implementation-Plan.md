@@ -11,7 +11,7 @@ Status vocabulary: `OPEN`, `IN_PROGRESS`, `SERVER_VERIFIED`, `TRANSPORT_VERIFIED
 | Workstream | Current status | Blocking evidence | Exit condition |
 | --- | --- | --- | --- |
 | Clean runtime world and scoreboard lifecycle | SERVER_VERIFIED | Fresh-world startup and clean shutdown passed; reload/reconnect still require a client session | Fresh world starts, reloads, reconnects, and restarts with exactly one `phlodgate_bridge` objective |
-| Automatic third-party live binding | IN_PROGRESS | Adapter-unknown runtime inventory is discovered, verified, bound, executed, unbound, and rebound in production dispatch tests; real third-party block-entity and client round trips remain open | Real mod block entity completes discover-to-client round trip across unload, reload, and restart |
+| Automatic third-party live binding | IN_PROGRESS | Adapter-unknown runtime inventory is discovered, verified, bound, executed, unbound, and rebound in production dispatch tests; generic serialized block-entity state observation now runs through lifecycle binding; real third-party block-entity and client round trips remain open | Real mod block entity completes discover-to-client round trip across unload, reload, and restart |
 | Universal resource index | OPEN | Config, corpus, recipe, packaging, and cache discovery paths still need classification and consolidation | Every discovery scan is indexed or explicitly runtime-owned |
 | Recipe-manager normalization | IN_PROGRESS | Resource and codec-backed runtime entries produce `RecipeIR`; unknown/custom semantics produce `RECIPE_RUNTIME_UNKNOWN`; automatic machine-to-recipe association remains open | Every observed entry has typed evidence and each machine binds only compatible executable RecipeIR records |
 | Normalized action pipeline | IN_PROGRESS | Production action routing is narrow | Typed action decoding, validation, Java-thread execution, transaction result, and sync trace for each supported action |
@@ -19,8 +19,8 @@ Status vocabulary: `OPEN`, `IN_PROGRESS`, `SERVER_VERIFIED`, `TRANSPORT_VERIFIED
 | Energy actions | IN_PROGRESS | Receive/extract block-use contract now executes through the shared energy bridge and records traceable property state; persistence and physical client evidence remain open | Receive/extract simulation and commit with persistence and sync evidence |
 | Menu actions | SERVER_VERIFIED | Server-thread packet routing, explicit button/toggle contracts, transaction evidence, authoritative resync, tests, compilation, and live startup are verified; physical Bedrock execution is unverified | Live Java menu action contracts and synchronized results observed from Bedrock |
 | Entity actions | OPEN | Prompt mapping exists; authoritative use/attack/mount actions do not | Live entity resolution, mutation, and sync evidence |
-| Machine lifecycle and persistence | IN_PROGRESS | Generic processing exists; restart/chunk-unload proof is pending | Mid-cycle save/restart preserves all inputs, resources, recipe, progress, and state |
-| Failure and rollback | OPEN | Transaction unit tests exist; live lifecycle failure matrix is incomplete | No loss, duplication, or half-commit across all listed failures |
+| Machine lifecycle and persistence | IN_PROGRESS | Generic processing and ephemeral serialized block-entity state observation exist; restart/chunk-unload and full mutable-state proof are pending | Mid-cycle save/restart preserves all inputs, resources, recipe, progress, and state |
+| Failure and rollback | IN_PROGRESS | Transfer and machine transaction tests pass; live lifecycle failure matrix is incomplete | No loss, duplication, or half-commit across all listed failures |
 | Universal automation | IN_PROGRESS | Request-oriented transfer exists; network lifecycle proof is pending | Source-to-machine-to-output route persists and synchronizes |
 | Pack validation classification | IN_PROGRESS | Typed `FailureClassification` is emitted for validator findings and malformed JSON precedence is regression-tested; full third-party corpus remediation remains open | Every finding is classified as generated-invalid, unsupported, or validator defect |
 | Physical Bedrock validation | BLOCKED | No accessible official Bedrock client/device evidence in this environment | E1-E10 artifacts recorded by a human-operated client |
@@ -72,6 +72,18 @@ discovered runtime object. Identifier-specific fixture branching does not satisf
 - The bundled fluid-machine fixture declares a water-bucket drain contract and property `0` projection.
 	Java 25 focused router, plan, and bridge tests plus `:fabric:compileJava` passed. This is transport-path
 	evidence only; live client observation and restart persistence remain open.
+
+## 2026-09-14 Block-Entity State Evidence
+
+- `BlockEntityStateSynchronizer` serializes live block-entity custom state through Minecraft's
+	supported `saveWithoutMetadata(level.registryAccess())` API and keeps only an ephemeral previous
+	snapshot for comparison.
+- `RuntimeLifecycleCoordinator` observes every discovered block entity, emits a `block_entity.state`
+	delta through `SessionAutoFlushCoordinator` when the serialized state changes, and clears the
+	snapshot on lifecycle unbind or coordinator reinstall.
+- `BlockEntityStateSynchronizerTest`, `:shared:compileJava`, and the focused shared test pass. This
+	proves authoritative state observation and delta production, not arbitrary mutation, persistence
+	across a real restart, generic Bedrock packet encoding, or client observation.
 
 ## 2026-09-14 Energy Action Evidence
 

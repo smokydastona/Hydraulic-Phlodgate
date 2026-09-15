@@ -528,6 +528,13 @@ state. The machine synchronization coordinator now provides a tick-to-dirty-stat
 flush boundary for callers that bind it to a live machine tick; it does not claim that every third-
 party block entity is automatically wired to that coordinator.
 
+State observation is also anchored in Minecraft's authoritative block-entity serialization
+boundary. Phlodgate snapshots `saveWithoutMetadata(level.registryAccess())` for every discovered live
+block entity, retains only an ephemeral previous snapshot, and emits a `block_entity.state` delta
+when custom serialized state changes. Lifecycle unbind and coordinator reinstall clear these
+snapshots. This is state observation and delta production; arbitrary block-entity mutation, restart
+proof, and generic Bedrock packet encoding remain separate gates.
+
 Generated-pack findings now include typed root-cause classifications. Explicit malformed-output
 codes take precedence over broad path heuristics, so invalid JSON is reported as a generator defect
 even when its archive entry name looks path-related. Classification improves triage; it does not
