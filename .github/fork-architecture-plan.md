@@ -84,18 +84,21 @@ The project has transitioned from architecture definition to the final execution
 Architecture (Done) ──► Runtime Contracts ──► Lifecycle & Persistence ──► Transactional Correctness ──► Physical Bedrock (E1-E10)
 ```
 
-### P0 — Non-Negotiable Server & Gameplay Contracts
-1. **P0.1: Universal Resource Index Consolidation**: Eliminate redundant filesystem scans; enforce `UniversalResourceIndex` $\rightarrow$ `DiscoveryIR` $\rightarrow$ `CompatibilityIR` $\rightarrow$ `CompiledCompatibilityPlan`.
-2. **P0.2: Block-Entity Lifecycle & Persistence**: Invalidate stale bindings on chunk unload/reload, block destruction, and dimension change; prove machine state preservation across cold restarts.
-3. **P0.3: Fluid & Energy 6-Sided Round Trips**: Validate 6-directional simulated and committed transfers; guarantee zero state corruption on partial transfer failures.
-4. **P0.4: Automation & Financial-Grade Rollback**: Multi-resource transactions (`MultiResourceTransaction`) must guarantee 100% two-phase rollback without item/fluid/energy loss or duplication.
-5. **P0.5: Pack Remediation & Defect Classification**: Classify pack generation issues into `FIXABLE_GENERATOR_ERROR`, `SOURCE_ASSET_ERROR`, or `EXPECTED_DEGRADATION`; release-block only on generator defects.
-6. **P0.6: Tier-1 Real Mods (Create First)**: Use *Create* to prove generic capability abstractions (kinetics, stress, transfer) via `CreateAdapter` rather than hardcoding machines.
-7. **P0.7: Canonical State-Equivalence Testing**: Verify $S_{\text{after}} \equiv S_{\text{pre-restart}}$ via `CanonicalRuntimeState` snapshots across restarts and chunk cycles.
-8. **P0.8: Capability Completeness Policy**: Enforce that any critical capability marked `OPEN` (e.g. Persistence) forces `NOT_RELEASE_READY` regardless of high visual scores.
-
-### P1 — Physical Bedrock Validation Campaign
-- Complete and record the E1–E10 physical client evidence ladder on official Bedrock clients (Windows, iOS, Android, Switch).
+### Ranked Release Priorities (P0–P14)
+1. **P0 — Bedrock/Geyser Clean Client Connection**: Resolve downstream entity and block metadata decode exceptions on the Bedrock network boundary.
+2. **P1 — Universal Resource Index Finalization**: Ensure 100% of resource consumers query `UniversalResourceIndex` $\rightarrow$ `DiscoveryIR` rather than performing ad-hoc filesystem scans.
+3. **P2 — Semantic Classification & Discovery IR**: Convert raw evidence facts into typed capability declarations with failure semantics.
+4. **P3 — Automatic Live Capability Binding**: Attach dynamically compiled plans to discovered block entities at runtime with position/dimension invalidation.
+5. **P4 — Machine & Recipe Engine Association**: Associate runtime block entities with normalized `RecipeIR` sets without identifier-specific branches.
+6. **P5 — Universal Fluid Runtime & World Fluids**: Complete 6-sided multi-tank transfers, container exchanges, and world fluid block approximations.
+7. **P6 — Normalized Energy Ecosystem**: Model power networks, storage units, rate limits, and machine energy consumption with state synchronization.
+8. **P7 — Deep Block-Entity Behavior**: Move beyond NBT patching to live state diffing, transactional updates, and restart recovery.
+9. **P8 — Universal Menu IR & Rich Widgets**: Compile custom GUI layouts, slots, gauges, progress bars, and mode toggles to Bedrock UI forms.
+10. **P9 — Deep Entity Runtime & Actions**: Map entity attributes, riding/mounting, combat, and bounded AI goals without unsupported custom packets.
+11. **P10 — Clean-World Restart Persistence Certification**: Enforce mathematical state equivalence ($S_{\text{after}} \equiv S_{\text{pre-restart}}$) via `MachinePersistenceValidationHarness`.
+12. **P11 — Custom Network Protocol Safety**: Classify custom payload channels as fail-closed evidence or explicit adapter requirements.
+13. **P12 — Ecosystem Adapters (Create First)**: Teach the generic engine ecosystem-specific semantics (e.g. Create kinetics/stress via `CreateAdapter`).
+14. **P13/P14 — Multi-Platform Physical Bedrock Matrix (E1–E10) & Zero-Trust Audit Sign-Off**: Complete manual attestation ladder and verify zero stubs across the workspace.
 
 ## Release-Readiness Gates
 
@@ -3038,58 +3041,36 @@ object-level contract evidence plus physical Bedrock observation for every criti
 
 ---
 
-## Prioritized Implementation Roadmap (Phases 1-10)
+## Master Release-Execution Roadmap (P0–P14)
 
-1. **Phase 1: Runtime Foundation & Capability IR**
-   - Universal Capability IR & typed capability schemas.
-   - Capability discovery & reflection engine for Forge/Fabric/Botarium.
-   - Dynamic capability binding & runtime dispatch registry.
-   - Automated Capability Completeness Evaluator reporting.
-
-2. **Phase 2: Inventory, Item Transfer & Sided Automation**
-   - Universal inventory abstraction & multi-slot transactional safety.
-   - Sided insertion/extraction rules, stack preservation, and simulation.
-   - Filtered transfers, priorities, and pipe/conveyor network routing.
-
-3. **Phase 3: Universal Machine Processing Engine**
-   - Generic Machine IR (States: Idle, Running, Blocked, Powered).
-   - Dynamic recipe matcher & multi-input/output processing cycles.
-   - Machine progress tracking, tick-driven state updates, and dirty-state broadcasting.
-
-4. **Phase 4: Universal Fluid Runtime & Tank Transfer**
-   - Fluid IR, normalized FluidStack, and multi-tank capacity validation.
-   - Container $\leftrightarrow$ Tank bidirectional transfers (bucket, canister, tank).
-   - Machine fluid I/O integration and world fluid presentation fallbacks.
-
-5. **Phase 5: Universal Energy & Power Networks**
-   - Normalized EnergyStorage IR (FE/RF/TechReborn/Mana).
-   - Storage, generation, consumption, and rate-limiting contracts.
-   - Power network distribution and battery buffer management.
-
-6. **Phase 6: Generic Menu Translation (Menu IR) & UI Automation**
-   - Menu IR compiler mapping Java ScreenHandlers to Bedrock container archetypes.
-   - Progress bar, energy meter, and fluid gauge property synchronization.
-   - Action buttons, mode selectors, and serverbound button transaction routing.
-
-7. **Phase 7: Deep Entity Runtime & Complex Interactions**
-   - Entity state IR, custom attributes, equipment, and metadata syncing.
-   - Bedrock right-click/attack action routing to authoritative Java handlers.
-   - Rideable entities, vehicle physics synchronization, and animation states.
-
-8. **Phase 8: Network Synchronization & Bidirectional Action Routing**
-   - Server $\to$ Client change tracking with dirty-state coalescing and batching.
-   - Client $\to$ Server action translation through non-intrusive server-thread mixins.
-   - Real-time container property & inventory slot packet delivery.
-
-9. **Phase 9: Automated Mod Fingerprinting & Plan Optimization**
-   - Machine-learning/heuristic pattern classification for unmapped mods.
-   - Capability-based adapter ranking and automatic graceful degradation.
-   - Persistent conversion key optimization and cross-mod dependency pruning.
-
-10. **Phase 10: Multi-Level Validation & Modpack Regression Suite**
-    - Automated Level 1-3 test harness execution in CI.
-    - Level 4 Bedrock client manual verification protocol.
-    - Level 5 multi-modpack regression corpus (Create + Mekanism + Thermal + AE2).
+1. **P0 — Bedrock/Geyser Clean Client Connection Path**:
+   - Isolate downstream entity and block metadata decode exceptions on the Bedrock network boundary to reach a clean client-observed gameplay state.
+2. **P1 — Universal Resource Index Finalization**:
+   - Complete universal index integration so 100% of resource consumers query `UniversalResourceIndex` $\rightarrow$ `DiscoveryIR` rather than performing redundant filesystem scans.
+3. **P2 — Semantic Classification & Discovery IR**:
+   - Convert raw evidence facts into typed capability declarations with failure semantics and provenance.
+4. **P3 — Automatic Live Capability Binding**:
+   - Attach dynamically compiled plans to discovered block entities at runtime with position/dimension invalidation.
+5. **P4 — Machine & Recipe Engine Association**:
+   - Associate runtime block entities with normalized `RecipeIR` sets without identifier-specific branches.
+6. **P5 — Universal Fluid Runtime & World Fluids**:
+   - Complete 6-sided multi-tank transfers, container exchanges, and world fluid block approximations.
+7. **P6 — Normalized Energy Ecosystem**:
+   - Model power networks, storage units, rate limits, and machine energy consumption with container property synchronization.
+8. **P7 — Deep Block-Entity Behavior**:
+   - Move beyond NBT patching to live state diffing, transactional updates, and restart recovery.
+9. **P8 — Universal Menu IR & Rich Widgets**:
+   - Compile custom GUI layouts, slots, gauges, progress bars, and mode toggles to Bedrock UI forms.
+10. **P9 — Deep Entity Runtime & Actions**:
+    - Map entity attributes, riding/mounting, combat, and bounded AI goals without unsupported custom packets.
+11. **P10 — Clean-World Restart Persistence Certification**:
+    - Enforce mathematical state equivalence ($S_{\text{after}} \equiv S_{\text{pre-restart}}$) via `MachinePersistenceValidationHarness`.
+12. **P11 — Custom Network Protocol Safety**:
+    - Classify custom payload channels as fail-closed evidence or explicit adapter requirements.
+13. **P12 — Ecosystem Adapters (Create First)**:
+    - Teach the generic engine ecosystem-specific semantics (e.g. Create kinetics/stress via `CreateAdapter`).
+14. **P13/P14 — Multi-Platform Physical Bedrock Matrix (E1–E10) & Zero-Trust Audit Sign-Off**:
+    - Complete manual attestation ladder on real Bedrock devices and verify zero stubs across the workspace.
 
 ---
 
