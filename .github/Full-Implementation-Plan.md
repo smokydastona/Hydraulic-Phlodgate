@@ -16,13 +16,13 @@ Status vocabulary: `OPEN`, `IN_PROGRESS`, `SERVER_VERIFIED`, `TRANSPORT_VERIFIED
 | Recipe-manager normalization | IN_PROGRESS | Resource and codec-backed runtime entries produce `RecipeIR`; unknown/custom semantics produce `RECIPE_RUNTIME_UNKNOWN`; automatic machine-to-recipe association remains open | Every observed entry has typed evidence and each machine binds only compatible executable RecipeIR records |
 | Normalized action pipeline | IN_PROGRESS | Production action routing is narrow | Typed action decoding, validation, Java-thread execution, transaction result, and sync trace for each supported action |
 | Fluid actions | IN_PROGRESS | Metadata-declared exact bucket exchange reaches an executable live tank and emits a numeric container-property update; persistence and physical Bedrock evidence remain open | Fill/drain simulation and commit with persistence and sync evidence |
-| Energy actions | OPEN | Energy transfer substrate exists, Bedrock action contract does not | Receive/extract simulation and commit with persistence and sync evidence |
+| Energy actions | IN_PROGRESS | Receive/extract block-use contract now executes through the shared energy bridge and records traceable property state; persistence and physical client evidence remain open | Receive/extract simulation and commit with persistence and sync evidence |
 | Menu actions | SERVER_VERIFIED | Server-thread packet routing, explicit button/toggle contracts, transaction evidence, authoritative resync, tests, compilation, and live startup are verified; physical Bedrock execution is unverified | Live Java menu action contracts and synchronized results observed from Bedrock |
 | Entity actions | OPEN | Prompt mapping exists; authoritative use/attack/mount actions do not | Live entity resolution, mutation, and sync evidence |
 | Machine lifecycle and persistence | IN_PROGRESS | Generic processing exists; restart/chunk-unload proof is pending | Mid-cycle save/restart preserves all inputs, resources, recipe, progress, and state |
 | Failure and rollback | OPEN | Transaction unit tests exist; live lifecycle failure matrix is incomplete | No loss, duplication, or half-commit across all listed failures |
 | Universal automation | IN_PROGRESS | Request-oriented transfer exists; network lifecycle proof is pending | Source-to-machine-to-output route persists and synchronizes |
-| Pack validation classification | OPEN | Existing invalid-pack set needs root-cause categories | Every finding is classified as generated-invalid, unsupported, or validator defect |
+| Pack validation classification | IN_PROGRESS | Typed `FailureClassification` is emitted for validator findings and malformed JSON precedence is regression-tested; full third-party corpus remediation remains open | Every finding is classified as generated-invalid, unsupported, or validator defect |
 | Physical Bedrock validation | BLOCKED | No accessible official Bedrock client/device evidence in this environment | E1-E10 artifacts recorded by a human-operated client |
 | Real-mod validation | BLOCKED | Universal contracts and physical evidence are prerequisites | Adapter-free arbitrary-mod test plus evidence-backed matrix |
 | Final zero-trust audit | OPEN | Must run after implementation and validation workstreams | No unsupported completion claims and all classifications have evidence |
@@ -72,6 +72,25 @@ discovered runtime object. Identifier-specific fixture branching does not satisf
 - The bundled fluid-machine fixture declares a water-bucket drain contract and property `0` projection.
 	Java 25 focused router, plan, and bridge tests plus `:fabric:compileJava` passed. This is transport-path
 	evidence only; live client observation and restart persistence remain open.
+
+## 2026-09-14 Energy Action Evidence
+
+- `EnergyBlockUseActionPlan` accepts only bounded `RECEIVE`/`EXTRACT` contracts with positive
+	amounts, optional side, and optional property ID; malformed facts fail closed.
+- `BedrockRuntimeActionRouter.executeEnergyAction` uses the existing target discovery and energy
+	transaction path, requires an exact moved amount, carries the action trace into dirty state,
+	and optionally emits a `container.property.<id>` projection for Geyser transport.
+- Focused Java 25 tests pass for parser rejection, exact action execution, transfer state changes,
+	fluid regressions, and pack validation. Persistence, live server fixture execution, and physical
+	Bedrock observation are not promoted by this evidence.
+
+## 2026-09-14 Pack Classification Evidence
+
+- `PackValidationReport.FailureClassification` now checks explicit generated-output defect codes
+	before generic path heuristics. A malformed JSON entry is therefore classified as
+	`GENERIC_GENERATOR_DEFECT`, even when its archive path contains the word `path`.
+- `PackValidatorTest` asserts this behavior. Pack validation still records a failed pack and
+	continues the pipeline; classification does not claim that every third-party asset is repaired.
 
 ## Release Readiness Gates
 

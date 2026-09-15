@@ -20,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -272,6 +273,40 @@ public final class BedrockRuntimeActionRouter {
         return new RuntimeActionResult(routed.traceId(), Status.MUTATED, routed.position(), routed.blockIdentifier(), null);
     }
 
+    @NotNull
+    static RuntimeActionResult executeEnergyAction(
+        @NotNull RuntimeActionResult routed,
+        @NotNull RuntimeTargetDiscovery discovery,
+        @NotNull EnergyBlockUseActionPlan action,
+        @Nullable DirtyStateTracker dirtyStateTracker
+    ) {
+        if (routed.status() != Status.TARGET_RESOLVED || routed.position() == null || routed.blockIdentifier() == null) {
+            return routed;
+        }
+        TransferDirection direction = action.action() == EnergyBlockUseActionPlan.Action.RECEIVE
+            ? TransferDirection.INSERT
+            : TransferDirection.EXTRACT;
+        TransferResult result = discovery.transferEnergy(
+            routed.position(), direction, action.amount(), action.side(), dirtyStateTracker, routed.traceId()
+        );
+        if (!result.committed() || result.moved() != action.amount()) {
+            return new RuntimeActionResult(
+                routed.traceId(),
+                result.status() == TransferBridgeFactory.OperationStatus.FAILED ? Status.CAPABILITY_UNAVAILABLE : Status.MUTATION_REJECTED,
+                routed.position(),
+                routed.blockIdentifier(),
+                result.failureReason()
+            );
+        }
+        if (dirtyStateTracker != null && action.propertyId() != null) {
+            StateChangeSet property = new StateChangeSet(List.of(new StateChangeSet.FieldChange(
+                routed.blockIdentifier(), "container.property." + action.propertyId(), null, result.moved()
+            ))).withTrace(routed.traceId());
+            dirtyStateTracker.record(property);
+        }
+        return new RuntimeActionResult(routed.traceId(), Status.MUTATED, routed.position(), routed.blockIdentifier(), null);
+    }
+
     private static void rollbackFluidAction(
         @NotNull RuntimeActionResult routed,
         @NotNull FluidContainerBridge bridge,
@@ -296,6 +331,10 @@ public final class BedrockRuntimeActionRouter {
         FluidBlockUseActionPlan fluidAction = FluidBlockUseActionPlan.from(facts);
         if (fluidAction != null) {
             return executeFluidAction(routed, discovery, fluidAction, heldItemAccess, dirtyStateTracker);
+        }
+        EnergyBlockUseActionPlan energyAction = EnergyBlockUseActionPlan.from(facts);
+        if (energyAction != null) {
+            return executeEnergyAction(routed, discovery, energyAction, dirtyStateTracker);
         }
         BlockUseActionPlan itemAction = BlockUseActionPlan.from(facts);
         return itemAction == null ? routed : executeItemAction(routed, discovery, itemAction, heldItemAccess, dirtyStateTracker);

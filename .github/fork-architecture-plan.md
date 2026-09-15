@@ -39,7 +39,7 @@ implementation ledger is split across:
 - `.github/Runtime-Contract-Matrix.md` for capability lifecycle evidence
 - `.github/Validation-Matrix.md` for server, transport, and physical-client gates
 
-The current product is **not release-ready**. Selected item/block-use, transfer, machine,
+The current product is **not release-ready**. Selected item/block-use, fluid/energy transfer, machine,
 lifecycle, menu, and Geyser transport slices are server- or transport-verified, but fluid, energy,
 and entity action contracts, universal indexing, machine-to-recipe association, persistence proof,
 and physical Bedrock observation remain open. A transport handoff must never be described as client
@@ -58,6 +58,18 @@ claims.
 - 2026-09-14
 
 ### Latest verified implementation slice
+- Metadata-declared energy block-use actions: `EnergyBlockUseActionPlan` compiles bounded
+  `interaction.energy.action`, `interaction.energy.amount`, optional side, and optional property
+  facts for exact `RECEIVE` or `EXTRACT` operations. `BedrockRuntimeActionRouter` executes the
+  operation through `RuntimeTargetDiscovery.transferEnergy`, rejects partial commits, preserves
+  the trace, and can project the moved amount through the existing container-property sync path.
+  Focused Java 25 parser, router, transfer, and pack-validation tests pass. This is server-path
+  and transport-ready evidence; persistence and physical client observation remain open.
+- Pack failure classification: explicit generator defect codes are now classified before broad
+  path heuristics, so malformed generated JSON is reported as `GENERIC_GENERATOR_DEFECT` even when
+  its archive entry contains a path-like name. Focused validator and tracker tests cover the
+  classification regression. This prevents a validator finding from being mistaken for a content
+  incompatibility, but does not by itself remediate every third-party pack defect.
 - Metadata-declared fluid action handoff: `FluidBlockUseActionPlan` compiles explicit fill/drain
   bucket-exchange contracts from `interaction.fluid.*` facts. `BedrockRuntimeActionRouter` resolves
   the live tank through compiled dispatch, simulates the exact amount before mutation, exchanges the

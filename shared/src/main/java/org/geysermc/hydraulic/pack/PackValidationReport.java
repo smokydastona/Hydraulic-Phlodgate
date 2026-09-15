@@ -81,16 +81,16 @@ public record PackValidationReport(
             if (normalizedCode.contains("manifest") || normalizedMessage.contains("manifest")) {
                 return INVALID_MANIFEST;
             }
+            if (normalizedCode.contains("json.invalid") || normalizedCode.contains("archive.unreadable")
+                || normalizedCode.contains("pack.output.missing") || normalizedCode.contains("pack.json.invalid")) {
+                return GENERIC_GENERATOR_DEFECT;
+            }
             if (normalizedCode.contains("path.long") || normalizedCode.contains("path") || normalizedMessage.contains("path")) {
                 return INVALID_PATH;
             }
             if (normalizedCode.contains("icon.missing") || normalizedCode.contains("content.empty")
                 || normalizedCode.contains("missing") || normalizedMessage.contains("missing")) {
                 return MISSING_ASSET;
-            }
-            if (normalizedCode.contains("json.invalid") || normalizedCode.contains("archive.unreadable")
-                || normalizedCode.contains("pack.output.missing") || normalizedCode.contains("pack.json.invalid")) {
-                return GENERIC_GENERATOR_DEFECT;
             }
             if (normalizedCode.contains("unsupported") || normalizedMessage.contains("unsupported")) {
                 return UNSUPPORTED_CONTENT;

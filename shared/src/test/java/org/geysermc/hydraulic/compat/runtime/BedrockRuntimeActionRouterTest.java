@@ -314,6 +314,34 @@ class BedrockRuntimeActionRouterTest {
         assertEquals(0, tank.amount);
     }
 
+    @Test
+    void executesExactEnergyActionAndRecordsPropertyState() {
+        RuntimeTraceId traceId = new RuntimeTraceId("bedrock-energy-receive");
+        EnergyRecordingAutomation automation = new EnergyRecordingAutomation();
+        RuntimeTargetDiscovery discovery = discovery(
+            new RuntimeTargetDiscovery.Target(MACHINE, null, null, new Object()), automation
+        );
+        BedrockRuntimeActionRouter.RuntimeActionResult routed = new BedrockRuntimeActionRouter.RuntimeActionResult(
+            traceId, BedrockRuntimeActionRouter.Status.TARGET_RESOLVED,
+            new RuntimeTargetDiscovery.Position(LEVEL, 4, 70, 9), MACHINE, null
+        );
+        DirtyStateTracker dirty = new DirtyStateTracker();
+
+        BedrockRuntimeActionRouter.RuntimeActionResult result = BedrockRuntimeActionRouter.executeEnergyAction(
+            routed,
+            discovery,
+            new EnergyBlockUseActionPlan(EnergyBlockUseActionPlan.Action.RECEIVE, 250, "up", 4),
+            dirty
+        );
+
+        assertEquals(BedrockRuntimeActionRouter.Status.MUTATED, result.status());
+        assertEquals(250, automation.lastRequest.amount());
+        StateChangeSet changes = dirty.drain();
+        assertEquals(traceId, changes.traceId());
+        assertEquals("container.property.4", changes.changes().get(1).field());
+        assertEquals(250, changes.changes().get(1).after());
+    }
+
     private static InventoryTransactionPacket blockUsePacket() {
         InventoryTransactionPacket packet = new InventoryTransactionPacket();
         packet.setTransactionType(InventoryTransactionType.ITEM_USE);
@@ -479,6 +507,19 @@ class BedrockRuntimeActionRouterTest {
         @Override
         public TransferResult transferEnergy(EnergyTransferRequest request) {
             return TransferResult.rejected("not used by action routing test");
+        }
+    }
+
+    private static final class EnergyRecordingAutomation extends NoopAutomationAccess {
+        private EnergyTransferRequest lastRequest;
+
+        @Override
+        public TransferResult transferEnergy(EnergyTransferRequest request) {
+            this.lastRequest = request;
+            StateChangeSet changes = new StateChangeSet(List.of(new StateChangeSet.FieldChange(
+                request.blockIdentifier(), "energy.amount", 0, request.amount()
+            )));
+            return new TransferResult(true, request.amount(), TransferBridgeFactory.OperationStatus.COMPLETED, null, List.of(), changes);
         }
     }
 

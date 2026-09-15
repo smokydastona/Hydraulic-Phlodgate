@@ -52,6 +52,14 @@ Hydraulic simulates the full move, commits only an exact result, compensates a f
 and hands the declared numeric tank level to Geyser through `ContainerSetDataPacket`. This is tested
 server/transport-path behavior, not physical Bedrock-client or restart-persistence verification.
 
+Metadata can also declare bounded energy block-use actions with
+`interaction.energy.action=receive|extract`, `interaction.energy.amount`, and optional
+`interaction.energy.side` and `interaction.energy.property`. The action is simulated and committed
+through the compiled energy bridge only when the exact amount succeeds; partial or malformed
+operations fail closed, and an optional property projection uses the existing Geyser sync path.
+Focused Java 25 tests cover this server-side contract. Persistence and physical Bedrock observation
+remain release gates.
+
 Machine synchronization session pipelines are reconciled against Geyser's live connection snapshot
 on each machine tick, so disconnected sessions do not retain dirty-state or transport references.
 This is server-side lifecycle handling, not evidence that a Bedrock client received or displayed an
@@ -519,6 +527,11 @@ runtime objects into every live mod block entity, and live Bedrock-client observ
 state. The machine synchronization coordinator now provides a tick-to-dirty-state-to-transport
 flush boundary for callers that bind it to a live machine tick; it does not claim that every third-
 party block entity is automatically wired to that coordinator.
+
+Generated-pack findings now include typed root-cause classifications. Explicit malformed-output
+codes take precedence over broad path heuristics, so invalid JSON is reported as a generator defect
+even when its archive entry name looks path-related. Classification improves triage; it does not
+turn third-party conversion-only evidence into a runtime compatibility claim.
 
 ---
 

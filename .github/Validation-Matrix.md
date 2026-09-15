@@ -22,7 +22,9 @@ Each completed client test must record timestamp, Java/Minecraft/Bedrock/Geyser/
 - The current environment has no accessible official Bedrock client/device for E4-E6.
 - Java 25 focused tests and Fabric compilation pass for the live-binding slice. A live server/client
 	round trip is still required before promotion beyond server evidence.
-- Pack-validation findings still require per-pack root-cause classification before release claims.
+- Pack-validation findings now carry typed root-cause classifications, including generator defects,
+  invalid manifests, invalid paths, missing assets, and unsupported content. Full third-party pack
+  remediation and corpus-wide review remain release gates.
 
 ## Fluid Action Evidence
 
@@ -34,6 +36,24 @@ Each completed client test must record timestamp, Java/Minecraft/Bedrock/Geyser/
 	server-authoritative block-use route and Geyser `ContainerSetDataPacket` handoff.
 - Not proven: physical Bedrock client receipt or rendering, block-entity persistence across restart,
 	and arbitrary third-party fluid-container item semantics.
+
+## Energy Action Evidence
+
+- `EnergyBlockUseActionPlanTest` covers positive bounded receive contracts and malformed, unbounded,
+	and negative-property rejection.
+- `BedrockRuntimeActionRouterTest` covers exact energy receive execution, trace propagation, and
+	`container.property.<id>` dirty-state projection through the shared runtime action path.
+- `EnergyTransferTransactionTest` covers simulation, exact commit, and rollback behavior for the
+	underlying energy bridge.
+- Not proven: a live third-party energy block, restart persistence, official Bedrock observation,
+	or a physical client rendering of the projected property.
+
+## Pack Classification Evidence
+
+- `PackValidatorTest` verifies malformed generated JSON is classified as
+	`GENERIC_GENERATOR_DEFECT`, not `INVALID_PATH` because of the archive entry name.
+- Validator errors remain pack-local and do not abort conversion of other mods. The current evidence
+	does not establish that all third-party pack inputs have been remediated.
 
 ## Live-Binding Evidence
 

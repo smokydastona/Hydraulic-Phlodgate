@@ -61,7 +61,11 @@ class PackValidatorTest {
         PackValidationReport.ModValidation validation = new PackValidator().validate(pack);
 
         assertFalse(validation.valid());
-        assertTrue(validation.errors().stream().anyMatch(message -> message.code().equals("pack.json.invalid")));
+        PackValidationReport.ValidationMessage message = validation.errors().stream()
+            .filter(error -> error.code().equals("pack.json.invalid"))
+            .findFirst()
+            .orElseThrow();
+        assertEquals(PackValidationReport.FailureClassification.GENERIC_GENERATOR_DEFECT, message.classification());
     }
 
     @Test
