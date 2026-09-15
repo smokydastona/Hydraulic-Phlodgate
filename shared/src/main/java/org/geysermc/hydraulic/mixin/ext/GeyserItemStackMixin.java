@@ -1,9 +1,11 @@
 package org.geysermc.hydraulic.mixin.ext;
 
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.session.GeyserSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.Final;
@@ -28,15 +30,35 @@ public abstract class GeyserItemStackMixin {
     @Final
     private int javaId;
 
-    @Inject(method = "asItem()Lorg/geysermc/geyser/item/type/Item;", at = @At("HEAD"), cancellable = true)
-    private void hydraulic$fallbackUnmappedJavaItem(CallbackInfoReturnable<Item> cir) {
-        if (this.javaId >= 0 && this.javaId < Registries.JAVA_ITEMS.get().size()) {
+    @Inject(method = "getItemData(Lorg/geysermc/geyser/session/GeyserSession;)Lorg/cloudburstmc/protocol/bedrock/data/inventory/ItemData;", at = @At("HEAD"), cancellable = true)
+    private void hydraulic$fallbackUnmappedJavaItemData(GeyserSession session, CallbackInfoReturnable<ItemData> cir) {
+        if (!this.hydraulic$isUnmappedJavaItem()) {
             return;
         }
 
+        this.hydraulic$logUnmappedJavaItem();
+        cir.setReturnValue(ItemData.AIR);
+    }
+
+    @Inject(method = "asItem()Lorg/geysermc/geyser/item/type/Item;", at = @At("HEAD"), cancellable = true)
+    private void hydraulic$fallbackUnmappedJavaItem(CallbackInfoReturnable<Item> cir) {
+        if (!this.hydraulic$isUnmappedJavaItem()) {
+            return;
+        }
+
+        this.hydraulic$logUnmappedJavaItem();
+        cir.setReturnValue(Items.AIR);
+    }
+
+    @Unique
+    private boolean hydraulic$isUnmappedJavaItem() {
+        return this.javaId < 0 || this.javaId >= Registries.JAVA_ITEMS.get().size();
+    }
+
+    @Unique
+    private void hydraulic$logUnmappedJavaItem() {
         if (HYDRAULIC_UNMAPPED_JAVA_ITEM_IDS.add(this.javaId)) {
             HYDRAULIC_LOGGER.warn("Falling back unmapped Java item id {} to Bedrock air", this.javaId);
         }
-        cir.setReturnValue(Items.AIR);
     }
 }
