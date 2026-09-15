@@ -428,6 +428,14 @@ Current work includes:
 
 Metadata-backed custom entities can be registered through Geyser when the compatibility result allows the entity to be represented safely.
 
+Deeper entity interaction now has a server-authoritative contract. An entity patch may declare
+`interaction.entity.action` as `use`, `attack`, `mount`, or `dismount`, with optional
+`interaction.entity.hand` and `interaction.entity.item` facts.
+The Bedrock interaction boundary validates the compiled plan, target identity, distance, and held
+item on the Minecraft server thread before executing the corresponding Java entity primitive. Any
+missing, malformed, unsupported, or uncompiled action falls through to normal Geyser behavior.
+This does not translate arbitrary AI, custom entity networking, or prove physical Bedrock observation.
+
 Hydraulic also recognizes the portable presentation profile shape used by Markus Bordihn's
 [BOs Easy Model Entities](https://github.com/MarkusBordihn/BOs-Easy-Model-Entities) project. During
 pack post-processing, indexed `data/*/easy_model_entities/profiles` and

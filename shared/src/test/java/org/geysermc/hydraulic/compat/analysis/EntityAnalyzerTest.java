@@ -87,6 +87,38 @@ class EntityAnalyzerTest {
     }
 
     @Test
+    void compilesMetadataBackedEntityActionFacts() {
+        Identifier identifier = Identifier.fromNamespaceAndPath("example", "mountable_entity");
+        ContentPatch patch = new ContentPatch(
+            identifier,
+            "entity",
+            Map.of(
+                "interaction.entity.action", "mount",
+                "interaction.entity.hand", "main_hand"
+            ),
+            MappingOwnership.USER,
+            "user/entities.json",
+            MappingOwnership.USER.priority(),
+            0
+        );
+        MetadataIndex metadataIndex = new MetadataIndex(
+            Map.of(), Map.of(), Map.of(),
+            Map.of(identifier, new IdentifierMapping(identifier, Identifier.fromNamespaceAndPath("example", "mountable_entity"), MappingOwnership.USER, "user/entities.json", 1000, 0)),
+            Map.of(), Map.of(identifier, List.of(patch)), List.of(), MetadataIndex.Summary.empty()
+        );
+
+        CompatibilityObject object = new EntityAnalyzer().analyze(
+            new ContentInventory.ContentDescriptor("entity", "example", "example:mountable_entity", true, false, List.of()),
+            emptyInventory(),
+            metadataIndex
+        );
+
+        assertEquals("mount", object.inventoryFacts().get("interaction.entity.action"));
+        assertEquals(SupportLevel.ADAPTED, object.supportResults().get("interaction").level());
+        assertFalse(object.runtimeRequirements().contains("entity_interaction_bridge"));
+    }
+
+    @Test
     void automaticallyMapsRegisteredEntityWithoutManualMetadata() {
         MetadataIndex metadataIndex = new MetadataIndex(
             Map.of(),
