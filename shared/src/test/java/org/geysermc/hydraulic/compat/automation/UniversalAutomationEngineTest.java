@@ -131,4 +131,36 @@ class UniversalAutomationEngineTest {
         assertEquals(8, srcBridge.itemAt(srcId, 0).count());
         assertEquals(8, destBridge.itemAt(destId, 0).count());
     }
+
+    @Test
+    @DisplayName("NetworkRouter invalidates routes when connected node is destroyed or unloaded")
+    void networkRouterInvalidatesOnNodeDisruption() {
+        Identifier srcId = Identifier.parse("test:source_node");
+        Identifier destId1 = Identifier.parse("test:dest_node_1");
+        Identifier destId2 = Identifier.parse("test:dest_node_2");
+
+        MockTestTransferBridge bridge = new MockTestTransferBridge(1, new TransferBridgeFactory.ItemStackView("minecraft:iron_ingot", 10));
+
+        UniversalAutomationEngine.RouteNode src = new UniversalAutomationEngine.RouteNode(srcId, 0, UniversalAutomationEngine.SidedFilter.allowAll(), bridge, null);
+        UniversalAutomationEngine.RouteNode d1 = new UniversalAutomationEngine.RouteNode(destId1, 1, UniversalAutomationEngine.SidedFilter.allowAll(), bridge, null);
+        UniversalAutomationEngine.RouteNode d2 = new UniversalAutomationEngine.RouteNode(destId2, 2, UniversalAutomationEngine.SidedFilter.allowAll(), bridge, null);
+
+        UniversalAutomationEngine.TransferRoute r1 = new UniversalAutomationEngine.TransferRoute("dim:overworld:r1", src, List.of(d1), 4);
+        UniversalAutomationEngine.TransferRoute r2 = new UniversalAutomationEngine.TransferRoute("dim:nether:r2", src, List.of(d2), 4);
+
+        UniversalAutomationEngine.NetworkRouter router = new UniversalAutomationEngine.NetworkRouter();
+        router.registerRoute(r1);
+        router.registerRoute(r2);
+        assertEquals(2, router.routeCount());
+
+        // Invalidate dest_node_1 -> r1 removed, r2 remains
+        router.invalidateNode(destId1);
+        assertEquals(1, router.routeCount());
+        assertNull(router.getRoute("dim:overworld:r1"));
+        assertNotNull(router.getRoute("dim:nether:r2"));
+
+        // Invalidate dimension "dim:nether" -> r2 removed
+        router.invalidateRoutesForDimension("dim:nether");
+        assertEquals(0, router.routeCount());
+    }
 }

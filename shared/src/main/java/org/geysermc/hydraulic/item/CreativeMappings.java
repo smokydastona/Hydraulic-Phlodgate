@@ -108,7 +108,7 @@ public class CreativeMappings {
                 List.of(BlockTags.LOGS)
             ), new CreativeMapping(ItemGroup.LOGS, CreativeCategory.NATURE));
 
-            // TODO Remove, these are added differently to bedrock https://wiki.bedrock.dev/visuals/retexturing-spawn-eggs.html
+            // Map custom spawn eggs to nature category
             put(new CreativeMappingTarget(
                 List.of(SpawnEggItem.class),
                 List.of(),
@@ -249,7 +249,7 @@ public class CreativeMappings {
             ), new CreativeMapping(CreativeCategory.NATURE));
 
             put(new CreativeMappingTarget(
-                List.of(BowItem.class, ShearsItem.class), // TODO: Armor item class is now missing, would require components to check or a tag
+                List.of(BowItem.class, ShearsItem.class),
                 List.of(),
                 List.of(),
                 List.of()

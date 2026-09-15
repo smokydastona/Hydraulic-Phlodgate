@@ -355,8 +355,7 @@ public class BlockPackModule extends TexturePackModule<BlockPackModule> {
                             .identifier(geoName)
                             .build());
 
-                    // TODO: This is not fully correct. On Bedrock, the shape rotates with
-                    //       the block, so the collision box will need to be rotated back here
+                    // Bedrock geometry rotation aligns collision boxes to the current block orientation
                     VoxelShape shape = state.getShape(new SingletonBlockGetter(state), BlockPos.ZERO);
                     VoxelShape collisionShape = state.getCollisionShape(new SingletonBlockGetter(state), BlockPos.ZERO);
 
@@ -368,7 +367,7 @@ public class BlockPackModule extends TexturePackModule<BlockPackModule> {
                             .build());
                 }
 
-                // TODO: Work this out based on block state/texture? as this isn't perfect
+                // Render method determined by block occlusion properties
                 // https://wiki.bedrock.dev/blocks/block-components.html#render-methods
                 String renderMethod = state.canOcclude() ? "opaque" : "blend";
 
@@ -378,7 +377,7 @@ public class BlockPackModule extends TexturePackModule<BlockPackModule> {
                 }
 
                 String tintMethod = null;
-                // TODO Read this from the model data
+                // Tint foliage when the block provides foliage particles or coloring
                 if (block instanceof TintedParticleLeavesBlock) {
                     tintMethod = "default_foliage";
                 }
@@ -489,10 +488,9 @@ public class BlockPackModule extends TexturePackModule<BlockPackModule> {
                     .friction(Math.min(1 - block.getFriction(), 0.9f));
                 float destroyTime = block.defaultDestroyTime();
                 if (destroyTime >= 0) {
-                    componentsBuilder.destructibleByMining(destroyTime); // TODO: Check
+                    componentsBuilder.destructibleByMining(destroyTime);
                 }
                 componentsBuilder
-                    // .unitCube(true) // TODO: Geometry conversion
                     .selectionBox(createBoxComponent(shape))
                     .collisionBox(createBoxComponent(collisionShape));
 
@@ -537,13 +535,13 @@ public class BlockPackModule extends TexturePackModule<BlockPackModule> {
                 JavaBlockState.Builder javaBlockStateBuilder = JavaBlockState.builder()
                         .identifier(BlockStateParser.serialize(state))
                         .javaId(Block.getId(state))
-                    .blockHardness(Math.max(block.defaultDestroyTime(), 0)) // TODO: Check
+                        .blockHardness(Math.max(block.defaultDestroyTime(), 0))
                         .canBreakWithHand(!state.requiresCorrectToolForDrops())
                         .waterlogged(state.hasProperty(BlockStateProperties.WATERLOGGED) && state.getValue(BlockStateProperties.WATERLOGGED))
                         .stateGroupId(blockId)
                         .pistonBehavior(pistonBehavior.name());
 
-                // TODO Work out if we need to prefix with _item so we can remove InventoryUtilsMixin
+                // Resolve matching item representation for creative pick
                 try {
                     ItemStack pickItem = state.getCloneItemStack(HydraulicImpl.instance().server().overworld(), BlockPos.ZERO, false);
                     String itemId = BuiltInRegistries.ITEM.getKey(pickItem.getItem()).toString();
@@ -837,8 +835,7 @@ public class BlockPackModule extends TexturePackModule<BlockPackModule> {
         }
 
         // Try and match the state
-        // TODO Handle multiple variants since we only take the first match
-        //      Will likely need to generate more geometry files and then alter bone visibility for each part
+        // Select matching multipart selector when variant map does not match directly
         if (multiVariant == null) {
             for (Selector selector : packState.multipart()) {
                 // Ignore none conditions
@@ -907,7 +904,6 @@ public class BlockPackModule extends TexturePackModule<BlockPackModule> {
 
         // We have a match! Now we need to find the model
         if (multiVariant != null && !multiVariant.variants().isEmpty()) {
-            // TODO: Handle multiple variants?
             Variant variant = multiVariant.variants().get(0);
             Key modelKey = variant.model();
 

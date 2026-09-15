@@ -2,14 +2,11 @@ package org.geysermc.hydraulic.compat.automation;
 
 import net.minecraft.resources.Identifier;
 import org.geysermc.hydraulic.compat.runtime.TransferBridgeFactory;
-import org.geysermc.hydraulic.compat.runtime.TransferDirection;
-import org.geysermc.hydraulic.compat.runtime.TransferRequest;
 import org.geysermc.hydraulic.compat.runtime.TransferResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -203,6 +200,50 @@ public final class UniversalAutomationEngine {
             }
 
             return new AutomationCycleReport(routeId, route.transferRateLimit(), totalMoved, results, totalMoved > 0);
+        }
+
+        public void unregisterRoute(@NotNull String routeId) {
+            this.routes.remove(routeId);
+        }
+
+        public void invalidateNode(@NotNull Identifier nodeIdentifier) {
+            List<String> routesToInvalidate = new ArrayList<>();
+            for (Map.Entry<String, TransferRoute> entry : this.routes.entrySet()) {
+                TransferRoute route = entry.getValue();
+                if (route.source().nodeIdentifier().equals(nodeIdentifier)) {
+                    routesToInvalidate.add(entry.getKey());
+                    continue;
+                }
+                boolean destMatches = route.destinations().stream()
+                    .anyMatch(dest -> dest.nodeIdentifier().equals(nodeIdentifier));
+                if (destMatches) {
+                    routesToInvalidate.add(entry.getKey());
+                }
+            }
+            routesToInvalidate.forEach(this.routes::remove);
+        }
+
+        public void invalidateRoutesForDimension(@NotNull String dimensionPrefix) {
+            List<String> toRemove = new ArrayList<>();
+            for (String routeId : this.routes.keySet()) {
+                if (routeId.startsWith(dimensionPrefix)) {
+                    toRemove.add(routeId);
+                }
+            }
+            toRemove.forEach(this.routes::remove);
+        }
+
+        public int routeCount() {
+            return this.routes.size();
+        }
+
+        public void clear() {
+            this.routes.clear();
+        }
+
+        @NotNull
+        public List<String> activeRouteIds() {
+            return List.copyOf(this.routes.keySet());
         }
     }
 }

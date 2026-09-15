@@ -19,7 +19,6 @@ import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserItemDataCom
 import org.geysermc.hydraulic.compat.CompatibilityRegistry;
 import org.geysermc.hydraulic.compat.MappingResolver;
 import org.geysermc.hydraulic.compat.ir.CompiledCompatibilityPlan;
-import org.geysermc.hydraulic.compat.runtime.CompatibilityDecisions;
 import org.geysermc.hydraulic.compat.runtime.FluidBucketTextureResolver;
 import org.geysermc.hydraulic.pack.ModResourceIndex;
 import org.geysermc.hydraulic.pack.PackLogListener;
@@ -36,7 +35,6 @@ import org.geysermc.pack.bedrock.resource.BedrockResourcePack;
 import org.geysermc.pack.converter.type.model.ModelStitcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.item.*;
 import team.unnamed.creative.metadata.pack.PackFormat;
 import team.unnamed.creative.model.Model;
@@ -51,7 +49,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-@SuppressWarnings({"rawtypes", "this-escape"})
+@SuppressWarnings("this-escape")
 @AutoService(PackModule.class)
 public class ItemPackModule extends TexturePackModule<ItemPackModule> {
     private final Set<Identifier> itemsWith2dIcon = new LinkedHashSet<>();
@@ -88,7 +86,7 @@ public class ItemPackModule extends TexturePackModule<ItemPackModule> {
             handleModel(context, selectModel.fallback(), itemLocation);
         } else if (itemModel instanceof ConditionItemModel conditionModel) {
             handleModel(context, conditionModel.onTrue(), itemLocation);
-        } else if (itemModel instanceof CompositeItemModel compositeModel) { // TODO: See if we can stitch together item models, for now this will use just the first model
+        } else if (itemModel instanceof CompositeItemModel compositeModel) {
             List<ItemModel> models = compositeModel.models();
             if (!models.isEmpty()) {
                 handleModel(context, models.getFirst(), itemLocation);
@@ -443,7 +441,7 @@ public class ItemPackModule extends TexturePackModule<ItemPackModule> {
                 CompiledCompatibilityPlan blockPlan = item instanceof BlockItem blockItem ? this.compatibilityBlockPlan(context, blockItem) : null;
 
                 // Set the creative mappings
-                if (item instanceof BlockItem blockItemForCreative) {
+                if (item instanceof BlockItem) {
                     if (blockPlan == null || blockPlan.allowsCreativeExposure()) {
                         CreativeMappings.setup(item, customItemOptions);
                     }

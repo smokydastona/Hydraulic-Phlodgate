@@ -13,7 +13,6 @@
     "ext.BlockStateSerializerMixin",
     "ext.JavaBlockEntityDataTranslatorMixin",
     "ext.JavaOpenScreenTranslatorMixin",
-    "ext.ItemTranslatorMixin",
     "ext.MinecraftResourcePackReaderImplMixin",
     "ext.ModelSerializerMixin",
     "ext.ScoreboardObjectiveMixin",
