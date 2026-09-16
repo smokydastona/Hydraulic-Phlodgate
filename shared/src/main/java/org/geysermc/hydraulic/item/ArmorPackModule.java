@@ -114,7 +114,7 @@ public class ArmorPackModule extends TexturePackModule<ArmorPackModule> {
             description.renderControllers(new String[] { "controller.render.armor" });
 
             Map<String, String> items = new HashMap<>() {{
-                put(armorItemLocation + "_item", "query.owner_identifier == 'minecraft:player'");
+                put(armorItemLocation.toString(), "query.is_owner_identifier_any('minecraft:player')");
             }};
             description.item(items);
 
