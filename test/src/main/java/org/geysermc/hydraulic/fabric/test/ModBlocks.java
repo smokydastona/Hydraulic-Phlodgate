@@ -14,7 +14,6 @@ import org.geysermc.hydraulic.fabric.test.machine.ItemTransferMachineBlock;
 import org.geysermc.hydraulic.fabric.test.machine.ProcessingMachineBlock;
 import org.geysermc.hydraulic.fabric.test.machine.EnergyMachineBlockEntity;
 import org.geysermc.hydraulic.fabric.test.machine.FluidMachineBlockEntity;
-import org.geysermc.hydraulic.fabric.test.machine.MixedResourceMachineBlockEntity;
 import org.geysermc.hydraulic.fabric.test.machine.MixedResourceMachineBlock;
 import org.geysermc.hydraulic.fabric.test.machine.MenuMachineBlock;
 import org.geysermc.hydraulic.fabric.test.machine.ResourceMachineBlock;

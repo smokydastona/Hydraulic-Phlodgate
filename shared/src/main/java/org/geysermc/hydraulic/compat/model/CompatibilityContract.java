@@ -6,10 +6,8 @@ import org.geysermc.hydraulic.compat.runtime.RuntimeBridgeKind;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Typed execution contract derived from analyzer output for one Java object.

@@ -1,7 +1,6 @@
 package org.geysermc.hydraulic.compat.runtime;
 
 import net.minecraft.resources.Identifier;
-import org.geysermc.hydraulic.compat.CompatibilityRegistry;
 import org.geysermc.hydraulic.compat.CompatibilityStatus;
 import org.geysermc.hydraulic.compat.adapter.AdapterBinding;
 import org.geysermc.hydraulic.compat.adapter.AdapterFeature;

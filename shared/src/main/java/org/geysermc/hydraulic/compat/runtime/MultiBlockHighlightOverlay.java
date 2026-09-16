@@ -4,8 +4,6 @@ import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
 public final class MultiBlockHighlightOverlay {
     public enum HighlightStatus {
         FORMED,

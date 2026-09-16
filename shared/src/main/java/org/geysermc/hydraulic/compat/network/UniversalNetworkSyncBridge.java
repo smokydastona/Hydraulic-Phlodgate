@@ -1,11 +1,9 @@
 package org.geysermc.hydraulic.compat.network;
 
 import net.minecraft.resources.Identifier;
-import org.geysermc.hydraulic.compat.runtime.EncodedSyncChange;
 import org.geysermc.hydraulic.compat.runtime.RuntimeTraceId;
 import org.geysermc.hydraulic.compat.runtime.SyncBatch;
 import org.geysermc.hydraulic.compat.runtime.SyncChange;
-import org.geysermc.hydraulic.compat.runtime.SyncDeliveryResult;
 import org.geysermc.hydraulic.compat.runtime.SyncDeliveryStatus;
 import org.geysermc.hydraulic.compat.runtime.SyncPriority;
 import org.jetbrains.annotations.NotNull;

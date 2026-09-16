@@ -3,7 +3,6 @@ package org.geysermc.hydraulic.compat.corpus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * Validates the admissibility of Bedrock addons for use in Hydraulic.

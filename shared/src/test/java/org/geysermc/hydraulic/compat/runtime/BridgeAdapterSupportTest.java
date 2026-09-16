@@ -7,7 +7,6 @@ import org.geysermc.hydraulic.compat.MappingOwnership;
 import org.geysermc.hydraulic.compat.adapter.AdapterBinding;
 import org.geysermc.hydraulic.compat.adapter.AdapterFeature;
 import org.geysermc.hydraulic.compat.ir.CompiledCompatibilityPlan;
-import org.geysermc.hydraulic.compat.runtime.RuntimeBridgeKind;
 import org.geysermc.hydraulic.compat.mapping.ContentPatch;
 import org.geysermc.hydraulic.compat.model.Confidence;
 import org.geysermc.hydraulic.compat.model.SupportLevel;

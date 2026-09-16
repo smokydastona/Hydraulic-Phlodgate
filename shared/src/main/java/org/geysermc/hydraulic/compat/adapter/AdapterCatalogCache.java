@@ -1,7 +1,6 @@
 package org.geysermc.hydraulic.compat.adapter;
 
 import com.google.gson.reflect.TypeToken;
-import org.geysermc.hydraulic.util.PackUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;

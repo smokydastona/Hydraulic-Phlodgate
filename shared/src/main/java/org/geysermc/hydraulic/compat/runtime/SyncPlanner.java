@@ -5,7 +5,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /** Converts normalized dirty state into coalesced transport-neutral synchronization changes. */

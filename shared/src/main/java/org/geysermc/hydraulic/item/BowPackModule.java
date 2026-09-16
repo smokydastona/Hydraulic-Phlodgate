@@ -7,8 +7,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.BowItem;
 import org.geysermc.hydraulic.compat.CompatibilityRegistry;
 import org.geysermc.hydraulic.compat.ir.CompiledCompatibilityPlan;
-import org.geysermc.hydraulic.compat.model.CompatibilityObject;
-import org.geysermc.hydraulic.compat.runtime.CompatibilityDecisions;
 import org.geysermc.hydraulic.pack.PackModule;
 import org.geysermc.hydraulic.pack.TexturePackModule;
 import org.geysermc.hydraulic.pack.context.PackPostProcessContext;
@@ -20,7 +18,6 @@ import org.geysermc.pack.bedrock.resource.attachables.attachable.description.Scr
 import org.geysermc.pack.bedrock.resource.render_controllers.RenderControllers;
 import org.geysermc.pack.bedrock.resource.render_controllers.rendercontrollers.Arrays;
 import org.jetbrains.annotations.NotNull;
-import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.model.ItemOverride;
 import team.unnamed.creative.model.ItemPredicate;
 import team.unnamed.creative.model.Model;

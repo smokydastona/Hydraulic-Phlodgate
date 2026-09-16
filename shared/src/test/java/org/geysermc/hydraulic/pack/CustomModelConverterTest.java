@@ -27,7 +27,7 @@ class CustomModelConverterTest {
 
     @Test
     void extractsIndexedModelsWithoutDependingOnParsedPackModels() throws IOException {
-        Path indexedModel = this.writeModel("assets/examplemod/models/item/indexed.json", "minecraft:item/generated", "examplemod:item/indexed");
+        this.writeModel("assets/examplemod/models/item/indexed.json", "minecraft:item/generated", "examplemod:item/indexed");
 
         ModResourceIndex resourceIndex = ModResourceIndex.create(mod(), LoggerFactory.getLogger("CustomModelConverterTest"));
         IndexedModelProvider provider = new IndexedModelProvider(

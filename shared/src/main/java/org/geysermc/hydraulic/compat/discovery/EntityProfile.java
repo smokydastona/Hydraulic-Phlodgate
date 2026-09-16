@@ -4,8 +4,6 @@ import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
-
 /**
  * EntityProfile modeling movement, interaction, inventory, equipment, health,
  * AI category, attack behavior, mountability, and synchronization.

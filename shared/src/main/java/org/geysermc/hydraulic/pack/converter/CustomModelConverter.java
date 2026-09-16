@@ -1,6 +1,5 @@
 package org.geysermc.hydraulic.pack.converter;
 
-import net.kyori.adventure.key.Key;
 import org.geysermc.hydraulic.pack.ModResourceIndex;
 import org.geysermc.pack.converter.pipeline.AssetExtractor;
 import org.geysermc.pack.converter.pipeline.ExtractionContext;

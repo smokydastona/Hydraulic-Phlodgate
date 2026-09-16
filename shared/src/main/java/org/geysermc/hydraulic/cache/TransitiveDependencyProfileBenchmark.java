@@ -1,7 +1,6 @@
 package org.geysermc.hydraulic.cache;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -12,9 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * Transitive Dependent Mod Invalidation Profiler and Benchmark (Phase 9/10).
@@ -227,7 +224,7 @@ public final class TransitiveDependencyProfileBenchmark {
     @NotNull
     public static BenchmarkMetrics benchmark(@NotNull ModDependencyGraph graph, int trials) {
         long coldStartStart = System.nanoTime();
-        List<String> sorted = graph.topologicalSort();
+        graph.topologicalSort();
         long coldStartMicros = (System.nanoTime() - coldStartStart) / 1_000L;
 
         List<String> allMods = new ArrayList<>(graph.dependencies.keySet());

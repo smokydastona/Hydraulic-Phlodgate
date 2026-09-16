@@ -1,6 +1,5 @@
 package org.geysermc.hydraulic.compat.bedrock;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.jetbrains.annotations.NotNull;
 

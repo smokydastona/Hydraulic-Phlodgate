@@ -1,6 +1,5 @@
 package org.geysermc.hydraulic.compat.capability;
 
-import net.minecraft.resources.Identifier;
 import org.geysermc.hydraulic.compat.ir.CompiledCompatibilityPlan;
 import org.geysermc.hydraulic.compat.runtime.BlockEntityPatchTemplate;
 import org.geysermc.hydraulic.compat.runtime.FluidContainerBridge;
@@ -14,10 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Dynamic capability binder for translating compiled plans and discovered runtime capabilities

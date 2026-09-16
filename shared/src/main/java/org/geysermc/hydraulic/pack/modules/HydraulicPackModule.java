@@ -8,7 +8,6 @@ import org.geysermc.hydraulic.util.GeoUtil;
 import org.geysermc.pack.converter.util.JsonMappings;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
