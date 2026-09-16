@@ -23,7 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-@SuppressWarnings("this-escape")
+@SuppressWarnings({"this-escape", "rawtypes"})
 @AutoService(PackModule.class)
 public final class EntityPackModule extends PackModule<EntityPackModule> {
     public EntityPackModule() {

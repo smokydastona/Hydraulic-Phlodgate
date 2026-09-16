@@ -50,7 +50,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-@SuppressWarnings("this-escape")
+@SuppressWarnings({"this-escape", "rawtypes"})
 @AutoService(PackModule.class)
 public class ItemPackModule extends TexturePackModule<ItemPackModule> {
     private final Set<Identifier> itemsWith2dIcon = new LinkedHashSet<>();
