@@ -128,6 +128,52 @@ The long-term goal is to make compatibility increasingly automatic.
 
 Ideally, a server owner should be able to install a modpack, start the server, and have Phlodgate handle as much of the Bedrock compatibility work as possible.
 
+## Research corpus and implementation synthesis
+
+The current Phlodgate architecture was informed by a focused review of Bedrock pack tooling, UI/form systems, world-editing utilities, and compatibility experiments rather than by copying any third-party code or assets. The useful reference set is intentionally bounded to design patterns, expectations, and failure modes:
+
+- `mods-pemc/Mods-pemc` — browser-based Bedrock mod discovery, local pack import flow, and manifest-driven metadata ingestion.
+- `YusufOruu/OruuCreations` — Bedrock marketplace/add-on packaging expectations and skin/asset presentation patterns.
+- `RacherMaykii/Block-Workbench` — safe save workflows, world diagnostics, chunk-level data access, and audit-friendly Bedrock save handling.
+- `Flammbu/MCVault` — content-discovery UI, pack browsing, and metadata presentation for a mod ecosystem.
+- `Jom-er/Bedrock-Nexus` — curated community catalog patterns for pack discovery, downloads, and add-on organization.
+- `8Crafter-Studios/Ore-UI-Types` — generic UI component and form conventions for block/item-centric Bedrock presentation.
+- `TheNINJALLO/endstone-remote-workstations` — remote workstation and automation UI patterns that inform container/session and action routing.
+- `xRookieFight/jsonforge` — structured JSON metadata and schema-validation ideas for conversion and compatibility manifest work.
+- `smell-of-curry/mcbe-ts-ui` — TypeScript-first Bedrock UI patterns and widget composition for forms and runtime overlays.
+- `subwaystudio-s/Server-Properties-Editor-For-Calagopus` — configuration/editor UX patterns for runtime settings and validation.
+- `XxVoidicxX/mcbe-ui-codex` — large-format UI reference patterns for Bedrock forms, menus, and interaction flows.
+- `wisp-ts/forms-plus` — form composition and validation design for UI-driven diagnostics and compatibility reports.
+- `ISBP/BetterBedrockMenus` — menu UX conventions and action-state mapping ideas for Bedrock forms.
+- `444Nazky/GeyserIntegrated` — Geyser integration and compatibility assumptions for transport boundaries and feature gating.
+- `Langtanium/Bedrock-Java-ChibiArtAssets` — asset translation and visual-layer conventions for multi-platform content translation.
+- `lpsmods/assets-plus` — asset pipeline patterns for pack generation and resource dependency handling.
+- `424431185/pixel-asset-master-skills` — procedural art and metadata-driven asset generation patterns.
+- `Huu-Yuu/PixelSRPG-Forge` and `MozeeB/pixel-asset-gen` — game-asset generation flows, texture conventions, and runtime metadata wrangling.
+
+These projects were analyzed as reference material for Bedrock UI, asset generation, and content-discovery workflows. Hydraulic keeps them outside the runtime dependency graph, preserves Java server authority, and restricts actual compatibility logic to its own generation, validation, routing, and evidence pipeline.
+
+## Compatibility and implementation report
+
+The present repo has moved past the architecture-only stage and into evidence-based server/transport validation for selected slices:
+
+- Verified server-authoritative logic for discovery indexing, content inventories, fluid action contracts, energy action contracts, block-entity state synchronization, menu toggle routing, and session lifecycle binding.
+- Verified Java 25 compile and Fabric runtime smoke tests for selected pack-generation and machine-integration paths.
+- Explicitly not release-ready: no physical Bedrock-client observation, no full persistence proof for arbitrary third-party blocks/entities/fluids, and no claim of universal Java-mod compatibility.
+- The project remains intentionally conservative: compatibility evidence is reported with explicit maturity labels, not as broad support claims.
+
+## Release-readiness criteria
+
+A production-ready release requires all of the following to be satisfied:
+
+- All capability gates pass under the zero-trust policy in [`.github/Full-Implementation-Plan.md`](.github/Full-Implementation-Plan.md).
+- Server runtime, persistence, and transactional correctness are proven across fluids, energy, menu flows, and machine restarts.
+- Pack-validation defects are fully remediated with no release-blocking generator errors.
+- Companion/add-on boundaries remain client-only and never hold Java server authority.
+- Physical Bedrock E1–E10 evidence is captured and attested for the relevant compatibility surfaces.
+
+Until those conditions are met, the correct status is: implemented, tested in limited server/transport slices, but not release-ready.
+
 ---
 
 # Phlodgate vs Upstream Hydraulic

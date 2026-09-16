@@ -30,6 +30,24 @@ The long-term scaling strategy remains:
 4. mod-specific adapter
 5. explicit unsupported result when gaps remain
 
+## External research corpus and implementation synthesis
+
+The practical compatibility strategy in this repo is informed by a bounded set of Bedrock and Java compatibility projects, but it does not copy or depend on them at runtime. They were used as a reference corpus for pack metadata, UI form patterns, asset generation, world diagnostics, and Bedrock-side UX expectations.
+
+Useful research inputs included:
+
+- `mods-pemc/Mods-pemc` for pack import, local metadata handling, and browser-side mod discovery patterns.
+- `YusufOruu/OruuCreations` for marketplace/add-on presentation and asset packaging discipline.
+- `RacherMaykii/Block-Workbench` for safe-save patterns, world diagnostics, chunk-level inspection, and Bedrock data editing guardrails.
+- `Flammbu/MCVault` for discovery catalog and collection UX.
+- `Jom-er/Bedrock-Nexus` for community add-on catalog structure and resource organization.
+- `8Crafter-Studios/Ore-UI-Types`, `smell-of-curry/mcbe-ts-ui`, `XxVoidicxX/mcbe-ui-codex`, `wisp-ts/forms-plus`, `ISBP/BetterBedrockMenus`, and `subwaystudio-s/Server-Properties-Editor-For-Calagopus` for Bedrock UI conventions, forms, and runtime state presentation.
+- `444Nazky/GeyserIntegrated` and `jsonforge` for compatibility assumptions, transport boundaries, and JSON-driven metadata handling.
+- `TheNINJALLO/endstone-remote-workstations` for remote automation/session patterns and interaction routing.
+- `Langtanium/Bedrock-Java-ChibiArtAssets`, `lpsmods/assets-plus`, `424431185/pixel-asset-master-skills`, `Huu-Yuu/PixelSRPG-Forge`, and `MozeeB/pixel-asset-gen` for texture/model generation and asset metadata pipelines.
+
+These references are treated as design evidence only. Hydraulic keeps Java server authority, runtime compatibility logic, generated packs, and Geyser transport boundaries inside the repo itself and never promotes client-only or third-party pack logic into the authoritative compatibility engine.
+
 ## Executive Implementation Status
 
 This fork is now in a verified, partially executed but not release-ready state. The implementation work has progressed from raw compatibility research into a hardening and evidence pipeline for the high-confidence slices of the stack, but the project must still meet the remaining runtime and physical-client gates before claiming final release readiness.
