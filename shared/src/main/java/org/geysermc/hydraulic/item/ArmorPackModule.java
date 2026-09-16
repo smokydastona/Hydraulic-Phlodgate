@@ -113,11 +113,6 @@ public class ArmorPackModule extends TexturePackModule<ArmorPackModule> {
             description.scripts(ATTACHABLE_SCRIPTS);
             description.renderControllers(new String[] { "controller.render.armor" });
 
-            Map<String, String> items = new HashMap<>() {{
-                put(armorItemLocation.toString(), "query.is_owner_identifier_any('minecraft:player')");
-            }};
-            description.item(items);
-
             Map<String, String> textures = new LinkedHashMap<>();
             Key resolvedLayerTexture = EquipmentAssetLoader.sourceTextureKey(layerType, layerTexture);
             textures.put("default", getOutputFromModel(context, resolvedLayerTexture).replace("textures/", "").replace(".png", ""));
